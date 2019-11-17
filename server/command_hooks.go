@@ -102,7 +102,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 					text += fmt.Sprintf("### %v\n", date)
 				}
 				endTime, _ := time.Parse(time.RFC3339, item.End.DateTime)
-				text += fmt.Sprintf("- %v @ %v to %v\n", item.Summary, startTime.Format(timeFormat), endTime.Format(timeFormat))
+				text += fmt.Sprintf("- [%v](%s) @ %v to %v\n", item.Summary, item.HtmlLink, startTime.Format(timeFormat), endTime.Format(timeFormat))
 			}
 			p.postCommandResponse(args, text)
 		}
@@ -119,8 +119,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		split = strings.Fields(newCommand)
 		matchedString = matchedString[1 : len(matchedString)-1]
 
-		startTime, _ := time.ParseInLocation("2006-01-02T15:04", split[2], location)
-		endTime, _ := time.ParseInLocation("2006-01-02T15:04", split[3], location)
+		startTime, _ := time.ParseInLocation("2006-01-02@15:04", split[2], location)
+		endTime, _ := time.ParseInLocation("2006-01-02@15:04", split[3], location)
 
 		newEvent := calendar.Event{
 			Summary: matchedString,
@@ -132,7 +132,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			p.postCommandResponse(args, fmt.Sprintf("Failed to create calendar event. Error: %v", err))
 			return &model.CommandResponse{}, nil
 		}
-		p.postCommandResponse(args, fmt.Sprintf("Success! Event \"%s\" starting %v has been created.", createdEvent.Summary, createdEvent.Start.DateTime))
+		p.postCommandResponse(args, fmt.Sprintf("Success! Event [\"%s\"](%s) starting %v has been created.", createdEvent.Summary, createdEvent.HtmlLink, createdEvent.Start.DateTime))
 	}
 
 	return &model.CommandResponse{}, nil
