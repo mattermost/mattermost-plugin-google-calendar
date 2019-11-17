@@ -6,6 +6,6 @@ var manifest = struct {
 	ID      string
 	Version string
 }{
-	ID:      "com.mattermost.plugin-starter-template",
+	ID:      "calendar",
 	Version: "0.1.0",
 }

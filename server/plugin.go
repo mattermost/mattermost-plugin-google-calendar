@@ -1,9 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
+	"io/ioutil"
+	"path/filepath"
 	"sync"
+
+	"github.com/mattermost/mattermost-server/model"
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -18,11 +21,37 @@ type Plugin struct {
 	// configuration is the active plugin configuration. Consult getConfiguration and
 	// setConfiguration for usage.
 	configuration *configuration
+
+	botId string
 }
 
-// ServeHTTP demonstrates a plugin that handles HTTP requests by greeting the world.
-func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, "Hello, world!")
-}
+func (p *Plugin) OnActivate() error {
+	p.API.RegisterCommand(getCommand())
 
-// See https://developers.mattermost.com/extend/plugins/server/reference/
+	botId, err := p.Helpers.EnsureBot(&model.Bot{
+		Username:    "calendar",
+		DisplayName: "Google Calendar",
+		Description: "Created by the Google Calendar plugin.",
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to ensure google calendar bot")
+	}
+	p.botId = botId
+
+	bundlePath, err := p.API.GetBundlePath()
+	if err != nil {
+		return errors.Wrap(err, "couldn't get bundle path")
+	}
+
+	profileImage, err := ioutil.ReadFile(filepath.Join(bundlePath, "assets", "profile.png"))
+	if err != nil {
+		return errors.Wrap(err, "couldn't read profile image")
+	}
+
+	appErr := p.API.SetProfileImage(botId, profileImage)
+	if appErr != nil {
+		return errors.Wrap(appErr, "couldn't set profile image")
+	}
+
+	return nil
+}
