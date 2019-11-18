@@ -29,6 +29,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.connectCalendar(w, r)
 	case "/oauth/complete":
 		p.completeCalendar(w, r)
+	case "/delete":
+		p.deleteEvent(w, r)
 	case "/test":
 		p.test(w, r)
 	default:
@@ -96,11 +98,49 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		</body>
 	</html>
 	`
+	// Post intro post
+	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +
+		"You've successfully connected your Mattermost account to your Google Calendar."
 
-	w.Header().Set("Content-Type", "text/html")
-	w.Write([]byte(html))
+	p.CreateBotDMPost(userId, message)
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, html)
+}
+
+func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) {
+	html := `
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<script>
+				window.close();
+			</script>
+		</head>
+	</html>
+	`
+	userId := r.Header.Get("Mattermost-User-ID")
+	srv, errString := p.getCalendarService(userId)
+	if srv == nil {
+		p.CreateBotDMPost(userId, fmt.Sprintf("Unable to delete event. Error: %s", errString))
+		return
+	}
+	eventId := r.URL.Query().Get("evtid")
+	calendarId := r.URL.Query().Get("calid")
+	eventToBeDeleted, _ := srv.Events.Get(calendarId, eventId).Do()
+	err := srv.Events.Delete(calendarId, eventId).Do()
+	if err != nil {
+		p.CreateBotDMPost(userId, fmt.Sprintf("Unable to delete event. Error: %s", err.Error()))
+		return
+	}
+	p.CreateBotDMPost(userId, fmt.Sprintf("Success! Event %s has been deleted.", eventToBeDeleted.Summary))
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, html)
+
 }
 
 func (p *Plugin) test(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprint(w, fmt.Sprintf("%+v", p.getConfiguration()))
+	param1 := r.URL.Query().Get("evtid")
+	param2 := r.URL.Query().Get("calid")
+
+	fmt.Fprint(w, fmt.Sprintf("%v %v", param1, param2))
 }

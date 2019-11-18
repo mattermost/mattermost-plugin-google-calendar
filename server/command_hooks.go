@@ -41,6 +41,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	split := strings.Fields(args.Command)
 	command := split[0]
 	action := ""
+	config := p.API.GetConfig()
+
 	if len(split) > 1 {
 		action = split[1]
 	}
@@ -50,7 +52,6 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	}
 
 	if action == "connect" {
-		config := p.API.GetConfig()
 		if config.ServiceSettings.SiteURL == nil {
 			p.postCommandResponse(args, "Invalid SiteURL")
 			return &model.CommandResponse{}, nil
@@ -82,6 +83,9 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		t := time.Now().Format(time.RFC3339)
 		events, err := srv.Events.List("primary").ShowDeleted(false).
 			SingleEvents(true).TimeMin(t).MaxResults(int64(maxResults)).OrderBy("startTime").Do()
+		primaryCalendar, _ := srv.Calendars.Get("primary").Do()
+		timezone := primaryCalendar.TimeZone
+		location, _ := time.LoadLocation(timezone)
 		if err != nil {
 			p.postCommandResponse(args, fmt.Sprintf("Unable to retrieve next %v of the user's events: %v", maxResults, err))
 			return &model.CommandResponse{}, nil
@@ -95,14 +99,22 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			var date string
 			var startTime time.Time
 			for _, item := range events.Items {
-				tempTime, _ := time.Parse(time.RFC3339, item.Start.DateTime)
-				if date != tempTime.Format(dateFormat) {
-					startTime, _ = time.Parse(time.RFC3339, item.Start.DateTime)
+				startTime, _ = time.Parse(time.RFC3339, item.Start.DateTime)
+				endTime, _ := time.Parse(time.RFC3339, item.End.DateTime)
+				if date != startTime.Format(dateFormat) {
 					date = startTime.Format(dateFormat)
+
+					currentTime := time.Now().In(location).Format(dateFormat)
+					tomorrowTime := time.Now().AddDate(0, 0, 1).In(location).Format(dateFormat)
+
+					if date == currentTime {
+						date = fmt.Sprintf("Today (%s)", date)
+					} else if date == tomorrowTime {
+						date = fmt.Sprintf("Tomorrow (%s)", date)
+					}
 					text += fmt.Sprintf("### %v\n", date)
 				}
-				endTime, _ := time.Parse(time.RFC3339, item.End.DateTime)
-				text += fmt.Sprintf("- [%v](%s) @ %v to %v\n", item.Summary, item.HtmlLink, startTime.Format(timeFormat), endTime.Format(timeFormat))
+				text += fmt.Sprintf("- [%v](%s) @ %v to %v | [Delete Event](%s/plugins/calendar/delete?evtid=%s&calid=%s)\n", item.Summary, item.HtmlLink, startTime.Format(timeFormat), endTime.Format(timeFormat), *config.ServiceSettings.SiteURL, item.Id, primaryCalendar.Id)
 			}
 			p.postCommandResponse(args, text)
 		}
@@ -132,7 +144,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			p.postCommandResponse(args, fmt.Sprintf("Failed to create calendar event. Error: %v", err))
 			return &model.CommandResponse{}, nil
 		}
-		p.postCommandResponse(args, fmt.Sprintf("Success! Event [\"%s\"](%s) starting %v has been created.", createdEvent.Summary, createdEvent.HtmlLink, createdEvent.Start.DateTime))
+		p.CreateBotDMPost(args.UserId, fmt.Sprintf("Success! Event [%s](%s) starting %v has been created.", createdEvent.Summary, createdEvent.HtmlLink, startTime.Format(timeFormat)))
 	}
 
 	return &model.CommandResponse{}, nil
