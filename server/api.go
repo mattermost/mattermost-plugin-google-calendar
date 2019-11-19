@@ -132,7 +132,7 @@ func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) {
 		p.CreateBotDMPost(userId, fmt.Sprintf("Unable to delete event. Error: %s", err.Error()))
 		return
 	}
-	p.CreateBotDMPost(userId, fmt.Sprintf("Success! Event %s has been deleted.", eventToBeDeleted.Summary))
+	p.CreateBotDMPost(userId, fmt.Sprintf("Success! Event _%s_ has been deleted.", eventToBeDeleted.Summary))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, html)
 
@@ -143,4 +143,5 @@ func (p *Plugin) test(w http.ResponseWriter, r *http.Request) {
 	param2 := r.URL.Query().Get("calid")
 
 	fmt.Fprint(w, fmt.Sprintf("%v %v", param1, param2))
+	p.ExecuteCommand(&plugin.Context{}, &model.CommandArgs{Command: "/calendar create \"Some testevent\" 2019-11-16@13:40 2019-11-16@14:00"})
 }

@@ -14,7 +14,8 @@ import (
 
 const dateFormat = "Monday, January 2, 2006"
 const timeFormat = "3:04 PM MST"
-const customFormat = "2006-01-02T15:04"
+const customFormat = "2006-01-02@15:04"
+const customFormatNoTime = "2006-01-02"
 const COMMAND_HELP = `* |/calendar connect| - Connect your Google Calendar with your Mattermost account`
 
 func getCommand() *model.Command {
@@ -67,6 +68,10 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		return &model.CommandResponse{}, nil
 	}
 
+	primaryCalendar, _ := srv.Calendars.Get("primary").Do()
+	timezone := primaryCalendar.TimeZone
+	location, _ := time.LoadLocation(timezone)
+
 	if action == "list" {
 		var maxResults int = 5
 		var convErr error
@@ -83,9 +88,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		t := time.Now().Format(time.RFC3339)
 		events, err := srv.Events.List("primary").ShowDeleted(false).
 			SingleEvents(true).TimeMin(t).MaxResults(int64(maxResults)).OrderBy("startTime").Do()
-		primaryCalendar, _ := srv.Calendars.Get("primary").Do()
-		timezone := primaryCalendar.TimeZone
-		location, _ := time.LoadLocation(timezone)
+
 		if err != nil {
 			p.postCommandResponse(args, fmt.Sprintf("Unable to retrieve next %v of the user's events: %v", maxResults, err))
 			return &model.CommandResponse{}, nil
@@ -114,16 +117,74 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 					}
 					text += fmt.Sprintf("### %v\n", date)
 				}
-				text += fmt.Sprintf("- [%v](%s) @ %v to %v | [Delete Event](%s/plugins/calendar/delete?evtid=%s&calid=%s)\n", item.Summary, item.HtmlLink, startTime.Format(timeFormat), endTime.Format(timeFormat), *config.ServiceSettings.SiteURL, item.Id, primaryCalendar.Id)
+				timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
+				if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
+					timeToDisplay = "All-day"
+				}
+				text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/calendar/delete?evtid=%s&calid=%s)\n",
+					item.Summary, item.HtmlLink, timeToDisplay, *config.ServiceSettings.SiteURL, item.Id, primaryCalendar.Id)
 			}
 			p.postCommandResponse(args, text)
 		}
 	}
 
+	if action == "summary" {
+		date := time.Now().In(location)
+		dateToDisplay := "Today"
+		titleToDisplay := "Today's"
+		if len(split) == 3 {
+			if split[2] == "tomorrow" {
+				date = time.Now().AddDate(0, 0, 1).In(location)
+				dateToDisplay = "Tomorrow"
+				titleToDisplay = "Tomorrow's"
+			} else {
+				date, _ = time.ParseInLocation(customFormatNoTime, split[2], location)
+				dateToDisplay = date.Format(dateFormat)
+				titleToDisplay = dateToDisplay
+			}
+		}
+		beginOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, location).Format(time.RFC3339)
+		endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 11, 59, 59, 0, location).Format(time.RFC3339)
+
+		events, err := srv.Events.List("primary").ShowDeleted(false).
+			SingleEvents(true).TimeMin(beginOfDay).TimeMax(endOfDay).OrderBy("startTime").Do()
+		if err != nil {
+			p.postCommandResponse(args, "Error retrieiving events")
+			return &model.CommandResponse{}, nil
+		}
+
+		if len(events.Items) == 0 {
+			p.CreateBotDMPost(args.UserId, "It seems that you don't have any events happening.")
+			return &model.CommandResponse{}, nil
+		} else {
+			text := fmt.Sprintf("#### %s Schedule:\n", titleToDisplay)
+			for _, item := range events.Items {
+				text += fmt.Sprintf("**[%v](%s)**\n", item.Summary, item.HtmlLink)
+
+				startTime, _ := time.Parse(time.RFC3339, item.Start.DateTime)
+				endTime, _ := time.Parse(time.RFC3339, item.End.DateTime)
+
+				timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
+				if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
+					timeToDisplay = "All-day"
+				}
+				text += fmt.Sprintf("**When**: %s @ %s\n", dateToDisplay, timeToDisplay)
+
+				if item.Location != "" {
+					text += fmt.Sprintf("**Where**: %s\n", item.Location)
+				}
+
+				if item.Attendees != nil {
+					text += fmt.Sprintf("**Guests**: %+v (Organizer) & %v more\n", item.Organizer.Email, len(item.Attendees)-1)
+				}
+				text += fmt.Sprintf("**Status of Event**: %s\n\n", strings.Title(item.Status))
+
+			}
+			p.CreateBotDMPost(args.UserId, text)
+		}
+	}
+
 	if action == "create" {
-		primaryCalendar, _ := srv.Calendars.Get("primary").Do()
-		timezone := primaryCalendar.TimeZone
-		location, _ := time.LoadLocation(timezone)
 		r, _ := regexp.Compile("\"(.*?)\"")
 
 		matchedString := r.FindString(args.Command)
@@ -131,8 +192,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		split = strings.Fields(newCommand)
 		matchedString = matchedString[1 : len(matchedString)-1]
 
-		startTime, _ := time.ParseInLocation("2006-01-02@15:04", split[2], location)
-		endTime, _ := time.ParseInLocation("2006-01-02@15:04", split[3], location)
+		startTime, _ := time.ParseInLocation(customFormat, split[2], location)
+		endTime, _ := time.ParseInLocation(customFormat, split[3], location)
 
 		newEvent := calendar.Event{
 			Summary: matchedString,
@@ -144,7 +205,8 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			p.postCommandResponse(args, fmt.Sprintf("Failed to create calendar event. Error: %v", err))
 			return &model.CommandResponse{}, nil
 		}
-		p.CreateBotDMPost(args.UserId, fmt.Sprintf("Success! Event [%s](%s) starting %v has been created.", createdEvent.Summary, createdEvent.HtmlLink, startTime.Format(timeFormat)))
+		p.CreateBotDMPost(args.UserId, fmt.Sprintf("Success! Event _[%s](%s)_ on %v has been created.",
+			createdEvent.Summary, createdEvent.HtmlLink, startTime.Format(dateFormat)))
 	}
 
 	return &model.CommandResponse{}, nil
