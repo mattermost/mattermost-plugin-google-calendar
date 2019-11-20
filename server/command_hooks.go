@@ -109,13 +109,13 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 
 					currentTime := time.Now().In(location).Format(dateFormat)
 					tomorrowTime := time.Now().AddDate(0, 0, 1).In(location).Format(dateFormat)
-
+					titleForEventsToDisplay := date
 					if date == currentTime {
-						date = fmt.Sprintf("Today (%s)", date)
+						titleForEventsToDisplay = fmt.Sprintf("Today (%s)", date)
 					} else if date == tomorrowTime {
-						date = fmt.Sprintf("Tomorrow (%s)", date)
+						titleForEventsToDisplay = fmt.Sprintf("Tomorrow (%s)", date)
 					}
-					text += fmt.Sprintf("### %v\n", date)
+					text += fmt.Sprintf("### %v\n", titleForEventsToDisplay)
 				}
 				timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
 				if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
@@ -144,7 +144,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			}
 		}
 		beginOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, location).Format(time.RFC3339)
-		endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 11, 59, 59, 0, location).Format(time.RFC3339)
+		endOfDay := time.Date(date.Year(), date.Month(), date.Day(), 23, 59, 59, 0, location).Format(time.RFC3339)
 
 		events, err := srv.Events.List("primary").ShowDeleted(false).
 			SingleEvents(true).TimeMin(beginOfDay).TimeMax(endOfDay).OrderBy("startTime").Do()
