@@ -84,7 +84,7 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	p.API.KVSet(userId+"calendarToken", tokenJson)
-
+	p.CalendarSync(userId)
 	html := `
 	<!DOCTYPE html>
 	<html>
@@ -139,9 +139,7 @@ func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) test(w http.ResponseWriter, r *http.Request) {
-	param1 := r.URL.Query().Get("evtid")
-	param2 := r.URL.Query().Get("calid")
+	authedUserId := r.Header.Get("Mattermost-User-ID")
+	p.CalendarSync(authedUserId)
 
-	fmt.Fprint(w, fmt.Sprintf("%v %v", param1, param2))
-	p.ExecuteCommand(&plugin.Context{}, &model.CommandArgs{Command: "/calendar create \"Some testevent\" 2019-11-16@13:40 2019-11-16@14:00"})
 }

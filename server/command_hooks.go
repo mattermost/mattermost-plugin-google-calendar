@@ -72,6 +72,10 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	timezone := primaryCalendar.TimeZone
 	location, _ := time.LoadLocation(timezone)
 
+	if action == "print" {
+		p.printAllEventsInDatabase(args.UserId)
+	}
+
 	if action == "list" {
 		var maxResults int = 5
 		var convErr error
