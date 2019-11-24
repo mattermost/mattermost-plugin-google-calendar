@@ -9,6 +9,7 @@ import (
 
 	"github.com/mattermost/mattermost-server/model"
 	"golang.org/x/oauth2"
+	"google.golang.org/api/calendar/v3"
 
 	"github.com/mattermost/mattermost-server/plugin"
 )
@@ -33,6 +34,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.deleteEvent(w, r)
 	case "/handleresponse":
 		p.handleEventResponse(w, r)
+	case "/watch":
+		p.watchCalendar(w, r)
 	case "/test":
 		p.test(w, r)
 	default:
@@ -87,7 +90,12 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	}
 	p.API.KVSet(userId+"calendarToken", tokenJson)
 	p.CalendarSync(userId)
-	p.SetupCalendarWatch(userId)
+	err := p.SetupCalendarWatch(userId)
+
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 	html := `
 	<!DOCTYPE html>
 	<html>
@@ -183,8 +191,25 @@ func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) watchCalendar(w http.ResponseWriter, r *http.Request) {
-	authedUserId := r.Header.Get("Mattermost-User-ID")
-	p.CalendarSync(authedUserId)
+	userId := r.URL.Query().Get("userId")
+	channelId := r.Header.Get("X-Goog-Channel-ID")
+	resourceId := r.Header.Get("X-Goog-Resource-ID")
+	state := r.Header.Get("X-Goog-Resource-State")
+
+	watchToken, _ := p.API.KVGet(userId + "watchToken")
+	channelByte, _ := p.API.KVGet(userId + "watchChannel")
+	var channel calendar.Channel
+	json.Unmarshal(channelByte, &channel)
+
+	if string(watchToken) == channelId && state == "exists" {
+		p.CalendarSync(userId)
+	} else {
+		srv, _ := p.getCalendarService(userId)
+		srv.Channels.Stop(&calendar.Channel{
+			Id:         channelId,
+			ResourceId: resourceId,
+		})
+	}
 }
 
 func (p *Plugin) test(w http.ResponseWriter, r *http.Request) {
