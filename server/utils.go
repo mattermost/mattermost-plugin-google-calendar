@@ -7,6 +7,8 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
+
 	"github.com/mattermost/mattermost-server/mlog"
 	"github.com/mattermost/mattermost-server/model"
 	"golang.org/x/oauth2"
@@ -117,17 +119,17 @@ func (p *Plugin) CalendarSync(userID string) {
 }
 
 func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar.Event) {
-	channel, _ := p.API.GetDirectChannel(userID, p.botId)
 	eventsJson, _ := p.API.KVGet(userID + "events")
 	var events []*calendar.Event
 	json.Unmarshal(eventsJson, &events)
 
 	var textToPost string
-	var updateDatabase bool = true
+	updateDatabase := true
+	shouldPostMessage := true
 	for _, changedEvent := range changedEvents {
 		for idx, oldEvent := range events {
 			if oldEvent.Id == changedEvent.Id {
-				textToPost = fmt.Sprintf("#### EVENT UPDATED!!!!\n")
+				textToPost = fmt.Sprintf("#### Event Updated:\n")
 
 				if oldEvent.Summary != changedEvent.Summary {
 					textToPost += fmt.Sprintf("**~~[%v](%s)~~** ⟶ **[%v](%s)**\n", oldEvent.Summary, oldEvent.HtmlLink, changedEvent.Summary, changedEvent.HtmlLink)
@@ -168,20 +170,83 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 					textToPost += fmt.Sprintf("**Status of Event**: %s\n\n", strings.Title(oldEvent.Status))
 				}
 
+				for _, attendee := range changedEvent.Attendees {
+					if attendee.Self && changedEvent.Status != "cancelled" {
+						if attendee.ResponseStatus == "needsAction" {
+							config := p.API.GetConfig()
+							url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
+								*config.ServiceSettings.SiteURL, changedEvent.Id)
+							textToPost += fmt.Sprintf("**Going?**: [Yes](%s) [No](%s) [Maybe](%s)\n",
+								url+"response=accepted", url+"response=declined", url+"response=tentative")
+						} else if attendee.ResponseStatus == "declined" {
+							textToPost += fmt.Sprintf("**Going?**: No")
+						} else if attendee.ResponseStatus == "tentative" {
+							textToPost += fmt.Sprintf("**Going?**: Maybe")
+						} else {
+							textToPost += fmt.Sprintf("**Going?**: Yes")
+						}
+					}
+				}
+
 				if changedEvent.Status == "cancelled" {
 					events = append(events[:idx], events[idx+1:]...)
+				} else {
+					events[idx] = changedEvent
 				}
+
+				if oldEvent.Creator.Self {
+					shouldPostMessage = false
+				}
+
 				break
 			}
 
-			if idx == len(events)-1 && !changedEvent.Creator.Self {
-				p.API.KVDelete(userID + "syncToken")
-				p.API.KVDelete(userID + "events")
-				p.CalendarSync(userID)
-				textToPost = fmt.Sprintf("**NEW EVENT W00T W00T LETS GET IT LETS GO!**")
-				updateDatabase = false
+			if idx == len(events)-1 {
+				events = append(events, changedEvent)
+				textToPost = fmt.Sprintf("#### You've been invited:\n")
+				textToPost += fmt.Sprintf("**[%v](%s)**\n", changedEvent.Summary, changedEvent.HtmlLink)
+
+				startTime, _ := time.Parse(time.RFC3339, changedEvent.Start.DateTime)
+				endTime, _ := time.Parse(time.RFC3339, changedEvent.End.DateTime)
+
+				dateToDisplay := startTime.Format(dateFormat)
+				timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
+				if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
+					timeToDisplay = "All-day"
+				}
+				textToPost += fmt.Sprintf("**When**: %s @ %s\n", dateToDisplay, timeToDisplay)
+
+				if changedEvent.Location != "" {
+					textToPost += fmt.Sprintf("**Where**: %s\n", changedEvent.Location)
+				}
+
+				if changedEvent.Attendees != nil {
+					textToPost += fmt.Sprintf("**Guests**: %+v (Organizer) & %v more\n", changedEvent.Organizer.Email, len(changedEvent.Attendees)-1)
+				}
+				textToPost += fmt.Sprintf("**Status of Event**: %s\n", strings.Title(changedEvent.Status))
+
+				for _, attendee := range changedEvent.Attendees {
+					if attendee.Self {
+						if attendee.ResponseStatus == "needsAction" {
+							config := p.API.GetConfig()
+							url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
+								*config.ServiceSettings.SiteURL, changedEvent.Id)
+							textToPost += fmt.Sprintf("**Going?**: [Yes](%s) [No](%s) [Maybe](%s)\n",
+								url+"response=accepted", url+"response=declined", url+"response=tentative")
+						} else if attendee.ResponseStatus == "declined" {
+							textToPost += fmt.Sprintf("**Going?**: No")
+						} else if attendee.ResponseStatus == "tentative" {
+							textToPost += fmt.Sprintf("**Going?**: Maybe")
+						} else {
+							textToPost += fmt.Sprintf("**Going?**: Yes")
+						}
+					}
+				}
+
+				if changedEvent.Creator.Self {
+					shouldPostMessage = false
+				}
 			}
-			// p.CreateBotDMPost(userID, textToPost)
 		}
 	}
 
@@ -190,13 +255,8 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 		p.API.KVSet(userID+"events", newEvents)
 	}
 
-	if textToPost != "" {
-		post := &model.Post{
-			UserId:    p.botId,
-			ChannelId: channel.Id,
-			Message:   textToPost,
-		}
-		p.API.SendEphemeralPost(userID, post)
+	if textToPost != "" && shouldPostMessage {
+		p.CreateBotDMPost(userID, textToPost)
 	}
 }
 
@@ -215,4 +275,30 @@ func (p *Plugin) printAllEventsInDatabase(userID string) {
 		}
 		p.API.SendEphemeralPost(userID, post)
 	}
+}
+
+func (p *Plugin) getPrimaryCalendarId(userID string) string {
+	srv, _ := p.getCalendarService(userID)
+	primaryCalendar, _ := srv.Calendars.Get("primary").Do()
+	return primaryCalendar.Id
+}
+
+func (p *Plugin) SetupCalendarWatch(userID string) error {
+	srv, _ := p.getCalendarService(userID)
+	config := p.API.GetConfig()
+	uuid := uuid.New().String()
+	channel, err := srv.Events.Watch("primary", &calendar.Channel{
+		Address: fmt.Sprintf("%s/plugins/calendar/watch?userID=%s", *config.ServiceSettings.SiteURL, userID),
+		Id:      uuid,
+		Type:    "web_hook",
+	}).Do()
+
+	if err != nil {
+		return err
+	}
+
+	watchChannelJson, _ := channel.MarshalJSON()
+	p.API.KVSet(userID+"watchToken", []byte(uuid))
+	p.API.KVSet(userID+"watchChannel", watchChannelJson)
+	return nil
 }

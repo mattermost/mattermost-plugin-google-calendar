@@ -31,6 +31,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.completeCalendar(w, r)
 	case "/delete":
 		p.deleteEvent(w, r)
+	case "/handleresponse":
+		p.handleEventResponse(w, r)
 	case "/test":
 		p.test(w, r)
 	default:
@@ -85,6 +87,7 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	}
 	p.API.KVSet(userId+"calendarToken", tokenJson)
 	p.CalendarSync(userId)
+	p.SetupCalendarWatch(userId)
 	html := `
 	<!DOCTYPE html>
 	<html>
@@ -138,8 +141,53 @@ func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) {
 
 }
 
+func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
+	html := `
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<script>
+				window.close();
+			</script>
+		</head>
+	</html>
+	`
+
+	userId := r.Header.Get("Mattermost-User-ID")
+	response := r.URL.Query().Get("response")
+	eventId := r.URL.Query().Get("evtid")
+	calendarId := p.getPrimaryCalendarId(userId)
+	srv, _ := p.getCalendarService(userId)
+
+	eventToBeUpdated, err := srv.Events.Get(calendarId, eventId).Do()
+	if err != nil {
+		p.CreateBotDMPost(userId, fmt.Sprintf("Error! Failed to update the response of _%s_ event.", eventToBeUpdated.Summary))
+		return
+	}
+
+	for idx, attendee := range eventToBeUpdated.Attendees {
+		if attendee.Self {
+			eventToBeUpdated.Attendees[idx].ResponseStatus = response
+		}
+	}
+
+	event, err := srv.Events.Update(calendarId, eventId, eventToBeUpdated).Do()
+	if err != nil {
+		p.CreateBotDMPost(userId, fmt.Sprintf("Error! Failed to update the response of _%s_ event.", event.Summary))
+	} else {
+		p.CreateBotDMPost(userId, fmt.Sprintf("Success! Event _%s_ response has been updated.", event.Summary))
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	fmt.Fprint(w, html)
+}
+
+func (p *Plugin) watchCalendar(w http.ResponseWriter, r *http.Request) {
+	authedUserId := r.Header.Get("Mattermost-User-ID")
+	p.CalendarSync(authedUserId)
+}
+
 func (p *Plugin) test(w http.ResponseWriter, r *http.Request) {
 	authedUserId := r.Header.Get("Mattermost-User-ID")
 	p.CalendarSync(authedUserId)
-
 }

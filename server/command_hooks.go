@@ -183,6 +183,24 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 				}
 				text += fmt.Sprintf("**Status of Event**: %s\n\n", strings.Title(item.Status))
 
+				for _, attendee := range item.Attendees {
+					if attendee.Self {
+						if attendee.ResponseStatus == "needsAction" {
+							config := p.API.GetConfig()
+							url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
+								*config.ServiceSettings.SiteURL, item.Id)
+							text += fmt.Sprintf("**Going?**: [Yes](%s) [No](%s) [Maybe](%s)\n",
+								url+"response=accepted", url+"response=declined", url+"response=tentative")
+						} else if attendee.ResponseStatus == "declined" {
+							text += fmt.Sprintf("**Going?**: No")
+						} else if attendee.ResponseStatus == "tentative" {
+							text += fmt.Sprintf("**Going?**: Maybe")
+						} else {
+							text += fmt.Sprintf("**Going?**: Yes")
+						}
+					}
+				}
+
 			}
 			p.CreateBotDMPost(args.UserId, text)
 		}
