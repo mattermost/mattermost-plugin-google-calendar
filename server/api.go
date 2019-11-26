@@ -38,6 +38,8 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.watchCalendar(w, r)
 	case "/test":
 		p.test(w, r)
+	case "/test2":
+		p.test2(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -53,7 +55,12 @@ func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
 
 	state := fmt.Sprintf("%v_%v", model.NewId()[10], authedUserId)
 
-	p.API.KVSet(state, []byte(state))
+	err := p.API.KVSet(state, []byte(state))
+
+	if err != nil {
+		http.Error(w, "Failed to save state", http.StatusBadRequest)
+		return
+	}
 
 	calendarConfig := p.CalendarConfig()
 
@@ -74,14 +81,18 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if storedState, err := p.API.KVGet(state); err != nil {
-		fmt.Println(err.Error())
-		http.Error(w, "missing stored state", http.StatusBadRequest)
+		http.Error(w, "Missing stored state", http.StatusBadRequest)
 		return
 	} else if string(storedState) != state {
-		http.Error(w, "invalid state", http.StatusBadRequest)
+		http.Error(w, "Invalid state", http.StatusBadRequest)
 		return
 	}
-	p.API.KVDelete(state)
+
+	if err := p.API.KVDelete(state); err != nil {
+		http.Error(w, "Error deleting state", http.StatusBadRequest)
+		return
+	}
+
 	token, _ := config.Exchange(context.Background(), string(code))
 	tokenJson, marshalErr := json.Marshal(token)
 	if marshalErr != nil {
@@ -96,6 +107,7 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
+	p.StartCronJob(authedUserId)
 	html := `
 	<!DOCTYPE html>
 	<html>
@@ -213,6 +225,11 @@ func (p *Plugin) watchCalendar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) test(w http.ResponseWriter, r *http.Request) {
+	authedUserId := r.Header.Get("Mattermost-User-ID")
+	p.StartCronJob(authedUserId)
+}
+
+func (p *Plugin) test2(w http.ResponseWriter, r *http.Request) {
 	authedUserId := r.Header.Get("Mattermost-User-ID")
 	p.CalendarSync(authedUserId)
 }

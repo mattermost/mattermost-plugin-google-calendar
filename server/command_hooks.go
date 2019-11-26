@@ -181,7 +181,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 				if item.Attendees != nil {
 					text += fmt.Sprintf("**Guests**: %+v (Organizer) & %v more\n", item.Organizer.Email, len(item.Attendees)-1)
 				}
-				text += fmt.Sprintf("**Status of Event**: %s\n\n", strings.Title(item.Status))
+				text += fmt.Sprintf("**Status of Event**: %s\n", strings.Title(item.Status))
 
 				for _, attendee := range item.Attendees {
 					if attendee.Self {
@@ -189,14 +189,14 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 							config := p.API.GetConfig()
 							url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
 								*config.ServiceSettings.SiteURL, item.Id)
-							text += fmt.Sprintf("**Going?**: [Yes](%s) [No](%s) [Maybe](%s)\n",
+							text += fmt.Sprintf("**Going?**: [Yes](%s) [No](%s) [Maybe](%s)\n\n",
 								url+"response=accepted", url+"response=declined", url+"response=tentative")
 						} else if attendee.ResponseStatus == "declined" {
-							text += fmt.Sprintf("**Going?**: No")
+							text += fmt.Sprintf("**Going?**: No\n\n")
 						} else if attendee.ResponseStatus == "tentative" {
-							text += fmt.Sprintf("**Going?**: Maybe")
+							text += fmt.Sprintf("**Going?**: Maybe\n\n")
 						} else {
-							text += fmt.Sprintf("**Going?**: Yes")
+							text += fmt.Sprintf("**Going?**: Yes\n\n")
 						}
 					}
 				}
