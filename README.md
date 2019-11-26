@@ -12,8 +12,7 @@ A google calendar plugin for Mattermost client which allows you to create, delet
 - Get upcoming calendar events
 - Get a summary for any day you like
 
-### Installing
-
+## Installing
 Clone this repo and do a `make`. You will need to upload this to your mattermost instance through the system console and provide it a Client secret and Client ID.
 These can be obtained through the following procedure: 
 
@@ -26,8 +25,7 @@ These can be obtained through the following procedure:
 7. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret and select a user for the plugin to post event messages with.
 8. Enable the plugin and you should be able to see event reminder notifications.
 
-### Installing For Development
-
+## Installing For Development
 You will be required to follow the above steps to acquire a Client ID and Client secret. 
 
 1. Clone the repo and make sure `mattermost server` and `mattermost webapp` is up and running.
