@@ -47,6 +47,8 @@ Afterwards, you can close SimpleHTTPWebServer and run your Mattermost Server)
 If you are interested in contributing, please fork this repo and create a pull request!
 
 ## To-Do's / Future Improvements
+- Change response to event within mattermost
+- Show conflicts when invited to event with other events on your calendar
 - Better error logging / handling
 - Optimizations in cron jobs for reminding users about 10 minutes until event as well as user in event
 - Code refactoring
