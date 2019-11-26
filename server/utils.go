@@ -271,9 +271,9 @@ func (p *Plugin) startCronJob(userID string) {
 
 func (p *Plugin) setupCalendarWatch(userID string) error {
 	srv, _ := p.getCalendarService(userID)
-	// config := p.API.GetConfig()
+	config := p.API.GetConfig()
 	uuid := uuid.New().String()
-	webSocketURL := "https://faa36686.ngrok.io" //*config.ServiceSettings.SiteURL
+	webSocketURL := *config.ServiceSettings.SiteURL
 	channel, err := srv.Events.Watch("primary", &calendar.Channel{
 		Address: fmt.Sprintf("%s/plugins/calendar/watch?userId=%s", webSocketURL, userID),
 		Id:      uuid,
