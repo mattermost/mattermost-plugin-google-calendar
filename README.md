@@ -53,6 +53,7 @@ If you are interested in contributing, please fork this repo and create a pull r
 - More commenting throughout code to explain what's going on
 - Set the calendar user wants to sync with (Currently it uses primary calendar)
 - Customize reminder time (user can set if they want anything other than 10 minutes)
+- Include a web app portion which displays the events for a particular day without user needing to enter commands
 
 ## Authors
 
