@@ -3,14 +3,14 @@
 A google calendar plugin for Mattermost client which allows you to create, delete, and get notifications from your google calendar events.
 
 ## Features
-    - Create events
-    - Delete Events
-    - Get 10 minute notifications
-    - Get event updates
-    - Status is set to Do Not Disturb when in a event (Manually required to reset it)
-    - Get invitations request within Mattermost and reply to them instantly
-    - Get upcoming calendar events
-    - Get a summary for any day you like
+- Create events
+- Delete Events
+- Get 10 minute notifications
+- Get event updates
+- Status is set to Do Not Disturb when in a event (Manually required to reset it)
+- Get invitations request within Mattermost and reply to them instantly
+- Get upcoming calendar events
+- Get a summary for any day you like
 
 ### Installing
 
@@ -49,12 +49,12 @@ Afterwards, you can close SimpleHTTPWebServer and run your Mattermost Server)
 If you are interested in contributing, please fork this repo and create a pull request!
 
 ## To-Do's / Future Improvements
-    - Better error logging / handling
-    - Optimizations in cron jobs for reminding users about 10 minutes until event as well as user in event
-    - Code refactoring
-    - More commenting throughout code to explain what's going on
-    - Set the calendar user wants to sync with (Currently it uses primary calendar)
-    - Customize reminder time (user can set if they want anything other than 10 minutes)
+- Better error logging / handling
+- Optimizations in cron jobs for reminding users about 10 minutes until event as well as user in event
+- Code refactoring
+- More commenting throughout code to explain what's going on
+- Set the calendar user wants to sync with (Currently it uses primary calendar)
+- Customize reminder time (user can set if they want anything other than 10 minutes)
 
 ## Authors
 
