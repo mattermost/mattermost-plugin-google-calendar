@@ -36,10 +36,6 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 		p.handleEventResponse(w, r)
 	case "/watch":
 		p.watchCalendar(w, r)
-	case "/test":
-		p.test(w, r)
-	case "/test2":
-		p.test2(w, r)
 	default:
 		http.NotFound(w, r)
 	}
@@ -55,9 +51,7 @@ func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
 
 	state := fmt.Sprintf("%v_%v", model.NewId()[10], authedUserId)
 
-	err := p.API.KVSet(state, []byte(state))
-
-	if err != nil {
+	if err := p.API.KVSet(state, []byte(state)); err != nil {
 		http.Error(w, "Failed to save state", http.StatusBadRequest)
 		return
 	}
@@ -70,6 +64,19 @@ func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
+	html := `
+	<!DOCTYPE html>
+	<html>
+		<head>
+			<script>
+				window.close();
+			</script>
+		</head>
+		<body>
+			<p>Completed connecting to Google Calendar. Please close this window.</p>
+		</body>
+	</html>
+	`
 	authedUserId := r.Header.Get("Mattermost-User-ID")
 	state := r.FormValue("state")
 	code := r.FormValue("code")
@@ -93,37 +100,32 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, _ := config.Exchange(context.Background(), string(code))
-	tokenJson, marshalErr := json.Marshal(token)
-	if marshalErr != nil {
-		http.Error(w, "invalid token to json marshal", http.StatusBadRequest)
+	token, err := config.Exchange(context.Background(), string(code))
+	if err != nil {
+		http.Error(w, "Error setting up Config Exchange", http.StatusBadRequest)
 		return
 	}
-	p.API.KVSet(userId+"calendarToken", tokenJson)
-	p.CalendarSync(userId)
-	err := p.SetupCalendarWatch(userId)
 
+	tokenJSON, err := json.Marshal(token)
 	if err != nil {
+		http.Error(w, "Invalid token marshal in completeCalendar", http.StatusBadRequest)
+		return
+	}
+
+	p.API.KVSet(userId+"calendarToken", tokenJSON)
+	p.CalendarSync(userId)
+
+	if err = p.setupCalendarWatch(userId); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
-	p.StartCronJob(authedUserId)
-	html := `
-	<!DOCTYPE html>
-	<html>
-		<head>
-			<script>
-				window.close();
-			</script>
-		</head>
-		<body>
-			<p>Completed connecting to Google Calendar. Please close this window.</p>
-		</body>
-	</html>
-	`
+
+	p.startCronJob(authedUserId)
+
 	// Post intro post
 	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +
-		"You've successfully connected your Mattermost account to your Google Calendar."
+		"You've successfully connected your Mattermost account to your Google Calendar.\n" +
+		"Please type **/calendar help** to understand how to user this plugin. "
 
 	p.CreateBotDMPost(userId, message)
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -141,24 +143,25 @@ func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) {
 		</head>
 	</html>
 	`
-	userId := r.Header.Get("Mattermost-User-ID")
-	srv, errString := p.getCalendarService(userId)
-	if srv == nil {
-		p.CreateBotDMPost(userId, fmt.Sprintf("Unable to delete event. Error: %s", errString))
-		return
-	}
-	eventId := r.URL.Query().Get("evtid")
-	calendarId := r.URL.Query().Get("calid")
-	eventToBeDeleted, _ := srv.Events.Get(calendarId, eventId).Do()
-	err := srv.Events.Delete(calendarId, eventId).Do()
+	userID := r.Header.Get("Mattermost-User-ID")
+	eventID := r.URL.Query().Get("evtid")
+	calendarID := p.getPrimaryCalendarID(userID)
+	srv, err := p.getCalendarService(userID)
 	if err != nil {
-		p.CreateBotDMPost(userId, fmt.Sprintf("Unable to delete event. Error: %s", err.Error()))
+		p.CreateBotDMPost(userID, fmt.Sprintf("Unable to delete event. Error: %s", err))
 		return
 	}
-	p.CreateBotDMPost(userId, fmt.Sprintf("Success! Event _%s_ has been deleted.", eventToBeDeleted.Summary))
+
+	eventToBeDeleted, _ := srv.Events.Get(calendarID, eventID).Do()
+	err = srv.Events.Delete(calendarID, eventID).Do()
+	if err != nil {
+		p.CreateBotDMPost(userID, fmt.Sprintf("Unable to delete event. Error: %s", err.Error()))
+		return
+	}
+
+	p.CreateBotDMPost(userID, fmt.Sprintf("Success! Event _%s_ has been deleted.", eventToBeDeleted.Summary))
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, html)
-
 }
 
 func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
@@ -173,15 +176,15 @@ func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
 	</html>
 	`
 
-	userId := r.Header.Get("Mattermost-User-ID")
+	userID := r.Header.Get("Mattermost-User-ID")
 	response := r.URL.Query().Get("response")
-	eventId := r.URL.Query().Get("evtid")
-	calendarId := p.getPrimaryCalendarId(userId)
-	srv, _ := p.getCalendarService(userId)
+	eventID := r.URL.Query().Get("evtid")
+	calendarID := p.getPrimaryCalendarID(userID)
+	srv, _ := p.getCalendarService(userID)
 
-	eventToBeUpdated, err := srv.Events.Get(calendarId, eventId).Do()
+	eventToBeUpdated, err := srv.Events.Get(calendarID, eventID).Do()
 	if err != nil {
-		p.CreateBotDMPost(userId, fmt.Sprintf("Error! Failed to update the response of _%s_ event.", eventToBeUpdated.Summary))
+		p.CreateBotDMPost(userID, fmt.Sprintf("Error! Failed to update the response of _%s_ event.", eventToBeUpdated.Summary))
 		return
 	}
 
@@ -191,11 +194,11 @@ func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	event, err := srv.Events.Update(calendarId, eventId, eventToBeUpdated).Do()
+	event, err := srv.Events.Update(calendarID, eventID, eventToBeUpdated).Do()
 	if err != nil {
-		p.CreateBotDMPost(userId, fmt.Sprintf("Error! Failed to update the response of _%s_ event.", event.Summary))
+		p.CreateBotDMPost(userID, fmt.Sprintf("Error! Failed to update the response of _%s_ event.", event.Summary))
 	} else {
-		p.CreateBotDMPost(userId, fmt.Sprintf("Success! Event _%s_ response has been updated.", event.Summary))
+		p.CreateBotDMPost(userID, fmt.Sprintf("Success! Event _%s_ response has been updated.", event.Summary))
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
@@ -203,33 +206,23 @@ func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) watchCalendar(w http.ResponseWriter, r *http.Request) {
-	userId := r.URL.Query().Get("userId")
-	channelId := r.Header.Get("X-Goog-Channel-ID")
-	resourceId := r.Header.Get("X-Goog-Resource-ID")
+	userID := r.URL.Query().Get("userId")
+	channelID := r.Header.Get("X-Goog-Channel-ID")
+	resourceID := r.Header.Get("X-Goog-Resource-ID")
 	state := r.Header.Get("X-Goog-Resource-State")
 
-	watchToken, _ := p.API.KVGet(userId + "watchToken")
-	channelByte, _ := p.API.KVGet(userId + "watchChannel")
+	watchToken, _ := p.API.KVGet(userID + "watchToken")
+	channelByte, _ := p.API.KVGet(userID + "watchChannel")
 	var channel calendar.Channel
 	json.Unmarshal(channelByte, &channel)
 
-	if string(watchToken) == channelId && state == "exists" {
-		p.CalendarSync(userId)
+	if string(watchToken) == channelID && state == "exists" {
+		p.CalendarSync(userID)
 	} else {
-		srv, _ := p.getCalendarService(userId)
+		srv, _ := p.getCalendarService(userID)
 		srv.Channels.Stop(&calendar.Channel{
-			Id:         channelId,
-			ResourceId: resourceId,
+			Id:         channelID,
+			ResourceId: resourceID,
 		})
 	}
-}
-
-func (p *Plugin) test(w http.ResponseWriter, r *http.Request) {
-	authedUserId := r.Header.Get("Mattermost-User-ID")
-	p.StartCronJob(authedUserId)
-}
-
-func (p *Plugin) test2(w http.ResponseWriter, r *http.Request) {
-	authedUserId := r.Header.Get("Mattermost-User-ID")
-	p.CalendarSync(authedUserId)
 }
