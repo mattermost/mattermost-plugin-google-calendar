@@ -1,4 +1,4 @@
-# Mattermost Google Calendar Plugin
+# Mattermost Google Calendar Plugin (ALPHA)
 
 A google calendar plugin for Mattermost client which allows you to create, delete, and get notifications from your google calendar events.
 
