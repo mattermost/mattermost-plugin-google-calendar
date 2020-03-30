@@ -164,14 +164,13 @@ func (p *Plugin) executeCommandSummary(args *model.CommandArgs) (*model.CommandR
 	dateToDisplay := "Today"
 	titleToDisplay := "Today's"
 	if len(split) == 3 {
+		date, _ = time.ParseInLocation(customFormatNoTime, split[2], location)
+		dateToDisplay = date.Format(dateFormat)
+		titleToDisplay = dateToDisplay
 		if split[2] == "tomorrow" {
 			date = time.Now().AddDate(0, 0, 1).In(location)
 			dateToDisplay = "Tomorrow"
 			titleToDisplay = "Tomorrow's"
-		} else {
-			date, _ = time.ParseInLocation(customFormatNoTime, split[2], location)
-			dateToDisplay = date.Format(dateFormat)
-			titleToDisplay = dateToDisplay
 		}
 	}
 	beginOfDay := time.Date(date.Year(), date.Month(), date.Day(), 0, 0, 0, 0, location).Format(time.RFC3339)
