@@ -370,7 +370,6 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 	attendee := p.retrieveMyselfForEvent(item)
 	if attendee != nil {
 		if attendee.ResponseStatus == "needsAction" {
-			config = p.API.GetConfig()
 			url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
 				*config.ServiceSettings.SiteURL, item.Id)
 			text += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n",
