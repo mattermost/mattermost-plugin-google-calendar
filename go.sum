@@ -196,7 +196,6 @@ github.com/mattermost/ldap v3.0.4+incompatible h1:SOeNnz+JNR+foQ3yHkYqijb9MLPhXN
 github.com/mattermost/ldap v3.0.4+incompatible/go.mod h1:b4reDCcGpBxJ4WX0f224KFY+OR0npin7or7EFpeIko4=
 github.com/mattermost/mattermost-server v1.4.1-0.20191016162522-6597fdb40134 h1:8vANzZUU0JXkoW0zCrfYt8Ib7lW1ij/VUn8n28o9/OM=
 github.com/mattermost/mattermost-server v1.4.1-0.20191016162522-6597fdb40134/go.mod h1:M8AZ113Nuu+XvJMPOIzNx55xH1zGVltmcP3A3FAHHtw=
-github.com/mattermost/mattermost-server v5.11.1+incompatible h1:LPzKY0+2Tic/ik67qIg6VrydRCgxNXZQXOeaiJ2rMBY=
 github.com/mattermost/rsc v0.0.0-20160330161541-bbaefb05eaa0/go.mod h1:nV5bfVpT//+B1RPD2JvRnxbkLmJEYXmRaaVl15fsXjs=
 github.com/mattermost/viper v1.0.4/go.mod h1:uc5hKG9lv4/KRwPOt2c1omOyirS/UnuA2TytiZQSFHM=
 github.com/mattn/go-colorable v0.0.9/go.mod h1:9vuHe8Xs5qXnSaW/c/ABM9alt+Vo+STaOChaDxuIBZU=
