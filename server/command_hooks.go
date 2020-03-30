@@ -48,7 +48,6 @@ func (p *Plugin) postCommandResponse(args *model.CommandArgs, text string) {
 }
 
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	userID := args.UserId
 	split := strings.Fields(args.Command)
 	command := split[0]
 	action := ""
@@ -72,21 +71,13 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 		}
 	}
 
-	srv, err := p.getCalendarService(args.UserId)
-	if err != nil {
-		p.postCommandResponse(args, err.Error())
-		return &model.CommandResponse{}, nil
-	}
-
-	location := p.getPrimaryCalendarLocation(userID)
-
 	switch action {
 	case "list":
-		return p.executeCommandList(args, split, srv, location, config)
+		return p.executeCommandList(args)
 	case "summary":
-		return p.executeCommandSummary(args, split, srv, location, userID)
+		return p.executeCommandSummary(args)
 	case "create":
-		return p.executeCommandCreate(args, split, srv, location)
+		return p.executeCommandCreate(args)
 	case "help":
 		return p.executeCommandHelp(args)
 	}
@@ -94,9 +85,17 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) executeCommandList(args *model.CommandArgs, split []string, srv *calendar.Service, location *time.Location, config *model.Config) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeCommandList(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	maxResults := 5
-	var err error
+	split := strings.Fields(args.Command)
+	userID := args.UserId
+	location := p.getPrimaryCalendarLocation(userID)
+	srv, err := p.getCalendarService(userID)
+	if err != nil {
+		p.postCommandResponse(args, err.Error())
+		return &model.CommandResponse{}, nil
+	}
+
 	if len(split) == 3 {
 		maxResults, err = strconv.Atoi(split[2])
 	}
@@ -118,39 +117,49 @@ func (p *Plugin) executeCommandList(args *model.CommandArgs, split []string, srv
 	if len(events.Items) == 0 {
 		p.postCommandResponse(args, "No upcoming events")
 		return &model.CommandResponse{}, nil
-	} else {
-		text := "# Upcoming Events: \n"
-		var date string
-		var startTime time.Time
-		for _, item := range events.Items {
-			startTime, _ = time.Parse(time.RFC3339, item.Start.DateTime)
-			endTime, _ := time.Parse(time.RFC3339, item.End.DateTime)
-			if date != startTime.Format(dateFormat) {
-				date = startTime.Format(dateFormat)
-
-				currentTime := time.Now().In(location).Format(dateFormat)
-				tomorrowTime := time.Now().AddDate(0, 0, 1).In(location).Format(dateFormat)
-				titleForEventsToDisplay := date
-				if date == currentTime {
-					titleForEventsToDisplay = fmt.Sprintf("Today (%s)", date)
-				} else if date == tomorrowTime {
-					titleForEventsToDisplay = fmt.Sprintf("Tomorrow (%s)", date)
-				}
-				text += fmt.Sprintf("### %v\n", titleForEventsToDisplay)
-			}
-			timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
-			if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
-				timeToDisplay = "All-day"
-			}
-			text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/calendar/delete?evtid=%s)\n",
-				item.Summary, item.HtmlLink, timeToDisplay, *config.ServiceSettings.SiteURL, item.Id)
-		}
-		p.postCommandResponse(args, text)
-		return &model.CommandResponse{}, nil
 	}
+	text := "# Upcoming Events: \n"
+	var date string
+	var startTime time.Time
+	siteURL := *p.API.GetConfig().ServiceSettings.SiteURL
+	for _, item := range events.Items {
+		startTime, _ = time.Parse(time.RFC3339, item.Start.DateTime)
+		endTime, _ := time.Parse(time.RFC3339, item.End.DateTime)
+		if date != startTime.Format(dateFormat) {
+			date = startTime.Format(dateFormat)
+
+			currentTime := time.Now().In(location).Format(dateFormat)
+			tomorrowTime := time.Now().AddDate(0, 0, 1).In(location).Format(dateFormat)
+			titleForEventsToDisplay := date
+			if date == currentTime {
+				titleForEventsToDisplay = fmt.Sprintf("Today (%s)", date)
+			} else if date == tomorrowTime {
+				titleForEventsToDisplay = fmt.Sprintf("Tomorrow (%s)", date)
+			}
+			text += fmt.Sprintf("### %v\n", titleForEventsToDisplay)
+		}
+		timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
+		if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
+			timeToDisplay = "All-day"
+		}
+		text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/calendar/delete?evtid=%s)\n",
+			item.Summary, item.HtmlLink, timeToDisplay, siteURL, item.Id)
+	}
+	p.postCommandResponse(args, text)
+	return &model.CommandResponse{}, nil
+
 }
 
-func (p *Plugin) executeCommandSummary(args *model.CommandArgs, split []string, srv *calendar.Service, location *time.Location, userID string) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeCommandSummary(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	split := strings.Fields(args.Command)
+	userID := args.UserId
+	location := p.getPrimaryCalendarLocation(userID)
+	srv, err := p.getCalendarService(userID)
+	if err != nil {
+		p.postCommandResponse(args, err.Error())
+		return &model.CommandResponse{}, nil
+	}
+
 	date := time.Now().In(location)
 	dateToDisplay := "Today"
 	titleToDisplay := "Today's"
@@ -179,17 +188,26 @@ func (p *Plugin) executeCommandSummary(args *model.CommandArgs, split []string, 
 	if len(events.Items) == 0 {
 		p.CreateBotDMPost(userID, "It seems that you don't have any events happening.")
 		return &model.CommandResponse{}, nil
-	} else {
-		text := fmt.Sprintf("#### %s Schedule:\n", titleToDisplay)
-		for _, item := range events.Items {
-			text += p.printEventSummary(userID, item)
-		}
-		p.CreateBotDMPost(userID, text)
-		return &model.CommandResponse{}, nil
 	}
+	text := fmt.Sprintf("#### %s Schedule:\n", titleToDisplay)
+	for _, item := range events.Items {
+		text += p.printEventSummary(userID, item)
+	}
+	p.CreateBotDMPost(userID, text)
+	return &model.CommandResponse{}, nil
+
 }
 
-func (p *Plugin) executeCommandCreate(args *model.CommandArgs, split []string, srv *calendar.Service, location *time.Location) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeCommandCreate(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+	split := strings.Fields(args.Command)
+	userID := args.UserId
+	location := p.getPrimaryCalendarLocation(userID)
+	srv, err := p.getCalendarService(userID)
+	if err != nil {
+		p.postCommandResponse(args, err.Error())
+		return &model.CommandResponse{}, nil
+	}
+
 	r, _ := regexp.Compile("\"(.*?)\"")
 
 	matchedString := r.FindString(args.Command)
