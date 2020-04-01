@@ -70,30 +70,33 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			return &model.CommandResponse{}, nil
 		}
 	}
-
+	messageToPost := ""
 	switch action {
 	case "list":
-		return p.executeCommandList(args)
+		messageToPost = p.executeCommandList(args)
 	case "summary":
-		return p.executeCommandSummary(args)
+		messageToPost = p.executeCommandSummary(args)
 	case "create":
-		return p.executeCommandCreate(args)
+		messageToPost = p.executeCommandCreate(args)
 	case "help":
-		return p.executeCommandHelp(args)
+		messageToPost = p.executeCommandHelp(args)
+	}
+
+	if messageToPost != "" {
+		p.postCommandResponse(args, messageToPost)
 	}
 
 	return &model.CommandResponse{}, nil
 }
 
-func (p *Plugin) executeCommandList(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeCommandList(args *model.CommandArgs) string {
 	maxResults := 5
 	split := strings.Fields(args.Command)
 	userID := args.UserId
 	location := p.getPrimaryCalendarLocation(userID)
 	srv, err := p.getCalendarService(userID)
 	if err != nil {
-		p.postCommandResponse(args, err.Error())
-		return &model.CommandResponse{}, nil
+		return err.Error()
 	}
 
 	if len(split) == 3 {
@@ -110,13 +113,11 @@ func (p *Plugin) executeCommandList(args *model.CommandArgs) (*model.CommandResp
 		SingleEvents(true).TimeMin(t).MaxResults(int64(maxResults)).OrderBy("startTime").Do()
 
 	if err != nil {
-		p.postCommandResponse(args, fmt.Sprintf("Unable to retrieve next %v of the user's events: %v", maxResults, err))
-		return &model.CommandResponse{}, nil
+		return fmt.Sprintf("Unable to retrieve next %v of the user's events: %v", maxResults, err)
 	}
 
 	if len(events.Items) == 0 {
-		p.postCommandResponse(args, "No upcoming events")
-		return &model.CommandResponse{}, nil
+		return "No upcoming events"
 	}
 	text := "# Upcoming Events: \n"
 	var date string
@@ -145,19 +146,17 @@ func (p *Plugin) executeCommandList(args *model.CommandArgs) (*model.CommandResp
 		text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/calendar/delete?evtid=%s)\n",
 			item.Summary, item.HtmlLink, timeToDisplay, siteURL, item.Id)
 	}
-	p.postCommandResponse(args, text)
-	return &model.CommandResponse{}, nil
-
+	p.CreateBotDMPost(userID, "It seems that you don't have any events happening.")
+	return ""
 }
 
-func (p *Plugin) executeCommandSummary(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeCommandSummary(args *model.CommandArgs) string {
 	split := strings.Fields(args.Command)
 	userID := args.UserId
 	location := p.getPrimaryCalendarLocation(userID)
 	srv, err := p.getCalendarService(userID)
 	if err != nil {
-		p.postCommandResponse(args, err.Error())
-		return &model.CommandResponse{}, nil
+		return err.Error()
 	}
 
 	date := time.Now().In(location)
@@ -180,31 +179,28 @@ func (p *Plugin) executeCommandSummary(args *model.CommandArgs) (*model.CommandR
 		SingleEvents(true).TimeMin(beginOfDay).TimeMax(endOfDay).OrderBy("startTime").Do()
 
 	if err != nil {
-		p.postCommandResponse(args, "Error retrieiving events")
-		return &model.CommandResponse{}, nil
+		return "Error retrieiving events"
 	}
 
 	if len(events.Items) == 0 {
-		p.CreateBotDMPost(userID, "It seems that you don't have any events happening.")
-		return &model.CommandResponse{}, nil
+		return "It seems that you don't have any events happening."
 	}
 	text := fmt.Sprintf("#### %s Schedule:\n", titleToDisplay)
 	for _, item := range events.Items {
 		text += p.printEventSummary(userID, item)
 	}
 	p.CreateBotDMPost(userID, text)
-	return &model.CommandResponse{}, nil
+	return ""
 
 }
 
-func (p *Plugin) executeCommandCreate(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
+func (p *Plugin) executeCommandCreate(args *model.CommandArgs) string {
 	split := strings.Fields(args.Command)
 	userID := args.UserId
 	location := p.getPrimaryCalendarLocation(userID)
 	srv, err := p.getCalendarService(userID)
 	if err != nil {
-		p.postCommandResponse(args, err.Error())
-		return &model.CommandResponse{}, nil
+		return err.Error()
 	}
 
 	r, _ := regexp.Compile("\"(.*?)\"")
@@ -224,17 +220,13 @@ func (p *Plugin) executeCommandCreate(args *model.CommandArgs) (*model.CommandRe
 	}
 	createdEvent, err := srv.Events.Insert("primary", &newEvent).Do()
 	if err != nil {
-		p.postCommandResponse(args, fmt.Sprintf("Failed to create calendar event. Error: %v", err))
-		return &model.CommandResponse{}, nil
+		return fmt.Sprintf("Failed to create calendar event. Error: %v", err)
 	}
 	p.CreateBotDMPost(args.UserId, fmt.Sprintf("Success! Event _[%s](%s)_ on %v has been created.",
 		createdEvent.Summary, createdEvent.HtmlLink, startTime.Format(dateFormat)))
-	return &model.CommandResponse{}, nil
+	return ""
 }
 
-func (p *Plugin) executeCommandHelp(args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
-	text := "###### Mattermost Google Calendar Plugin - Slash Command Help\n" + strings.Replace(COMMAND_HELP, "|", "`", -1)
-	p.postCommandResponse(args, text)
-	return &model.CommandResponse{}, nil
-
+func (p *Plugin) executeCommandHelp(args *model.CommandArgs) string {
+	return "###### Mattermost Google Calendar Plugin - Slash Command Help\n" + strings.Replace(COMMAND_HELP, "|", "`", -1)
 }
