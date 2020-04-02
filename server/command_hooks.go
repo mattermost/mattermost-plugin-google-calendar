@@ -146,8 +146,7 @@ func (p *Plugin) executeCommandList(args *model.CommandArgs) string {
 		text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/calendar/delete?evtid=%s)\n",
 			item.Summary, item.HtmlLink, timeToDisplay, siteURL, item.Id)
 	}
-	p.CreateBotDMPost(userID, "It seems that you don't have any events happening.")
-	return ""
+	return text
 }
 
 func (p *Plugin) executeCommandSummary(args *model.CommandArgs) string {
@@ -183,7 +182,8 @@ func (p *Plugin) executeCommandSummary(args *model.CommandArgs) string {
 	}
 
 	if len(events.Items) == 0 {
-		return "It seems that you don't have any events happening."
+		p.CreateBotDMPost(userID, "It seems that you don't have any events happening.")
+		return ""
 	}
 	text := fmt.Sprintf("#### %s Schedule:\n", titleToDisplay)
 	for _, item := range events.Items {
