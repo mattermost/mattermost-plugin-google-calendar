@@ -20,10 +20,11 @@ These can be obtained through the following procedure:
 2. After creating a project click on `Go to APIs overview` card from the dashboard which will take you to the API dashboard.
 3. Select `Credentials` from the left menu 
 4. Now click on `Create Credentials` dropdown and select `Oauth client ID` option.
-5. While creating the Oauth credentials, enter the values of `Authorized Javascript Origins` as `<Mattermost server URL>` and the value of `Authorised redirect URIs` as `<Mattermost server URL>/plugins/google-calendar/oauth/complete`.
-6. After creating the Oauth client, copy the Client ID and secret.
-7. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret and select a user for the plugin to post event messages with.
-8. Enable the plugin and you should be able to see event reminder notifications.
+5. While creating the Oauth credentials, enter the values of `Authorized Javascript Origins` as `<Mattermost server URL>` and the value of `Authorised redirect URIs` as `<Mattermost server URL>/plugins/calendar/oauth/complete`.
+6. Select `Library` from the left menu, find `Google Calendar API`, and then enable the API.
+7. After creating the Oauth client, copy the Client ID and secret.
+8. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret and select a user for the plugin to post event messages with.
+9. Enable the plugin and you should be able to see event reminder notifications.
 
 ## Installing For Development
 You will be required to follow the above steps to acquire a Client ID and Client secret. 
