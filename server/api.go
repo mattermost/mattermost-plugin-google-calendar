@@ -7,11 +7,11 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/calendar/v3"
 
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 // ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for the
