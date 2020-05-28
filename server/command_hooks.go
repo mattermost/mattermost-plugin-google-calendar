@@ -66,7 +66,7 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 			p.postCommandResponse(args, "Invalid SiteURL")
 			return &model.CommandResponse{}, nil
 		} else {
-			p.postCommandResponse(args, fmt.Sprintf("[Click here to link your Google Calendar.](%s/plugins/calendar/oauth/connect)", *config.ServiceSettings.SiteURL))
+			p.postCommandResponse(args, fmt.Sprintf("[Click here to link your Google Calendar.](%s/plugins/%s/oauth/connect)", *config.ServiceSettings.SiteURL, manifest.ID))
 			return &model.CommandResponse{}, nil
 		}
 	}
@@ -143,8 +143,8 @@ func (p *Plugin) executeCommandList(args *model.CommandArgs) string {
 		if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
 			timeToDisplay = "All-day"
 		}
-		text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/calendar/delete?evtid=%s)\n",
-			item.Summary, item.HtmlLink, timeToDisplay, siteURL, item.Id)
+		text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/%s/delete?evtid=%s)\n",
+			item.Summary, item.HtmlLink, timeToDisplay, siteURL, manifest.ID, item.Id)
 	}
 	return text
 }

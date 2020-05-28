@@ -1,5 +1,5 @@
 {
-    "id": "calendar",
+    "id": "com.mattermost.google-calendar",
     "name": "Google Calendar",
     "description": "Google Calendar plugin for Mattermost",
     "homepage_url": "https://github.com/mattermost/mattermost-plugin-google-calendar",
