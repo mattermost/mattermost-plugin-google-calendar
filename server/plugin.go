@@ -29,7 +29,7 @@ func (p *Plugin) OnActivate() error {
 	p.API.RegisterCommand(getCommand())
 
 	botId, err := p.Helpers.EnsureBot(&model.Bot{
-		Username:    "calendar",
+		Username:    "google.calendar",
 		DisplayName: "Google Calendar",
 		Description: "Created by the Google Calendar plugin.",
 	})
