@@ -210,8 +210,23 @@ func (p *Plugin) executeCommandCreate(args *model.CommandArgs) string {
 	split = strings.Fields(newCommand)
 	matchedString = matchedString[1 : len(matchedString)-1]
 
-	startTime, _ := time.ParseInLocation(customFormat, split[2], location)
-	endTime, _ := time.ParseInLocation(customFormat, split[3], location)
+	if len(split) < 3 {
+		return "Missing start date-time"
+	}
+
+	startTime, err := time.ParseInLocation(customFormat, split[2], location)
+	if err != nil {
+		return fmt.Sprintf("Invalid format of start date-time: %v", err)
+	}
+
+	if len(split) < 4 {
+		return "Missing end date-time"
+	}
+
+	endTime, err := time.ParseInLocation(customFormat, split[3], location)
+	if err != nil {
+		return fmt.Sprintf("Invalid format of end date-time: %v", err)
+	}
 
 	newEvent := calendar.Event{
 		Summary: matchedString,
