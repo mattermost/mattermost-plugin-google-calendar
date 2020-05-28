@@ -6,6 +6,6 @@ var manifest = struct {
 	ID      string
 	Version string
 }{
-	ID:      "calendar",
-	Version: "0.1.0",
+	ID:      "com.mattermost.google-calendar",
+	Version: "0.2.0",
 }

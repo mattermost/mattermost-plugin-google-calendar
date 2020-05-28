@@ -20,9 +20,9 @@ These can be obtained through the following procedure:
 2. After creating a project click on `Go to APIs overview` card from the dashboard which will take you to the API dashboard.
 3. Select `Credentials` from the left menu 
 4. Now click on `Create Credentials` dropdown and select `Oauth client ID` option.
-5. While creating the Oauth credentials, enter the values of `Authorized Javascript Origins` as `<Mattermost server URL>` and the value of `Authorised redirect URIs` as `<Mattermost server URL>/plugins/google-calendar/oauth/complete`.
+5. While creating the Oauth credentials, enter the values of `Authorized Javascript Origins` as `<Mattermost server URL>` and the value of `Authorised redirect URIs` as `<Mattermost server URL>/plugins/com.mattermost.google-calendar/oauth/complete`.
 6. After creating the Oauth client, copy the Client ID and secret.
-7. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret and select a user for the plugin to post event messages with.
+7. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret.
 8. Enable the plugin and you should be able to see event reminder notifications.
 
 ## Installing For Development
@@ -36,9 +36,9 @@ Afterwards, you can close SimpleHTTPWebServer and run your Mattermost Server)
 5. Go to [API library](https://console.cloud.google.com/apis/library) and make sure Google Calendar API is enabled.
 6. Go to [API and Services](https://console.cloud.google.com/apis/dashboard) and select `Credentials` tab from the left menu.
 7. Now click on `Create Credentials` dropdown and select `Oauth client ID` option.
-8. While creating the Oauth credentials, enter the values of `Authorized Javascript Origins` as `http://localhost:8065` and the value of `Authorised redirect URIs` as `http://localhost:8064/plugins/google-calendar/oauth/complete`.
+8. While creating the Oauth credentials, enter the values of `Authorized Javascript Origins` as `http://localhost:8065` and the value of `Authorised redirect URIs` as `http://localhost:8065/plugins/com.mattermost.google-calendar/oauth/complete`.
 9. After creating the Oauth client, copy the Client ID and secret.
-10. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret and select a user for the plugin to post event messages with.
+10. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret.
 11. Enable the plugin and you should be able to see event reminder notifications.
 
 

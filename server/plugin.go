@@ -5,10 +5,10 @@ import (
 	"path/filepath"
 	"sync"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-server/plugin"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 )
 
 // Plugin implements the interface expected by the Mattermost server to communicate between the server and plugin processes.
@@ -29,7 +29,7 @@ func (p *Plugin) OnActivate() error {
 	p.API.RegisterCommand(getCommand())
 
 	botId, err := p.Helpers.EnsureBot(&model.Bot{
-		Username:    "calendar",
+		Username:    "google.calendar",
 		DisplayName: "Google Calendar",
 		Description: "Created by the Google Calendar plugin.",
 	})

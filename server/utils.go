@@ -12,8 +12,8 @@ import (
 	"github.com/google/uuid"
 	"github.com/robfig/cron/v3"
 
-	"github.com/mattermost/mattermost-server/mlog"
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/mlog"
+	"github.com/mattermost/mattermost-server/v5/model"
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
@@ -51,7 +51,7 @@ func (p *Plugin) CalendarConfig() *oauth2.Config {
 		ClientID:     clientID,
 		ClientSecret: clientSecret,
 		Endpoint:     google.Endpoint,
-		RedirectURL:  fmt.Sprintf("%s/plugins/calendar/oauth/complete", *config.ServiceSettings.SiteURL),
+		RedirectURL:  fmt.Sprintf("%s/plugins/%s/oauth/complete", *config.ServiceSettings.SiteURL, manifest.ID),
 		Scopes: []string{
 			"https://www.googleapis.com/auth/calendar",
 		},
@@ -201,8 +201,8 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 				if self != nil && changedEvent.Status != "cancelled" {
 					if self.ResponseStatus == "needsAction" {
 						config := p.API.GetConfig()
-						url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
-							*config.ServiceSettings.SiteURL, changedEvent.Id)
+						url := fmt.Sprintf("%s/plugins/%s/handleresponse?evtid=%s&",
+							*config.ServiceSettings.SiteURL, manifest.ID, changedEvent.Id)
 						textToPost += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n\n",
 							url+"response=accepted", url+"response=declined", url+"response=tentative")
 					} else if self.ResponseStatus == "declined" {
@@ -275,7 +275,7 @@ func (p *Plugin) setupCalendarWatch(userID string) error {
 	uuid := uuid.New().String()
 	webSocketURL := *config.ServiceSettings.SiteURL
 	channel, err := srv.Events.Watch("primary", &calendar.Channel{
-		Address: fmt.Sprintf("%s/plugins/calendar/watch?userId=%s", webSocketURL, userID),
+		Address: fmt.Sprintf("%s/plugins/%s/watch?userId=%s", webSocketURL, manifest.ID, userID),
 		Id:      uuid,
 		Type:    "web_hook",
 	}).Do()
@@ -370,8 +370,8 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 	attendee := p.retrieveMyselfForEvent(item)
 	if attendee != nil {
 		if attendee.ResponseStatus == "needsAction" {
-			url := fmt.Sprintf("%s/plugins/calendar/handleresponse?evtid=%s&",
-				*config.ServiceSettings.SiteURL, item.Id)
+			url := fmt.Sprintf("%s/plugins/%s/handleresponse?evtid=%s&",
+				*config.ServiceSettings.SiteURL, manifest.ID, item.Id)
 			text += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n",
 				url+"response=accepted", url+"response=declined", url+"response=tentative")
 		} else if attendee.ResponseStatus == "declined" {
@@ -383,8 +383,8 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 		}
 	}
 
-	text += fmt.Sprintf("[Delete Event](%s/plugins/calendar/delete?evtid=%s)\n",
-		*config.ServiceSettings.SiteURL, item.Id)
+	text += fmt.Sprintf("[Delete Event](%s/plugins/%s/delete?evtid=%s)\n",
+		*config.ServiceSettings.SiteURL, manifest.ID, item.Id)
 
 	return text
 }

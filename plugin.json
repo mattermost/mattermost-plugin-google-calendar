@@ -1,8 +1,12 @@
 {
-    "id": "calendar",
-    "name": "A google calendar plugin",
-    "description": "Google Calendar Plugin",
-    "version": "0.1.0",
+    "id": "com.mattermost.google-calendar",
+    "name": "Google Calendar",
+    "description": "Google Calendar plugin for Mattermost",
+    "homepage_url": "https://github.com/mattermost/mattermost-plugin-google-calendar",
+    "support_url": "https://github.com/mattermost/mattermost-plugin-google-calendar/issues",
+    "release_notes_url": "https://github.com/mattermost/mattermost-plugin-google-calendar/releases/tag/v0.2.0",
+    "icon_path": "assets/icon.svg",
+    "version": "0.2.0",
     "min_server_version": "5.18.0",
     "server": {
         "executables": {

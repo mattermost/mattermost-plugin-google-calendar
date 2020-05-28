@@ -7,11 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/mattermost/mattermost-server/model"
+	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v5/plugin"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/calendar/v3"
-
-	"github.com/mattermost/mattermost-server/plugin"
 )
 
 // ServeHTTP allows the plugin to implement the http.Handler interface. Requests destined for the
@@ -87,10 +86,13 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if storedState, err := p.API.KVGet(state); err != nil {
+	storedState, apiErr := p.API.KVGet(state)
+	if apiErr != nil {
 		http.Error(w, "Missing stored state", http.StatusBadRequest)
 		return
-	} else if string(storedState) != state {
+	}
+
+	if string(storedState) != state {
 		http.Error(w, "Invalid state", http.StatusBadRequest)
 		return
 	}
@@ -113,7 +115,13 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	}
 
 	p.API.KVSet(userId+"calendarToken", tokenJSON)
-	p.CalendarSync(userId)
+
+	err = p.CalendarSync(userId)
+	if err != nil {
+		p.API.LogWarn("failed sync fresh calender", "error", err.Error())
+		http.Error(w, "failed sync fresh calender", http.StatusInternalServerError)
+		return
+	}
 
 	if err = p.setupCalendarWatch(userId); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
