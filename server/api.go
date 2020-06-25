@@ -41,14 +41,14 @@ func (p *Plugin) ServeHTTP(c *plugin.Context, w http.ResponseWriter, r *http.Req
 }
 
 func (p *Plugin) connectCalendar(w http.ResponseWriter, r *http.Request) {
-	authedUserId := r.Header.Get("Mattermost-User-ID")
+	autheduserID := r.Header.Get("Mattermost-User-ID")
 
-	if authedUserId == "" {
+	if autheduserID == "" {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return
 	}
 
-	state := fmt.Sprintf("%v_%v", model.NewId()[10], authedUserId)
+	state := fmt.Sprintf("%v_%v", model.NewId()[10], autheduserID)
 
 	if err := p.API.KVSet(state, []byte(state)); err != nil {
 		http.Error(w, "Failed to save state", http.StatusBadRequest)
@@ -76,12 +76,12 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		</body>
 	</html>
 	`
-	authedUserId := r.Header.Get("Mattermost-User-ID")
+	autheduserID := r.Header.Get("Mattermost-User-ID")
 	state := r.FormValue("state")
 	code := r.FormValue("code")
-	userId := strings.Split(state, "_")[1]
+	userID := strings.Split(state, "_")[1]
 	config := p.CalendarConfig()
-	if authedUserId == "" || userId != authedUserId {
+	if autheduserID == "" || userID != autheduserID {
 		http.Error(w, "Not authorized", http.StatusUnauthorized)
 		return
 	}
@@ -114,28 +114,31 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.API.KVSet(userId+"calendarToken", tokenJSON)
+	p.API.KVSet(userID+"calendarToken", tokenJSON)
 
-	err = p.CalendarSync(userId)
+	err = p.CalendarSync(userID)
 	if err != nil {
 		p.API.LogWarn("failed sync fresh calender", "error", err.Error())
 		http.Error(w, "failed sync fresh calender", http.StatusInternalServerError)
 		return
 	}
 
-	if err = p.setupCalendarWatch(userId); err != nil {
+	if err = p.setupCalendarWatch(userID); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	p.startCronJob(authedUserId)
+	p.startCronJob(autheduserID)
 
 	// Post intro post
 	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +
 		"You've successfully connected your Mattermost account to your Google Calendar.\n" +
 		"Please type **/calendar help** to understand how to user this plugin. "
 
-	p.CreateBotDMPost(userId, message)
+	if err = p.CreateBotDMPost(userID, message); err != nil {
+		// handle your error here
+		return
+	}
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	fmt.Fprint(w, html)
 }
@@ -191,10 +194,7 @@ func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
 	srv, _ := p.getCalendarService(userID)
 
 	eventToBeUpdated, err := srv.Events.Get(calendarID, eventID).Do()
-	if err != nil {
 		p.CreateBotDMPost(userID, fmt.Sprintf("Error! Failed to update the response of _%s_ event.", eventToBeUpdated.Summary))
-		return
-	}
 
 	for idx, attendee := range eventToBeUpdated.Attendees {
 		if attendee.Self {
@@ -214,7 +214,7 @@ func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
 }
 
 func (p *Plugin) watchCalendar(w http.ResponseWriter, r *http.Request) {
-	userID := r.URL.Query().Get("userId")
+	userID := r.URL.Query().Get("userID")
 	channelID := r.Header.Get("X-Goog-Channel-ID")
 	resourceID := r.Header.Get("X-Goog-Resource-ID")
 	state := r.Header.Get("X-Goog-Resource-State")
@@ -222,8 +222,10 @@ func (p *Plugin) watchCalendar(w http.ResponseWriter, r *http.Request) {
 	watchToken, _ := p.API.KVGet(userID + "watchToken")
 	channelByte, _ := p.API.KVGet(userID + "watchChannel")
 	var channel calendar.Channel
-	json.Unmarshal(channelByte, &channel)
-
+	err := json.Unmarshal(channelByte, &channel)
+	if err != nil {
+		// handle your error here
+	}
 	if string(watchToken) == channelID && state == "exists" {
 		p.CalendarSync(userID)
 	} else {

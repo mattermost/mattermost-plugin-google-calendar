@@ -19,16 +19,16 @@ import (
 	"google.golang.org/api/calendar/v3"
 )
 
-// Create a post as google calendar bot to the user directly
+// CreateBotDMPost used to post as google calendar bot to the user directly
 func (p *Plugin) CreateBotDMPost(userID, message string) *model.AppError {
-	channel, err := p.API.GetDirectChannel(userID, p.botId)
+	channel, err := p.API.GetDirectChannel(userID, p.botID)
 	if err != nil {
 		mlog.Error("Couldn't get bot's DM channel", mlog.String("user_id", userID))
 		return err
 	}
 
 	post := &model.Post{
-		UserId:    p.botId,
+		UserId:    p.botID,
 		ChannelId: channel.Id,
 		Message:   message,
 	}
@@ -44,7 +44,7 @@ func (p *Plugin) CreateBotDMPost(userID, message string) *model.AppError {
 // CalendarConfig will return a oauth2 Config with the field set
 func (p *Plugin) CalendarConfig() *oauth2.Config {
 	config := p.API.GetConfig()
-	clientID := p.getConfiguration().CalendarClientId
+	clientID := p.getConfiguration().CalendarClientID
 	clientSecret := p.getConfiguration().CalendarClientSecret
 
 	return &oauth2.Config{
@@ -67,7 +67,10 @@ func (p *Plugin) getCalendarService(userID string) (*calendar.Service, error) {
 		return nil, errors.New(appErr.DetailedError)
 	}
 
-	json.Unmarshal(tokenInByte, &token)
+	err:= json.Unmarshal(tokenInByte, &token)
+	if err != nil {
+		// handle your error here
+	  }
 	config := p.CalendarConfig()
 	ctx := context.Background()
 	tokenSource := config.TokenSource(ctx, &token)
@@ -141,8 +144,10 @@ func (p *Plugin) CalendarSync(userID string) error {
 func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar.Event) {
 	eventsJSON, _ := p.API.KVGet(userID + "events")
 	var events []*calendar.Event
-	json.Unmarshal(eventsJSON, &events)
-
+	err := json.Unmarshal(eventsJSON, &events)
+	if err != nil {
+		// handle your error here
+	  }
 	var textToPost string
 	shouldPostMessage := true
 	for _, changedEvent := range changedEvents {
@@ -240,7 +245,6 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 
 	newEvents, _ := json.Marshal(events)
 	p.API.KVSet(userID+"events", newEvents)
-
 	if textToPost != "" && shouldPostMessage {
 		p.CreateBotDMPost(userID, textToPost)
 	}
@@ -294,7 +298,10 @@ func (p *Plugin) remindUser(userID string) {
 	eventsByte, _ := p.API.KVGet(userID + "events")
 	userLocation := p.getPrimaryCalendarLocation(userID)
 	var events []*calendar.Event
-	json.Unmarshal(eventsByte, &events)
+	err := json.Unmarshal(eventsByte, &events)
+	if err != nil {
+		// handle your error here
+	  }
 	for _, event := range events {
 		if p.eventIsOld(userID, event) {
 			continue

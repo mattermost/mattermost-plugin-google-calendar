@@ -16,7 +16,9 @@ const dateFormat = "Monday, January 2, 2006"
 const timeFormat = "3:04 PM MST"
 const customFormat = "2006-01-02@15:04"
 const customFormatNoTime = "2006-01-02"
-const COMMAND_HELP = `* |/calendar connect| - Connect your Google Calendar with your Mattermost account
+
+//CommandHelp - about
+const CommandHelp = `* |/calendar connect| - Connect your Google Calendar with your Mattermost account
 * |/calendar list [number_of_events]| - List the upcoming X number of events.
 	* |number_of_events| should be a number or can be left blank. By default is set to 5
 * |/calendar summary [date]| - Get a break down of a particular date.
@@ -40,13 +42,14 @@ func getCommand() *model.Command {
 
 func (p *Plugin) postCommandResponse(args *model.CommandArgs, text string) {
 	post := &model.Post{
-		UserId:    p.botId,
+		UserId:    p.botID,
 		ChannelId: args.ChannelId,
 		Message:   text,
 	}
 	_ = p.API.SendEphemeralPost(args.UserId, post)
 }
 
+//ExecuteCommand inside plugin
 func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*model.CommandResponse, *model.AppError) {
 	split := strings.Fields(args.Command)
 	command := split[0]
@@ -243,5 +246,5 @@ func (p *Plugin) executeCommandCreate(args *model.CommandArgs) string {
 }
 
 func (p *Plugin) executeCommandHelp(args *model.CommandArgs) string {
-	return "###### Mattermost Google Calendar Plugin - Slash Command Help\n" + strings.Replace(COMMAND_HELP, "|", "`", -1)
+	return "###### Mattermost Google Calendar Plugin - Slash Command Help\n" + strings.Replace(CommandHelp, "|", "`", -1)
 }
