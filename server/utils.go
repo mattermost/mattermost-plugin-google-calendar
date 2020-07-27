@@ -17,6 +17,7 @@ import (
 	"golang.org/x/oauth2"
 	"golang.org/x/oauth2/google"
 	"google.golang.org/api/calendar/v3"
+	"google.golang.org/api/option"
 )
 
 // Create a post as google calendar bot to the user directly
@@ -71,9 +72,8 @@ func (p *Plugin) getCalendarService(userID string) (*calendar.Service, error) {
 	config := p.CalendarConfig()
 	ctx := context.Background()
 	tokenSource := config.TokenSource(ctx, &token)
-	client := oauth2.NewClient(ctx, tokenSource)
 
-	srv, err := calendar.New(client)
+	srv, err := calendar.NewService(ctx, option.WithTokenSource(tokenSource))
 	if err != nil {
 		return nil, err
 	}
