@@ -67,10 +67,7 @@ func (p *Plugin) getCalendarService(userID string) (*calendar.Service, error) {
 		return nil, errors.New(appErr.DetailedError)
 	}
 
-	err:= json.Unmarshal(tokenInByte, &token)
-	if err != nil {
-		// handle your error here
-	  }
+	json.Unmarshal(tokenInByte, &token)
 	config := p.CalendarConfig()
 	ctx := context.Background()
 	tokenSource := config.TokenSource(ctx, &token)
@@ -144,10 +141,7 @@ func (p *Plugin) CalendarSync(userID string) error {
 func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar.Event) {
 	eventsJSON, _ := p.API.KVGet(userID + "events")
 	var events []*calendar.Event
-	err := json.Unmarshal(eventsJSON, &events)
-	if err != nil {
-		// handle your error here
-	  }
+	json.Unmarshal(eventsJSON, &events)
 	var textToPost string
 	shouldPostMessage := true
 	for _, changedEvent := range changedEvents {
@@ -298,10 +292,7 @@ func (p *Plugin) remindUser(userID string) {
 	eventsByte, _ := p.API.KVGet(userID + "events")
 	userLocation := p.getPrimaryCalendarLocation(userID)
 	var events []*calendar.Event
-	err := json.Unmarshal(eventsByte, &events)
-	if err != nil {
-		// handle your error here
-	  }
+	json.Unmarshal(eventsByte, &events)
 	for _, event := range events {
 		if p.eventIsOld(userID, event) {
 			continue

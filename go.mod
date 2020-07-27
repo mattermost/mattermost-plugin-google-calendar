@@ -4,7 +4,6 @@ go 1.12
 
 require (
 	github.com/google/uuid v1.1.1
-	github.com/gorilla/websocket v1.4.2 // indirect
 	github.com/klauspost/compress v1.10.5 // indirect
 	github.com/kr/text v0.2.0 // indirect
 	github.com/mattermost/mattermost-server/v5 v5.23.0

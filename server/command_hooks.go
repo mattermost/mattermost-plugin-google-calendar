@@ -194,7 +194,6 @@ func (p *Plugin) executeCommandSummary(args *model.CommandArgs) string {
 	}
 	p.CreateBotDMPost(userID, text)
 	return ""
-
 }
 
 func (p *Plugin) executeCommandCreate(args *model.CommandArgs) string {
