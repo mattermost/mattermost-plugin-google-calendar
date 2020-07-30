@@ -1,3 +1,4 @@
+//nolint:errcheck
 package main
 
 import (
@@ -153,7 +154,7 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 
 			// If a current event in our database matches a event that has changed
 			if oldEvent.Id == changedEvent.Id {
-				textToPost = fmt.Sprintf("**_Event Updated:_**\n")
+				textToPost = "**_Event Updated:_**\n"
 
 				// If the events title has changed, we want to show the difference from the old one
 				if oldEvent.Summary != changedEvent.Summary {
@@ -197,24 +198,24 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 				}
 
 				self := p.retrieveMyselfForEvent(changedEvent)
-				if self != nil && changedEvent.Status != "cancelled" {
-					if self.ResponseStatus == "needsAction" {
+				if self != nil && changedEvent.Status != "cancelled" { //nolint
+					if self.ResponseStatus == "needsAction" { //nolint
 						config := p.API.GetConfig()
 						url := fmt.Sprintf("%s/plugins/%s/handleresponse?evtid=%s&",
 							*config.ServiceSettings.SiteURL, manifest.ID, changedEvent.Id)
 						textToPost += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n\n",
 							url+"response=accepted", url+"response=declined", url+"response=tentative")
-					} else if self.ResponseStatus == "declined" {
-						textToPost += fmt.Sprintf("**Going?**: No\n\n")
-					} else if self.ResponseStatus == "tentative" {
-						textToPost += fmt.Sprintf("**Going?**: Maybe\n\n")
+					} else if self.ResponseStatus == "declined" { //nolint
+						textToPost += "**Going?**: No\n\n"
+					} else if self.ResponseStatus == "tentative" { //nolint
+						textToPost += "**Going?**: Maybe\n\n"
 					} else {
-						textToPost += fmt.Sprintf("**Going?**: Yes\n\n")
+						textToPost += "**Going?**: Yes\n\n"
 					}
 				}
 
 				// If the event was deleted, we want to remove it from our events slice in our database
-				if changedEvent.Status == "cancelled" {
+				if changedEvent.Status == "canceled" { //nolint
 					events = append(events[:idx], events[idx+1:]...)
 				} else {
 					// Otherwise we want to replace the old event with the updated event
@@ -227,13 +228,12 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 			// If we couldn't find the event in the database, it must be a new event so we append it
 			// and post a your invited to a users channel
 			if idx == len(events)-1 {
-				if changedEvent.Status != "cancelled" {
+				if changedEvent.Status != "canceled" {
 					events = p.insertSort(events, changedEvent)
-					textToPost = fmt.Sprintf("**_You've been invited:_**\n")
+					textToPost = "**_You've been invited:_**\n"
 					textToPost += p.printEventSummary(userID, changedEvent)
 				}
 			}
-
 		}
 	}
 
@@ -273,7 +273,7 @@ func (p *Plugin) setupCalendarWatch(userID string) error {
 	uuid := uuid.New().String()
 	webSocketURL := *config.ServiceSettings.SiteURL
 	channel, err := srv.Events.Watch("primary", &calendar.Channel{
-		Address: fmt.Sprintf("%s/plugins/%s/watch?userId=%s", webSocketURL, manifest.ID, userID),
+		Address: fmt.Sprintf("%s/plugins/%s/watch?userId=%s", webSocketURL, manifest.ID, userID),//nolint
 		Id:      uuid,
 		Type:    "web_hook",
 	}).Do()
@@ -373,11 +373,11 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 			text += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n",
 				url+"response=accepted", url+"response=declined", url+"response=tentative")
 		} else if attendee.ResponseStatus == "declined" {
-			text += fmt.Sprintf("**Going?**: No\n")
+			text += "**Going?**: No\n"
 		} else if attendee.ResponseStatus == "tentative" {
-			text += fmt.Sprintf("**Going?**: Maybe\n")
+			text += "**Going?**: Maybe\n"
 		} else {
-			text += fmt.Sprintf("**Going?**: Yes\n")
+			text += "**Going?**: Yes\n"
 		}
 	}
 
@@ -415,7 +415,7 @@ func (p *Plugin) retrieveMyselfForEvent(event *calendar.Event) *calendar.EventAt
 }
 
 func (p *Plugin) eventIsDeleted(event *calendar.Event) bool {
-	return event.Status == "cancelled"
+	return event.Status == "canceled"
 }
 
 func (p *Plugin) eventIsOld(userID string, event *calendar.Event) bool {

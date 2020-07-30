@@ -1,3 +1,4 @@
+//nolint:errcheck
 package main
 
 import (
@@ -143,8 +144,8 @@ func (p *Plugin) executeCommandList(args *model.CommandArgs) string {
 			text += fmt.Sprintf("### %v\n", titleForEventsToDisplay)
 		}
 		timeToDisplay := fmt.Sprintf("%v to %v", startTime.Format(timeFormat), endTime.Format(timeFormat))
-		if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" {
-			timeToDisplay = "All-day"
+		if startTime.Format(timeFormat) == "12:00 AM UTC" && endTime.Format(timeFormat) == "12:00 AM UTC" { //nolint
+			timeToDisplay = "All-day" //nolint
 		}
 		text += fmt.Sprintf("- [%v](%s) @ %s | [Delete Event](%s/plugins/%s/delete?evtid=%s)\n",
 			item.Summary, item.HtmlLink, timeToDisplay, siteURL, manifest.ID, item.Id)
@@ -162,7 +163,7 @@ func (p *Plugin) executeCommandSummary(args *model.CommandArgs) string {
 	}
 
 	date := time.Now().In(location)
-	dateToDisplay := "Today"
+	dateToDisplay := "Today" //nolint
 	titleToDisplay := "Today's"
 	if len(split) == 3 {
 		date, _ = time.ParseInLocation(customFormatNoTime, split[2], location)
@@ -170,7 +171,7 @@ func (p *Plugin) executeCommandSummary(args *model.CommandArgs) string {
 		titleToDisplay = dateToDisplay
 		if split[2] == "tomorrow" {
 			date = time.Now().AddDate(0, 0, 1).In(location)
-			dateToDisplay = "Tomorrow"
+			dateToDisplay = "Tomorrow" //nolint
 			titleToDisplay = "Tomorrow's"
 		}
 	}

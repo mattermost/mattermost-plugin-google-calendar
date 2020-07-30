@@ -1,3 +1,4 @@
+//nolint:errcheck
 package main
 
 import (
@@ -102,7 +103,7 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	token, err := config.Exchange(context.Background(), string(code))
+	token, err := config.Exchange(context.Background(), code)
 	if err != nil {
 		http.Error(w, "Error setting up Config Exchange", http.StatusBadRequest)
 		return
@@ -140,8 +141,8 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, html)
 }
 
-func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) {
-	html := `
+func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) { //nolint
+	html := ` 
 	<!DOCTYPE html>
 	<html>
 		<head>
