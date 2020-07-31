@@ -197,7 +197,7 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 				}
 
 				self := p.retrieveMyselfForEvent(changedEvent)
-				if self != nil && changedEvent.Status != "cancelled" { 
+				if self != nil && changedEvent.Status != "canceled" { 
 					if self.ResponseStatus == "needsAction" { 
 						config := p.API.GetConfig()
 						url := fmt.Sprintf("%s/plugins/%s/handleresponse?evtid=%s&",

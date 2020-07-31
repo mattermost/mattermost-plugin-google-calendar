@@ -24,10 +24,10 @@ linters:
     - bodyclose
     - deadcode
     # - errcheck
-    - goconst
+    # - goconst
     # - gocritic
     # - gofmt
-    - goimports
+    # - goimports
     # - golint
     - gosec
     # - gosimple
@@ -38,7 +38,7 @@ linters:
     - nakedret
     # - staticcheck
     - structcheck
-    - stylecheck
+    # - stylecheck
     - typecheck
     - unconvert
     - unused
