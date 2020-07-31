@@ -1,4 +1,3 @@
-//nolint:errcheck
 package main
 
 import (
@@ -198,16 +197,16 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 				}
 
 				self := p.retrieveMyselfForEvent(changedEvent)
-				if self != nil && changedEvent.Status != "cancelled" { //nolint
-					if self.ResponseStatus == "needsAction" { //nolint
+				if self != nil && changedEvent.Status != "cancelled" { 
+					if self.ResponseStatus == "needsAction" { 
 						config := p.API.GetConfig()
 						url := fmt.Sprintf("%s/plugins/%s/handleresponse?evtid=%s&",
 							*config.ServiceSettings.SiteURL, manifest.ID, changedEvent.Id)
 						textToPost += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n\n",
 							url+"response=accepted", url+"response=declined", url+"response=tentative")
-					} else if self.ResponseStatus == "declined" { //nolint
+					} else if self.ResponseStatus == "declined" { 
 						textToPost += "**Going?**: No\n\n"
-					} else if self.ResponseStatus == "tentative" { //nolint
+					} else if self.ResponseStatus == "tentative" { 
 						textToPost += "**Going?**: Maybe\n\n"
 					} else {
 						textToPost += "**Going?**: Yes\n\n"
@@ -215,7 +214,7 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 				}
 
 				// If the event was deleted, we want to remove it from our events slice in our database
-				if changedEvent.Status == "canceled" { //nolint
+				if changedEvent.Status == "canceled" { 
 					events = append(events[:idx], events[idx+1:]...)
 				} else {
 					// Otherwise we want to replace the old event with the updated event
@@ -273,7 +272,7 @@ func (p *Plugin) setupCalendarWatch(userID string) error {
 	uuid := uuid.New().String()
 	webSocketURL := *config.ServiceSettings.SiteURL
 	channel, err := srv.Events.Watch("primary", &calendar.Channel{
-		Address: fmt.Sprintf("%s/plugins/%s/watch?userId=%s", webSocketURL, manifest.ID, userID),//nolint
+		Address: fmt.Sprintf("%s/plugins/%s/watch?userId=%s", webSocketURL, manifest.ID, userID),
 		Id:      uuid,
 		Type:    "web_hook",
 	}).Do()

@@ -23,20 +23,20 @@ linters:
   enable:
     - bodyclose
     - deadcode
-    - errcheck
+    # - errcheck
     - goconst
-    - gocritic
-    - gofmt
+    # - gocritic
+    # - gofmt
     - goimports
-    - golint
+    # - golint
     - gosec
-    - gosimple
+    # - gosimple
     - govet
-    - ineffassign
+    # - ineffassign
     - interfacer
     - misspell
     - nakedret
-    - staticcheck
+    # - staticcheck
     - structcheck
     - stylecheck
     - typecheck

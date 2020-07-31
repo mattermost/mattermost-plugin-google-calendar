@@ -1,4 +1,3 @@
-//nolint:errcheck
 package main
 
 import (

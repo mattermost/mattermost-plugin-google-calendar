@@ -1,4 +1,3 @@
-//nolint:errcheck
 package main
 
 import (
@@ -141,7 +140,7 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, html)
 }
 
-func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) { //nolint
+func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) { 
 	html := ` 
 	<!DOCTYPE html>
 	<html>
