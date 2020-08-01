@@ -34,7 +34,7 @@ linters:
     - govet
     # - ineffassign
     - interfacer
-    - misspell
+    # - misspell
     - nakedret
     # - staticcheck
     - structcheck

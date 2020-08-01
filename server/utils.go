@@ -197,16 +197,16 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 				}
 
 				self := p.retrieveMyselfForEvent(changedEvent)
-				if self != nil && changedEvent.Status != "canceled" { 
-					if self.ResponseStatus == "needsAction" { 
+				if self != nil && changedEvent.Status != "cancelled" {
+					if self.ResponseStatus == "needsAction" {
 						config := p.API.GetConfig()
 						url := fmt.Sprintf("%s/plugins/%s/handleresponse?evtid=%s&",
 							*config.ServiceSettings.SiteURL, manifest.ID, changedEvent.Id)
 						textToPost += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n\n",
 							url+"response=accepted", url+"response=declined", url+"response=tentative")
-					} else if self.ResponseStatus == "declined" { 
+					} else if self.ResponseStatus == "declined" {
 						textToPost += "**Going?**: No\n\n"
-					} else if self.ResponseStatus == "tentative" { 
+					} else if self.ResponseStatus == "tentative" {
 						textToPost += "**Going?**: Maybe\n\n"
 					} else {
 						textToPost += "**Going?**: Yes\n\n"
@@ -214,7 +214,7 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 				}
 
 				// If the event was deleted, we want to remove it from our events slice in our database
-				if changedEvent.Status == "canceled" { 
+				if changedEvent.Status == "cancelled" {
 					events = append(events[:idx], events[idx+1:]...)
 				} else {
 					// Otherwise we want to replace the old event with the updated event
@@ -227,7 +227,7 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 			// If we couldn't find the event in the database, it must be a new event so we append it
 			// and post a your invited to a users channel
 			if idx == len(events)-1 {
-				if changedEvent.Status != "canceled" {
+				if changedEvent.Status != "cancelled" {
 					events = p.insertSort(events, changedEvent)
 					textToPost = "**_You've been invited:_**\n"
 					textToPost += p.printEventSummary(userID, changedEvent)
@@ -414,7 +414,7 @@ func (p *Plugin) retrieveMyselfForEvent(event *calendar.Event) *calendar.EventAt
 }
 
 func (p *Plugin) eventIsDeleted(event *calendar.Event) bool {
-	return event.Status == "canceled"
+	return event.Status == "cancelled"
 }
 
 func (p *Plugin) eventIsOld(userID string, event *calendar.Event) bool {

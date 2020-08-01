@@ -140,8 +140,8 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, html)
 }
 
-func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) { 
-	html := ` 
+func (p *Plugin) deleteEvent(w http.ResponseWriter, r *http.Request) {
+	html := `
 	<!DOCTYPE html>
 	<html>
 		<head>
@@ -191,7 +191,10 @@ func (p *Plugin) handleEventResponse(w http.ResponseWriter, r *http.Request) {
 	srv, _ := p.getCalendarService(userId)
 
 	eventToBeUpdated, err := srv.Events.Get(calendarID, eventID).Do()
+	if err != nil {
 		p.CreateBotDMPost(userId, fmt.Sprintf("Error! Failed to update the response of _%s_ event.", eventToBeUpdated.Summary))
+		return
+	}
 
 	for idx, attendee := range eventToBeUpdated.Attendees {
 		if attendee.Self {
