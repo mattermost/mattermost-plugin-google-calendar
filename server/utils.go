@@ -20,16 +20,16 @@ import (
 	"google.golang.org/api/option"
 )
 
-// Create a post as google calendar bot to the user directly
+// CreateBotDMPost used to post as google calendar bot to the user directly
 func (p *Plugin) CreateBotDMPost(userID, message string) *model.AppError {
-	channel, err := p.API.GetDirectChannel(userID, p.botId)
+	channel, err := p.API.GetDirectChannel(userID, p.botID)
 	if err != nil {
 		mlog.Error("Couldn't get bot's DM channel", mlog.String("user_id", userID))
 		return err
 	}
 
 	post := &model.Post{
-		UserId:    p.botId,
+		UserId:    p.botID,
 		ChannelId: channel.Id,
 		Message:   message,
 	}
@@ -45,7 +45,7 @@ func (p *Plugin) CreateBotDMPost(userID, message string) *model.AppError {
 // CalendarConfig will return a oauth2 Config with the field set
 func (p *Plugin) CalendarConfig() *oauth2.Config {
 	config := p.API.GetConfig()
-	clientID := p.getConfiguration().CalendarClientId
+	clientID := p.getConfiguration().CalendarClientID
 	clientSecret := p.getConfiguration().CalendarClientSecret
 
 	return &oauth2.Config{
@@ -142,7 +142,6 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 	eventsJSON, _ := p.API.KVGet(userID + "events")
 	var events []*calendar.Event
 	json.Unmarshal(eventsJSON, &events)
-
 	var textToPost string
 	shouldPostMessage := true
 	for _, changedEvent := range changedEvents {
@@ -154,7 +153,7 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 
 			// If a current event in our database matches a event that has changed
 			if oldEvent.Id == changedEvent.Id {
-				textToPost = fmt.Sprintf("**_Event Updated:_**\n")
+				textToPost = "**_Event Updated:_**\n"
 
 				// If the events title has changed, we want to show the difference from the old one
 				if oldEvent.Summary != changedEvent.Summary {
@@ -206,11 +205,11 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 						textToPost += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n\n",
 							url+"response=accepted", url+"response=declined", url+"response=tentative")
 					} else if self.ResponseStatus == "declined" {
-						textToPost += fmt.Sprintf("**Going?**: No\n\n")
+						textToPost += "**Going?**: No\n\n"
 					} else if self.ResponseStatus == "tentative" {
-						textToPost += fmt.Sprintf("**Going?**: Maybe\n\n")
+						textToPost += "**Going?**: Maybe\n\n"
 					} else {
-						textToPost += fmt.Sprintf("**Going?**: Yes\n\n")
+						textToPost += "**Going?**: Yes\n\n"
 					}
 				}
 
@@ -230,17 +229,15 @@ func (p *Plugin) updateEventsInDatabase(userID string, changedEvents []*calendar
 			if idx == len(events)-1 {
 				if changedEvent.Status != "cancelled" {
 					events = p.insertSort(events, changedEvent)
-					textToPost = fmt.Sprintf("**_You've been invited:_**\n")
+					textToPost = "**_You've been invited:_**\n"
 					textToPost += p.printEventSummary(userID, changedEvent)
 				}
 			}
-
 		}
 	}
 
 	newEvents, _ := json.Marshal(events)
 	p.API.KVSet(userID+"events", newEvents)
-
 	if textToPost != "" && shouldPostMessage {
 		p.CreateBotDMPost(userID, textToPost)
 	}
@@ -375,11 +372,11 @@ func (p *Plugin) printEventSummary(userID string, item *calendar.Event) string {
 			text += fmt.Sprintf("**Going?**: [Yes](%s) | [No](%s) | [Maybe](%s)\n",
 				url+"response=accepted", url+"response=declined", url+"response=tentative")
 		} else if attendee.ResponseStatus == "declined" {
-			text += fmt.Sprintf("**Going?**: No\n")
+			text += "**Going?**: No\n"
 		} else if attendee.ResponseStatus == "tentative" {
-			text += fmt.Sprintf("**Going?**: Maybe\n")
+			text += "**Going?**: Maybe\n"
 		} else {
-			text += fmt.Sprintf("**Going?**: Yes\n")
+			text += "**Going?**: Yes\n"
 		}
 	}
 
