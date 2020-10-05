@@ -4,7 +4,7 @@ go 1.12
 
 require (
 	github.com/google/uuid v1.1.1
-	github.com/mattermost/mattermost-server/v5 v5.23.0
+	github.com/mattermost/mattermost-server/v5 v5.24.0
 	github.com/mholt/archiver/v3 v3.3.0
 	github.com/pkg/errors v0.9.1
 	github.com/robfig/cron/v3 v3.0.1
