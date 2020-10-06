@@ -55,7 +55,7 @@ func getAutocompleteData() *model.AutocompleteData {
 	summary.AddTextArgument("The date to view in YYYY-MM-DD format", "[date]", "")
 	cal.AddCommand(summary)
 
-	create := model.NewAutocompleteData("create", "[title_of_event] [start_datetime] [end_datetime]", "Create a event with a title and start date-time and end date-time")
+	create := model.NewAutocompleteData("create", "[title_of_event] [start_datetime] [end_datetime]", "Create an event with a title, start date-time and end date-time")
 	create.AddTextArgument("Title for the event you are creating, must be surrounded by quotes", "[title_of_event]", "")
 	create.AddTextArgument("Time the event starts in YYYY-MM-DD@HH:MM format", "[start_datetime]", "")
 	create.AddTextArgument("Time the event finishes in YYYY-MM-DD@HH:MM format", "[end_datetime]", "")
