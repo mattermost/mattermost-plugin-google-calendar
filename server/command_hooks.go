@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-plugin-api/experimental/command"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"google.golang.org/api/calendar/v3"
@@ -25,19 +27,26 @@ const CommandHelp = `* |/calendar connect| - Connect your Google Calendar with y
 	* |date| should be a date in the format of YYYY-MM-DD or can be "tomorrow" or can be left blank. By default retrieves todays summary breakdown
 * |/calendar create "[title_of_event]" [start_datetime] [end_datetime]| - Create a event with a title and start date-time and end date-time
 	* |title_of_event| can be any title you like for the event. It **MUST** be placed within quotes.
-	* |start_datetime| This is the time the event starts. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format. 
+	* |start_datetime| This is the time the event starts. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format.
 	* |end_datetime| This is the time the event ends. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format.
 `
 
-func getCommand() *model.Command {
-	return &model.Command{
-		Trigger:          "calendar",
-		DisplayName:      "Google Calendar",
-		Description:      "Integration with Google Calendar",
-		AutoComplete:     true,
-		AutoCompleteDesc: "Available commands: connect, list, summary, create, help",
-		AutoCompleteHint: "[command]",
+func (p *Plugin) getCommand() (*model.Command, error) {
+	iconData, err := command.GetIconData(p.API, "assets/icon.svg")
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get icon data")
 	}
+
+	return &model.Command{
+		Trigger:              "calendar",
+		DisplayName:          "Google Calendar",
+		Description:          "Integration with Google Calendar",
+		AutoComplete:         true,
+		AutoCompleteDesc:     "Available commands: connect, list, summary, create, help",
+		AutoCompleteHint:     "[command]",
+		AutocompleteIconData: iconData,
+	}, nil
 }
 
 func (p *Plugin) postCommandResponse(args *model.CommandArgs, text string) {
