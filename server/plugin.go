@@ -27,7 +27,12 @@ type Plugin struct {
 
 //OnActivate function ensures what bot does when become actived
 func (p *Plugin) OnActivate() error {
-	p.API.RegisterCommand(getCommand())
+	command, err := p.getCommand()
+
+	if err != nil {
+		return errors.Wrap(err, "failed to get command")
+	}
+	p.API.RegisterCommand(command)
 
 	botID, err := p.Helpers.EnsureBot(&model.Bot{
 		Username:    "google.calendar",

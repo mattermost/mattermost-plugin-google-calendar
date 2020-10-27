@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
 
+	"github.com/mattermost/mattermost-plugin-api/experimental/command"
 	"github.com/mattermost/mattermost-server/v5/model"
 	"github.com/mattermost/mattermost-server/v5/plugin"
 	"google.golang.org/api/calendar/v3"
@@ -29,16 +31,23 @@ const CommandHelp = `* |/calendar connect| - Connect your Google Calendar with y
 	* |end_datetime| This is the time the event ends. It should be a date and time in the format of YYYY-MM-DD@HH:MM in 24 hour time format.
 `
 
-func getCommand() *model.Command {
-	return &model.Command{
-		Trigger:          "calendar",
-		DisplayName:      "Google Calendar",
-		Description:      "Integration with Google Calendar",
-		AutoComplete:     true,
-		AutoCompleteDesc: "Available commands: connect, list, summary, create, help",
-		AutoCompleteHint: "[command]",
-		AutocompleteData: getAutocompleteData(),
+func (p *Plugin) getCommand() (*model.Command, error) {
+	iconData, err := command.GetIconData(p.API, "assets/icon.svg")
+
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to get icon data")
 	}
+
+	return &model.Command{
+		Trigger:              "calendar",
+		DisplayName:          "Google Calendar",
+		Description:          "Integration with Google Calendar",
+		AutoComplete:         true,
+		AutoCompleteDesc:     "Available commands: connect, list, summary, create, help",
+		AutoCompleteHint:     "[command]",
+		AutocompleteData: getAutocompleteData(),
+		AutocompleteIconData: iconData,
+	}, nil
 }
 
 func getAutocompleteData() *model.AutocompleteData {
