@@ -17,9 +17,15 @@ A google calendar plugin for Mattermost client which allows you to create, delet
 - Get upcoming calendar events
 - Get a summary for any day you like
 
-## Installing
-Clone this repo and do a `make`. You will need to upload this to your mattermost instance through the system console and provide it a Client secret and Client ID.
-These can be obtained through the following procedure: 
+## Build instructions
+There is no built package available for installation, you need to compile the source code. This plugin cannot be installed on Mattermost Cloud products, as Cloud only allows installing plugins from the marketplace.
+1. Clone this repo.
+2. Install [npm](https://www.npmjs.com/get-npm), [Golang](https://golang.org/doc/install), [golangci-lint](https://golangci-lint.run/usage/install/) and Automake.
+3. Go into the cloned directory and run `make`. You will need to upload this to your mattermost instance through the system console and provide it a Client secret and Client ID.
+4. When building is finished, the plugin file is available at `dist/com.mattermost.google-calendar-VERSION.tar.gz`
+5. In your Mattermost, go to **System Console** > **Plugin Management** and upload the `.tar.gz` file.
+
+## Configure Google Calendar
 
 1. Go to [Google Cloud Dashboard](https://console.cloud.google.com/home/dashboard) and create a new project.
 2. After creating a project click on `Go to APIs overview` card from the dashboard which will take you to the API dashboard.
