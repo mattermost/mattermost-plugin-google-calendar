@@ -23,12 +23,14 @@ These can be obtained through the following procedure:
 
 1. Go to [Google Cloud Dashboard](https://console.cloud.google.com/home/dashboard) and create a new project.
 2. After creating a project click on `Go to APIs overview` card from the dashboard which will take you to the API dashboard.
-3. Select `Credentials` from the left menu 
-4. Now click on `Create Credentials` dropdown and select `Oauth client ID` option.
-5. While creating the Oauth credentials, enter the values of `Authorized Javascript Origins` as `<Mattermost server URL>` and the value of `Authorised redirect URIs` as `<Mattermost server URL>/plugins/com.mattermost.google-calendar/oauth/complete`.
-6. After creating the Oauth client, copy the Client ID and secret.
-7. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret.
-8. Enable the plugin and you should be able to see event reminder notifications.
+3. From the left menu select `Library` and activate the Google Calendar API.
+4. From the left menu select `Domain verification` and verify the domain of your Mattermost installation.
+5. From the left menu select `Credentials`.
+6. Now click on `Create Credentials` dropdown and select `OAuth client ID` option.
+7. While creating the Oauth credentials, enter the values of `Authorized Javascript Origins` as `<Mattermost server URL>` and the value of `Authorised redirect URIs` as `<Mattermost server URL>/plugins/com.mattermost.google-calendar/oauth/complete`.
+8. After creating the Oauth client, copy the Client ID and secret.
+9. Upload the plugin to Mattermost and go to `Google Calendar Plugin settings`. Paste the client id and secret.
+10. Enable the plugin and you should be able to see event reminder notifications.
 
 ## Installing For Development
 You will be required to follow the above steps to acquire a Client ID and Client secret. 
