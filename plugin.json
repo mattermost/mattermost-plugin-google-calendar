@@ -23,13 +23,13 @@
         "settings": [
             {
                 "key": "CalendarClientId",
-                "display_name": "Google Calendar OAuth Client ID",
+                "display_name": "Google Calendar OAuth Client ID:",
                 "type": "text",
                 "help_text": "The client ID for the OAuth app registered with Google Cloud."
             },
             {
                 "key": "CalendarClientSecret",
-                "display_name": "Google Calendar OAuth Client Secret",
+                "display_name": "Google Calendar OAuth Client Secret:",
                 "type": "text",
                 "help_text": "The client secret for the OAuth app registered with Google Cloud."
             }
