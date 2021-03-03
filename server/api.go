@@ -128,7 +128,11 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	p.startCronJob(autheduserId)
+	err = p.startCronJob(autheduserId)
+
+	if err != nil {
+		p.CreateBotDMPost(userId, err.Error())
+	}
 
 	// Post intro post
 	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +

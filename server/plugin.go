@@ -43,6 +43,7 @@ func (p *Plugin) OnActivate() error {
 		return errors.Wrap(err, "failed to ensure google calendar bot")
 	}
 	p.botID = botID
+	p.API.KVSet(plugin.BotUserKey, []byte(botID))
 
 	bundlePath, err := p.API.GetBundlePath()
 	if err != nil {

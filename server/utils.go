@@ -10,7 +10,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/robfig/cron/v3"
+	"github.com/mattermost/mattermost-plugin-api/cluster"
 
 	"github.com/mattermost/mattermost-server/v5/mlog"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -257,13 +257,18 @@ func (p *Plugin) getPrimaryCalendarLocation(userID string) *time.Location {
 	return location
 }
 
-func (p *Plugin) startCronJob(userID string) {
-	cron := cron.New()
-	cron.AddFunc("@every 1m", func() {
+func (p *Plugin) startCronJob(userID string) error {
+	_, err := cluster.Schedule(p.API, userID, cluster.MakeWaitForInterval(time.Minute), func() {
+		p.CreateBotDMPost("138fxr3ta7gebgkpqkeen9rwah", "Test Job123123")
 		p.remindUser(userID)
 		p.userInEvent(userID)
 	})
-	cron.Start()
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (p *Plugin) setupCalendarWatch(userID string) error {
