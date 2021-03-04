@@ -136,11 +136,18 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	storedUsersString := userId
+	var storedUsersString string
+	if !strings.Contains(string(storedUsers), userId) {
+		storedUsersString = userId
+	}
+
 	if len(storedUsers) > 0 {
 		storedUsersString = fmt.Sprintf("%s,%s", string(storedUsers), userId)
 	}
-	p.API.KVSet("NotificationCronJobUsers", []byte(storedUsersString))
+
+	if storedUsersString != "" {
+		p.API.KVSet("NotificationCronJobUsers", []byte(storedUsersString))
+	}
 
 	// Post intro post
 	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +
