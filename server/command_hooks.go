@@ -2,11 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"regexp"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/pkg/errors"
 
 	"github.com/mattermost/mattermost-plugin-api/experimental/command"
 	"github.com/mattermost/mattermost-server/v5/model"
@@ -45,7 +46,7 @@ func (p *Plugin) getCommand() (*model.Command, error) {
 		AutoComplete:         true,
 		AutoCompleteDesc:     "Available commands: connect, list, summary, create, help",
 		AutoCompleteHint:     "[command]",
-		AutocompleteData: getAutocompleteData(),
+		AutocompleteData:     getAutocompleteData(),
 		AutocompleteIconData: iconData,
 	}, nil
 }
@@ -53,16 +54,20 @@ func (p *Plugin) getCommand() (*model.Command, error) {
 func getAutocompleteData() *model.AutocompleteData {
 	cal := model.NewAutocompleteData("calendar", "[command]", "Available commands: connect, list, summary, create, help")
 
-	connect := model.NewAutocompleteData("connect","", "Connect your Google Calendar with your Mattermost account")
+	connect := model.NewAutocompleteData("connect", "", "Connect your Google Calendar with your Mattermost account")
 	cal.AddCommand(connect)
 
 	list := model.NewAutocompleteData("list", "[number_of_events]", "List the upcoming X number of events")
 	list.AddTextArgument("Number of events to list", "[number_of_events]", "^[0-9]+$")
 	cal.AddCommand(list)
 
-	summary := model.NewAutocompleteData("summary","[date]", "Get a breakdown of a particular date")
+	summary := model.NewAutocompleteData("summary", "[date]", "Get a breakdown of a particular date")
 	summary.AddTextArgument("The date to view in YYYY-MM-DD format", "[date]", "")
 	cal.AddCommand(summary)
+
+	summaryShare := model.NewAutocompleteData("summary-share", "[date]", "Get a breakdown of a particular date posted to the current channel")
+	summaryShare.AddTextArgument("The date to view in YYYY-MM-DD format", "[date]", "")
+	cal.AddCommand(summaryShare)
 
 	create := model.NewAutocompleteData("create", "[title_of_event] [start_datetime] [end_datetime]", "Create an event with a title, start date-time and end date-time")
 	create.AddTextArgument("Title for the event you are creating, must be surrounded by quotes", "[title_of_event]", "")
@@ -113,7 +118,9 @@ func (p *Plugin) ExecuteCommand(c *plugin.Context, args *model.CommandArgs) (*mo
 	case "list":
 		messageToPost = p.executeCommandList(args)
 	case "summary":
-		messageToPost = p.executeCommandSummary(args)
+		messageToPost = p.executeCommandSummarySelf(args)
+	case "summary-share":
+		messageToPost = p.executeCommandSummaryShare(args)
 	case "create":
 		messageToPost = p.executeCommandCreate(args)
 	case "help":
@@ -227,7 +234,24 @@ func (p *Plugin) executeCommandSummary(args *model.CommandArgs) string {
 	for _, item := range events.Items {
 		text += p.printEventSummary(userID, item)
 	}
+	return text
+}
+
+func (p *Plugin) executeCommandSummarySelf(args *model.CommandArgs) string {
+	userID := args.UserId
+	text := p.executeCommandSummary(args)
 	p.CreateBotDMPost(userID, text)
+	return ""
+}
+
+func (p *Plugin) executeCommandSummaryShare(args *model.CommandArgs) string {
+	text := p.executeCommandSummary(args)
+	post := &model.Post{
+		UserId:    args.UserId,
+		ChannelId: args.ChannelId,
+		Message:   text,
+	}
+	p.API.CreatePost(post)
 	return ""
 }
 
