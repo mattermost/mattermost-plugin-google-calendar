@@ -60,5 +60,10 @@ func (p *Plugin) OnActivate() error {
 		return errors.Wrap(appErr, "couldn't set profile image")
 	}
 
+	err = p.StartNotificationCronJob()
+	if err != nil {
+		return errors.Wrap(err, "couldn't start cron job")
+	}
+
 	return nil
 }

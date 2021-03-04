@@ -257,11 +257,16 @@ func (p *Plugin) getPrimaryCalendarLocation(userID string) *time.Location {
 	return location
 }
 
-func (p *Plugin) startCronJob(userID string) error {
-	_, err := cluster.Schedule(p.API, userID, cluster.MakeWaitForInterval(time.Minute), func() {
-		p.CreateBotDMPost("138fxr3ta7gebgkpqkeen9rwah", "Test Job123123")
-		p.remindUser(userID)
-		p.userInEvent(userID)
+func (p *Plugin) StartNotificationCronJob() error {
+	_, err := cluster.Schedule(p.API, "NotificationCronJob", cluster.MakeWaitForRoundedInterval(time.Minute), func() {
+		storedUsers, _ := p.API.KVGet("NotificationCronJobUsers")
+		if len(storedUsers) > 0 {
+			storedUsersArray := strings.Split(string(storedUsers), ",")
+			for _, userID := range storedUsersArray {
+				p.remindUser(userID)
+				p.userInEvent(userID)
+			}
+		}
 	})
 
 	if err != nil {

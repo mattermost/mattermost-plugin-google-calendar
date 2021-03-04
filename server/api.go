@@ -128,11 +128,19 @@ func (p *Plugin) completeCalendar(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = p.startCronJob(autheduserId)
+	// Save array of users to service in the notification cron job
+	storedUsers, apiErr := p.API.KVGet("NotificationCronJobUsers")
 
-	if err != nil {
-		p.CreateBotDMPost(userId, err.Error())
+	if apiErr != nil {
+		http.Error(w, "Missing NotificationCronJobUsers", http.StatusBadRequest)
+		return
 	}
+
+	storedUsersString := userId
+	if len(storedUsers) > 0 {
+		storedUsersString = fmt.Sprintf("%s,%s", string(storedUsers), userId)
+	}
+	p.API.KVSet("NotificationCronJobUsers", []byte(storedUsersString))
 
 	// Post intro post
 	message := "#### Welcome to the Mattermost Google Calendar Plugin!\n" +
