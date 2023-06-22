@@ -1,4 +1,4 @@
-# Mattermost Google Calendar Plugin (ALPHA)
+# Mattermost Google Calendar Plugin (ALPHA - NOT RECOMMENDED FOR USE. THIS REPO HAS BEEN ARCHIVED.)
 
 [![Build Status](https://img.shields.io/circleci/project/github/mattermost/mattermost-plugin-google-calendar/master)](https://circleci.com/gh/mattermost/mattermost-plugin-google-calendar)
 [![Code Coverage](https://img.shields.io/codecov/c/github/mattermost/mattermost-plugin-google-calendar/master)](https://codecov.io/gh/mattermost/mattermost-plugin-google-calendar)
