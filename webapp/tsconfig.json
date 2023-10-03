@@ -1,6 +1,12 @@
 {
   "compilerOptions": {
     "target": "esnext",
+    "baseUrl": "./",
+    "paths": {
+      "@/*": [
+        "src/*"
+      ],
+    },
     "lib": [
       "dom",
       "dom.iterable",
@@ -18,15 +24,19 @@
     "resolveJsonModule": true,
     "isolatedModules": true,
     "noEmit": true,
-	"experimentalDecorators": true,
+    "experimentalDecorators": true,
     "jsx": "react",
-    "baseUrl": "."
+    "typeRoots": [
+      "./types"
+    ],
   },
   "include": [
-    "./**/*"
+    "src",
+    "tests"
   ],
   "exclude": [
     "dist",
+    "node_modules",
     "!node_modules/@types"
-  ]
+  ],
 }

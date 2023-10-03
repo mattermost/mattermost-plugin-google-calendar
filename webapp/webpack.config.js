@@ -1,13 +1,53 @@
-var path = require('path');
+const exec = require('child_process').exec;
 
-module.exports = {
+const path = require('path');
+
+const webpack = require('webpack');
+
+const PLUGIN_ID = require(manifestFile).id;
+
+const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
+const isDev = NPM_TARGET === 'debug' || NPM_TARGET === 'debug:watch';
+
+const plugins = [
+    new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(isDev ? 'development' : 'production'),
+    }),
+];
+
+if (NPM_TARGET === 'build:watch' || NPM_TARGET === 'debug:watch') {
+    plugins.push({
+        apply: (compiler) => {
+            compiler.hooks.watchRun.tap('WatchStartPlugin', () => {
+                // eslint-disable-next-line no-console
+                console.log('Change detected. Rebuilding webapp.');
+            });
+            compiler.hooks.afterEmit.tap('AfterEmitPlugin', () => {
+                exec('cd .. && make deploy-from-watch', (err, stdout, stderr) => {
+                    if (stdout) {
+                        process.stdout.write(stdout);
+                    }
+                    if (stderr) {
+                        process.stderr.write(stderr);
+                    }
+                });
+            });
+        },
+    });
+}
+
+const config = {
     entry: [
-        './src/index.js',
+        './src/index.tsx',
     ],
     resolve: {
+        alias: {
+            '@': path.resolve(__dirname, 'src'),
+        },
         modules: [
             'src',
             'node_modules',
+            path.resolve(__dirname),
         ],
         extensions: ['*', '.js', '.jsx', '.ts', '.tsx'],
     },
@@ -19,48 +59,56 @@ module.exports = {
                 use: {
                     loader: 'babel-loader',
                     options: {
-                        plugins: [
-                            '@babel/plugin-proposal-class-properties',
-                            '@babel/plugin-syntax-dynamic-import',
-                            '@babel/proposal-object-rest-spread',
-                            'babel-plugin-typescript-to-proptypes',
-                        ],
-                        presets: [
-                            ['@babel/preset-env', {
-                                targets: {
-                                    chrome: 66,
-                                    firefox: 60,
-                                    edge: 42,
-                                    safari: 12,
-                                },
-                                modules: false,
-                                debug: false,
-                                useBuiltIns: 'usage',
-                                shippedProposals: true,
-                            }],
-                            ['@babel/preset-react', {
-                                useBuiltIns: true,
-                            }],
-                            ['@babel/typescript', {
-                                allExtensions: true,
-                                isTSX: true,
-                            }],
-                        ],
+                        cacheDirectory: true,
+
+                        // Babel configuration is in babel.config.js because jest requires it to be there.
                     },
                 },
+            },
+            {
+                test: /\.(scss|css)$/,
+                use: [
+                    'style-loader',
+                    {
+                        loader: 'css-loader',
+                    },
+                    {
+                        loader: 'sass-loader',
+                        options: {
+                            sassOptions: {
+                                includePaths: ['node_modules/compass-mixins/lib', 'sass'],
+                            },
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.svg$/,
+                type: 'asset/inline',
             },
         ],
     },
     externals: {
         react: 'React',
+        'react-dom': 'ReactDOM',
         redux: 'Redux',
         'react-redux': 'ReactRedux',
         'prop-types': 'PropTypes',
         'react-bootstrap': 'ReactBootstrap',
+        'react-router-dom': 'ReactRouterDom',
     },
     output: {
+        devtoolNamespace: PLUGIN_ID,
         path: path.join(__dirname, '/dist'),
         publicPath: '/',
         filename: 'main.js',
     },
+    mode: (isDev) ? 'eval-source-map' : 'production',
+    plugins,
 };
+
+if (isDev) {
+    Object.assign(config, {devtool: 'eval-source-map'});
+}
+
+module.exports = config;
