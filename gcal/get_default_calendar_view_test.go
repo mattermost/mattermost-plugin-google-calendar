@@ -6,7 +6,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"google.golang.org/api/calendar/v3"
 
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/remote"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/remote"
 )
 
 func createMinimalCalendarEvent() calendar.Event {

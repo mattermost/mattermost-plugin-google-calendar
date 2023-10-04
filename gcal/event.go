@@ -13,7 +13,7 @@ import (
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
 
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/remote"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/remote"
 )
 
 func (c *client) GetEvent(remoteUserID, eventID string) (*remote.Event, error) {

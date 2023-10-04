@@ -11,8 +11,8 @@ import (
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
 
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/remote"
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/utils/bot"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/remote"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/utils/bot"
 )
 
 func (c *client) GetCalendars(remoteUserID string) ([]*remote.Calendar, error) {

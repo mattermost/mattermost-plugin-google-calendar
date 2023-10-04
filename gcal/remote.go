@@ -14,9 +14,9 @@ import (
 	// msgraph "github.com/yaegashi/msgraph.go/v1.0"
 	"golang.org/x/oauth2/google"
 
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/config"
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/remote"
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/utils/bot"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/config"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/remote"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/utils/bot"
 )
 
 const Kind = "gcal"

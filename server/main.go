@@ -4,9 +4,9 @@ import (
 	mattermostplugin "github.com/mattermost/mattermost-server/v6/plugin"
 
 	"github.com/mattermost/mattermost-plugin-google-calendar/gcal"
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/config"
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/mscalendar"
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/plugin"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/config"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/engine"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/plugin"
 )
 
 var BuildHash string
@@ -19,7 +19,7 @@ func main() {
 
 	mattermostplugin.ClientMain(
 		plugin.NewWithEnv(
-			mscalendar.Env{
+			engine.Env{
 				Config: &config.Config{
 					PluginID:       manifest.ID,
 					PluginVersion:  manifest.Version,
@@ -28,6 +28,6 @@ func main() {
 					BuildDate:      BuildDate,
 					Provider:       config.Provider,
 				},
-				Dependencies: &mscalendar.Dependencies{},
+				Dependencies: &engine.Dependencies{},
 			}))
 }

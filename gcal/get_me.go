@@ -11,7 +11,7 @@ import (
 	"google.golang.org/api/option"
 	"google.golang.org/api/people/v1"
 
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/remote"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/remote"
 )
 
 const personFields = "names,emailAddresses"

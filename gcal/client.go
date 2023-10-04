@@ -9,8 +9,8 @@ import (
 
 	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/config"
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/utils/bot"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/config"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/utils/bot"
 )
 
 type client struct {

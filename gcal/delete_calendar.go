@@ -6,7 +6,7 @@ package gcal
 import (
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/utils/bot"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/utils/bot"
 )
 
 func (c *client) DeleteCalendar(remoteUserID string, calID string) error {

@@ -8,8 +8,8 @@ import (
 
 	"github.com/pkg/errors"
 
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/remote"
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/utils/bot"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/remote"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/utils/bot"
 )
 
 // CreateCalendar creates a calendar

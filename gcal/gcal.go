@@ -1,7 +1,7 @@
 package gcal
 
 import (
-	"github.com/mattermost/mattermost-plugin-mscalendar/server/config"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/config"
 )
 
 const (
