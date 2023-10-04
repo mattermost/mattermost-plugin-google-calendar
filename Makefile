@@ -168,7 +168,7 @@ endif
 
 ## Builds and bundles the plugin.
 .PHONY: dist
-dist:	apply server  bundle
+dist:	apply server webapp bundle
 
 ## Installs the plugin to a (development) server.
 ## It uses the API if appropriate environment variables are defined,
