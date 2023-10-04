@@ -4,7 +4,7 @@ const path = require('path');
 
 const webpack = require('webpack');
 
-const PLUGIN_ID = require(manifestFile).id;
+const PLUGIN_ID = require('../plugin.json').id;
 
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 const isDev = NPM_TARGET === 'debug' || NPM_TARGET === 'debug:watch';
