@@ -1,37 +1,97 @@
 {
     "id": "com.mattermost.google-calendar",
     "name": "Google Calendar",
-    "description": "Google Calendar plugin for Mattermost",
+    "description": "Google Calendar Integration",
     "homepage_url": "https://github.com/mattermost/mattermost-plugin-google-calendar",
     "support_url": "https://github.com/mattermost/mattermost-plugin-google-calendar/issues",
-    "release_notes_url": "https://github.com/mattermost/mattermost-plugin-google-calendar/releases/tag/v0.2.0",
-    "icon_path": "assets/icon.svg",
-    "version": "0.2.0",
-    "min_server_version": "5.18.0",
+    "release_notes_url": "https://github.com/mattermost/mattermost-plugin-google-calendar/releases/tag/v1.0.0",
+    "icon_path": "assets/profile-gcal.svg",
+    "version": "1.0.0",
+    "min_server_version": "6.3.0",
     "server": {
         "executables": {
-            "linux-amd64": "server/dist/plugin-linux-amd64",
             "darwin-amd64": "server/dist/plugin-darwin-amd64",
+            "darwin-arm64": "server/dist/plugin-darwin-arm64",
+            "linux-amd64": "server/dist/plugin-linux-amd64",
+            "linux-arm64": "server/dist/plugin-linux-arm64",
             "windows-amd64": "server/dist/plugin-windows-amd64.exe"
-        }
+        },
+        "executable": ""
     },
     "webapp": {
         "bundle_path": "webapp/dist/main.js"
     },
     "settings_schema": {
-        "header": "Enjoy using this plugin? Want to contribute and make it more awesome? You can [fork the repository](https://github.com/hahmadia/google-calendar-plugin/) and submit your pull requests!",
+        "header": "",
+        "footer": "",
         "settings": [
             {
-                "key": "CalendarClientId",
-                "display_name": "Google Calendar OAuth Client ID:",
+                "key": "AdminUserIDs",
+                "display_name": "Admin User IDs:",
                 "type": "text",
-                "help_text": "The client ID for the OAuth app registered with Google Cloud."
+                "help_text": "List of users authorized to administer the plugin in addition to the System Admins. Must be a comma-separated list of user IDs.\n \n User IDs can be found in **System Console \u003e User Management \u003e Users**. Select the user's name, and the ID is displayed in the top-right corner of the banner.",
+                "placeholder": "",
+                "default": null
             },
             {
-                "key": "CalendarClientSecret",
-                "display_name": "Google Calendar OAuth Client Secret:",
+                "key": "AdminLogLevel",
+                "display_name": "Copy plugin logs to admins, as bot messages:",
+                "type": "dropdown",
+                "help_text": "Select the log level.",
+                "placeholder": "",
+                "default": "none",
+                "options": [
+                    {
+                        "display_name": "None",
+                        "value": "none"
+                    },
+                    {
+                        "display_name": "Debug",
+                        "value": "debug"
+                    },
+                    {
+                        "display_name": "Info",
+                        "value": "info"
+                    },
+                    {
+                        "display_name": "Warning",
+                        "value": "warn"
+                    },
+                    {
+                        "display_name": "Error",
+                        "value": "error"
+                    }
+                ]
+            },
+            {
+                "key": "AdminLogVerbose",
+                "display_name": "Display full context for each admin log message:",
+                "type": "bool",
+                "help_text": "",
+                "placeholder": "",
+                "default": false
+            },
+            {
+                "key": "EncryptionKey",
+                "display_name": "Encryption key",
+                "type": "generated",
+                "help_text": "**Required**: The encryption key used to store data in the database. If this is regenerated all user authentication data will be lost and users will need to reconnect again."
+            },
+            {
+                "key": "OAuth2ClientId",
+                "display_name": "Google Application Client ID:",
                 "type": "text",
-                "help_text": "The client secret for the OAuth app registered with Google Cloud."
+                "help_text": "Google Auth Client ID",
+                "placeholder": "",
+                "default": ""
+            },
+            {
+                "key": "OAuth2ClientSecret",
+                "display_name": "Google Client Secret:",
+                "type": "text",
+                "help_text": "Google Auth Client Secret.",
+                "placeholder": "",
+                "default": ""
             }
         ]
     }

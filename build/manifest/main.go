@@ -3,10 +3,9 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"os"
 
-	"github.com/mattermost/mattermost-server/v5/model"
+	"github.com/mattermost/mattermost-server/v6/model"
 	"github.com/pkg/errors"
 )
 
@@ -68,10 +67,16 @@ func main() {
 }
 
 func findManifest() (*model.Manifest, error) {
-	_, manifestFilePath, err := model.FindManifest(".")
-	if err != nil {
-		return nil, errors.Wrap(err, "failed to find manifest in current working directory")
+	manifestFilePath := os.Getenv("MANIFEST_FILE")
+
+	if manifestFilePath == "" {
+		var err error
+		_, manifestFilePath, err = model.FindManifest(".")
+		if err != nil {
+			return nil, errors.Wrap(err, "failed to find manifest in current working directory")
+		}
 	}
+
 	manifestFile, err := os.Open(manifestFilePath)
 	if err != nil {
 		return nil, errors.Wrapf(err, "failed to open %s", manifestFilePath)
@@ -103,7 +108,7 @@ func dumpPluginVersion(manifest *model.Manifest) {
 // applyManifest propagates the plugin_id into the server and webapp folders, as necessary
 func applyManifest(manifest *model.Manifest) error {
 	if manifest.HasServer() {
-		if err := ioutil.WriteFile(
+		if err := os.WriteFile(
 			"server/manifest.go",
 			[]byte(fmt.Sprintf(pluginIDGoFileTemplate, manifest.Id, manifest.Version)),
 			0600,
@@ -113,7 +118,7 @@ func applyManifest(manifest *model.Manifest) error {
 	}
 
 	if manifest.HasWebapp() {
-		if err := ioutil.WriteFile(
+		if err := os.WriteFile(
 			"webapp/src/manifest.js",
 			[]byte(fmt.Sprintf(pluginIDJSFileTemplate, manifest.Id, manifest.Version)),
 			0600,

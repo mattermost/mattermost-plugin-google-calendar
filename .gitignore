@@ -1,1 +1,4 @@
-dist
+dist*
+.DS_Store
+.npminstall
+webapp/node_modules
