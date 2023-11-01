@@ -1,8 +1,10 @@
 const {execSync} = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const packageJson = require('./package.json');
+
 const {chdir} = require('process');
+
+const packageJson = require('./package.json');
 
 const moduleName = packageJson.customModule.name;
 const moduleRepo = packageJson.customModule.repo;
@@ -25,13 +27,12 @@ try {
     process.exit(1);
 }
 
-
 // Checkout the specific commit and npm indtall
 try {
     chdir(modulePath);
     execSync(`git checkout ${commitHash}`);
-    execSync(`cd webapp && npm i`);
-    chdir(`../..`);
+    execSync('cd webapp && npm i');
+    chdir('../..');
 } catch (error) {
     console.error(`Error during postinstall: ${error}`);
     process.exit(1);
