@@ -10,7 +10,17 @@
     "test": "jest --forceExit --detectOpenHandles --verbose",
     "test:watch": "jest --watch",
     "test-ci": "jest --forceExit --detectOpenHandles --maxWorkers=2",
-    "check-types": "tsc"
+    "check-types": "tsc",
+    "postinstall": "node postinstall.js"
+  },
+  "submodule": {
+    "gitRepo": "https://github.com/mattermost/mattermost-plugin-google-calendar.git",
+    "gitTag": "master"
+  },
+  "customModule": {
+    "name": "mattermost-plugin-google-calendar",
+    "repo": "https://github.com/mattermost/mattermost-plugin-google-calendar.git",
+    "commit": "master"
   },
   "devDependencies": {
     "@babel/cli": "7.16.8",
