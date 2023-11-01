@@ -62,4 +62,4 @@ declare global {
     }
 }
 
-window.registerPlugin(PluginId, new Plugin());
+// window.registerPlugin(PluginId, new Plugin());
