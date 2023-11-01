@@ -6,9 +6,9 @@ import {useSelector, useDispatch} from 'react-redux';
 
 import {Modal} from 'react-bootstrap';
 
-import {isCreateEventModalVisible} from '@/selectors';
+import {isCreateEventModalVisible} from '../../selectors';
 
-import {closeCreateEventModal} from '@/actions';
+import {closeCreateEventModal} from '../../actions';
 
 import CreateEventForm from './create_event_form';
 

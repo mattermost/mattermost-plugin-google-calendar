@@ -8,9 +8,9 @@ import CreatableSelect from 'react-select/creatable';
 
 import {Theme} from 'mattermost-redux/types/preferences';
 
-import Setting from '@/components/setting';
+import {getStyleForReactSelect} from '../utils/styles';
 
-import {getStyleForReactSelect} from '@/utils/styles';
+import Setting from './setting';
 
 type ReactSelectOption = {
     label: string;

@@ -5,8 +5,8 @@ import AsyncCreatableSelect from 'react-select/async-creatable';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {getStyleForReactSelect} from '@/utils/styles';
-import {AutocompleteChannelsResponse, autocompleteConnectedUsers} from '@/actions';
+import {getStyleForReactSelect} from '../utils/styles';
+import {AutocompleteChannelsResponse, autocompleteConnectedUsers} from '../actions';
 
 type SelectOption = {
     label: string;

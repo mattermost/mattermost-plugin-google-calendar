@@ -6,8 +6,8 @@ import AsyncSelect from 'react-select/async';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
-import {getStyleForReactSelect} from '@/utils/styles';
-import {AutocompleteChannelsResponse, autocompleteUserChannels} from '@/actions';
+import {getStyleForReactSelect} from '../utils/styles';
+import {AutocompleteChannelsResponse, autocompleteUserChannels} from '../actions';
 
 type SelectOption = {
     label: string;

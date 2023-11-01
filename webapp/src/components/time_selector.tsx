@@ -3,7 +3,7 @@ import {useSelector} from 'react-redux';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {getTodayString} from '@/utils/datetime';
+import {getTodayString} from '../utils/datetime';
 
 import ReactSelectSetting from './react_select_setting';
 

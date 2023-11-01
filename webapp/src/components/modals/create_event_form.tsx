@@ -8,19 +8,19 @@ import {Modal} from 'react-bootstrap';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {CreateEventPayload} from '@/types/calendar_api_types';
+import {CreateEventPayload} from '../../types/calendar_api_types';
 
-import {getModalStyles} from '@/utils/styles';
+import {getModalStyles} from '../../utils/styles';
 
-import FormButton from '@/components/form_button';
-import Loading from '@/components/loading';
-import Setting from '@/components/setting';
-import AttendeeSelector from '@/components/attendee_selector';
-import TimeSelector from '@/components/time_selector';
+import FormButton from '../../components/form_button';
+import Loading from '../../components/loading';
+import Setting from '../../components/setting';
+import AttendeeSelector from '../../components/attendee_selector';
+import TimeSelector from '../../components/time_selector';
 import ChannelSelector from '../channel_selector';
-import {capitalizeFirstCharacter} from '@/utils/text';
-import {CreateCalendarEventResponse, createCalendarEvent} from '@/actions';
-import {getTodayString} from '@/utils/datetime';
+import {capitalizeFirstCharacter} from '../../utils/text';
+import {CreateCalendarEventResponse, createCalendarEvent} from '../../actions';
+import {getTodayString} from '../../utils/datetime';
 
 import './create_event_form.scss';
 

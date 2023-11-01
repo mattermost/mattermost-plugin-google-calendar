@@ -4,7 +4,7 @@ import {Store, Action} from 'redux';
 
 import {GlobalState} from '@mattermost/types/lib/store';
 
-import {PluginRegistry} from '@/types/mattermost-webapp';
+import {PluginRegistry} from './types/mattermost-webapp';
 
 import {PluginId} from './plugin_id';
 
