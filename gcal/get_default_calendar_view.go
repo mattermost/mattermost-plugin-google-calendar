@@ -71,6 +71,12 @@ func (c *client) GetDefaultCalendarView(_ string, start, end time.Time) ([]*remo
 }
 
 func convertGCalEventDateTimeToRemoteDateTime(dt *calendar.EventDateTime) *remote.DateTime {
+	// Handle all-day events
+	if len(dt.Date) > 0 {
+		t, _ := time.Parse("2006-01-02", dt.Date)
+		return remote.NewDateTime(t.UTC(), "UTC")
+	}
+
 	t, _ := time.Parse(time.RFC3339, dt.DateTime)
 	return remote.NewDateTime(t.UTC(), "UTC")
 }
