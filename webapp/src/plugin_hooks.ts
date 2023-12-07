@@ -31,7 +31,7 @@ export default class Hooks {
         }
 
         const providerConfiguration = getProviderConfiguration(this.store.getState());
-        if (message.startsWith(`/${providerConfiguration.CommandTrigger} ` + createEventCommand)) {
+        if (providerConfiguration && message.startsWith(`/${providerConfiguration.CommandTrigger} ` + createEventCommand)) {
             return this.handleCreateEventSlashCommand(message, contextArgs);
         }
 
