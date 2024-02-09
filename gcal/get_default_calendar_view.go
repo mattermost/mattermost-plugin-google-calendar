@@ -43,6 +43,7 @@ func (c *client) GetDefaultCalendarView(_ string, start, end time.Time) ([]*remo
 
 	req := service.Events.
 		List(defaultCalendarName).
+		EventTypes("default").
 		TimeMin(start.Format(time.RFC3339)).
 		TimeMax(end.Format(time.RFC3339)).
 		SingleEvents(true).

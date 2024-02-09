@@ -99,6 +99,7 @@ func (c *client) GetEventsBetweenDates(_ string, start, end time.Time) (events [
 
 	result, err := service.Events.
 		List(defaultCalendarName).
+		EventTypes("default").
 		TimeMin(start.Format(time.RFC3339)).
 		TimeMax(end.Format(time.RFC3339)).
 		OrderBy("startTime").
