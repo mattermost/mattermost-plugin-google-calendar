@@ -8,26 +8,26 @@ endif
 $(shell cd build/manifest && $(GO) build -o ../bin/manifest)
 
 # Ensure that the deployment tools are compiled. Go's caching makes this quick.
-$(shell cd build/deploy && $(GO) build -o ../bin/deploy)
+$(shell cd build/pluginctl && $(GO) build -o ../bin/pluginctl)
 
 # Extract the plugin id from the manifest.
 # TODO: Not working
-PLUGIN_ID ?= $(shell build/bin/manifest id)
+PLUGIN_ID ?= $(shell MANIFEST_FILE=$(MANIFEST_FILE) build/bin/manifest id)
 ifeq ($(PLUGIN_ID),)
     $(error "Cannot parse id from $(MANIFEST_FILE)")
 endif
 
 # Extract the plugin version from the manifest.
-PLUGIN_VERSION ?= $(shell build/bin/manifest version)
+PLUGIN_VERSION ?= $(shell MANIFEST_FILE=$(MANIFEST_FILE) build/bin/manifest version)
 ifeq ($(PLUGIN_VERSION),)
     $(error "Cannot parse version from $(MANIFEST_FILE)")
 endif
 
 # Determine if a server is defined in the manifest.
-HAS_SERVER ?= $(shell build/bin/manifest has_server)
+HAS_SERVER ?= $(shell MANIFEST_FILE=$(MANIFEST_FILE) build/bin/manifest has_server)
 
 # Determine if a webapp is defined in the manifest.
-HAS_WEBAPP ?= $(shell build/bin/manifest has_webapp)
+HAS_WEBAPP ?= $(shell MANIFEST_FILE=$(MANIFEST_FILE) build/bin/manifest has_webapp)
 
 # Determine if a /public folder is in use
 HAS_PUBLIC ?= $(wildcard public/.)
