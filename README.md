@@ -13,7 +13,7 @@ A Google Calendar plugin for Mattermost.
 
 ## Documentation
 
-[About](https://docs.mattermost.com/about/mattermost-google-calendar-integration.html) | [Setup](https://docs.mattermost.com/about/setup-mattermost-google-calendar-plugin.html) | [Configuration settings](https://docs.mattermost.com/configure/plugins-configuration-settings.html#google-calendar) | [Usage](https://docs.mattermost.com/collaborate/use-mattermost-google-calendar-plugin.html)
+[About]() | [Set up]() | [Configure]() | [Use]()
 
 ## Features
 
@@ -39,7 +39,6 @@ A Google Calendar plugin for Mattermost.
 1. Run `make dist`.
 2. When the build process finishes the plugin tarball will be available at `dist/com.mattermost.gcal-$(VERSION).tar.gz`
 3. In your Mattermost Server, go to **System Console > Plugin Management** and upload the `.tar.gz` file to install the plugin.
-
 
 ## Acknowledgments
 
