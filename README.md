@@ -13,7 +13,7 @@ A Google Calendar plugin for Mattermost.
 
 ## Documentation
 
-[About]() | [Set up]() | [Configure]() | [Use]()
+[About](docs/about.md) | [Set up](docs/setup.md) | [Configure](docs/configuration.md) | [Use](docs/usage.md)
 
 ## Features
 
