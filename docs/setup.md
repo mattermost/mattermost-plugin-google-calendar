@@ -1,6 +1,6 @@
 # Set up the Mattermost Google Calendar integration
 
-Setting up the [Mattermost Google Calendar integration]() requires the following 3 steps:
+Setting up the [Mattermost Google Calendar integration](about.md) requires the following 3 steps:
 
 1. Mattermost admin: Install the Google Calendar plugin on your Mattermost instance.
 2. Google admin: Create a Google Calendar service by creating a Google Cloud project.
@@ -28,9 +28,9 @@ To install the Mattermost Google Calendar plugin on your Mattermost server:
 
 3. When your project is created, go to **APIs & Services** to search for and enable the following 2 services:
 
-  - **Google Calendar API**: Used for anything related to the calendar and events.
+    - **Google Calendar API**: Used for anything related to the calendar and events.
 
-  - **Google People API**: Used to link your Mattermost account to your Google account.
+    - **Google People API**: Used to link your Mattermost account to your Google account.
 
     ![In Google Cloud Console, select APIs & Services to search for services to enable.](google-cloud-console-apis.png)
 
@@ -55,8 +55,8 @@ To install the Mattermost Google Calendar plugin on your Mattermost server:
 
 6. Under **Credentials**, create new OAuth 2.0 credentials by selecting **Create Credentials > OAuth client ID**.
 
-  - Under **Application type**, select **Web Application**.
-  - Under **Authorized redirect URIs** add `https://(MM_SITE_URL)/plugins/com.mattermost.gcal/oauth2/complete` and replace `MM_SITE_URL` with your Mattermost Server **Site URL**.
+    - Under **Application type**, select **Web Application**.
+    - Under **Authorized redirect URIs** add `https://(MM_SITE_URL)/plugins/com.mattermost.gcal/oauth2/complete` and replace `MM_SITE_URL` with your Mattermost Server **Site URL**.
 
     ![Under Credentials, select Web application.](google-cloud-console-web-application.png)
 
@@ -64,9 +64,9 @@ To install the Mattermost Google Calendar plugin on your Mattermost server:
 
 7. Once the OAuth client is created, make a copy of the **Client ID** and **Client Secret** values for the configuration step.
 
-![Copy the Client ID and Client secret values. You'll need these values in the configuration step.](google-cloud-console-OAuth-client-created.png)
+    ![Copy the Client ID and Client secret values. You'll need these values in the configuration step.](google-cloud-console-OAuth-client-created.png)
 
-See the [Mattermost Google Calendar integration configuration]() documentation to configure the Mattermost Google Calendar integration.
+See the [Mattermost Google Calendar integration configuration](configuration.md) documentation to configure the Mattermost Google Calendar integration.
 
 ## Get help
 
