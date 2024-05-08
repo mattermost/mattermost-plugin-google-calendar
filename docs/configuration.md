@@ -1,6 +1,6 @@
 # Configure the Mattermost Google Calendar integration
 
-In Mattermost, configure [Mattermost Google Calendar integration]() by going to **System Console > Plugin Management > Google Calendar**, entering the following values, and selecting **Save**.
+In Mattermost, configure [Mattermost Google Calendar integration](about.md) by going to **System Console > Plugin Management > Google Calendar**, entering the following values, and selecting **Save**.
 
 - **Enable Plugin**: Select `true` to enable the plugin for your Mattermost instance. Default `false`.
 - **Admin User IDs**: Specify the user IDs who are authorized to manage the plugin in addition to Mattermost system admins. Separate multiple user IDs with commas. Go to **System Console > User Management > Users** to obtain a user’s ID.
@@ -20,4 +20,4 @@ If your Mattermost users encounter issues when connecting calendars, creating ev
 
 3. Select **Enable** and wait for the **State** to change to **Running**.
 
-See the [Mattermost Google Calendar integration usage]() documentation to learn how to use the Mattermost Google Calendar integration.
+See the [Mattermost Google Calendar integration usage](usage.md) documentation to learn how to use the Mattermost Google Calendar integration.

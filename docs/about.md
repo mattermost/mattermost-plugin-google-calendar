@@ -8,6 +8,6 @@ The Mattermost Google Calendar integration enables a two-way integration between
 - Automatically set your user status as Away or Do Not Disturb during scheduled events.
 
 See the following documentation to install and use Mattermost Google Calendar integration:
-- [Set up]() the Mattermost Google Calendar integration
-- [Configure]() the Mattermost Google Calendar integration
-- [Use]() the Mattermost Calendar integration
+- [Set up](setup.md) the Mattermost Google Calendar integration
+- [Configure](configuration.md) the Mattermost Google Calendar integration
+- [Use](usage.md) the Mattermost Calendar integration
