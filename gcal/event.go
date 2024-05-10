@@ -5,11 +5,9 @@ package gcal
 
 import (
 	"context"
-	"net/http"
 	"time"
 
 	"github.com/pkg/errors"
-	msgraph "github.com/yaegashi/msgraph.go/v1.0"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/option"
 
@@ -17,18 +15,7 @@ import (
 )
 
 func (c *client) GetEvent(remoteUserID, eventID string) (*remote.Event, error) {
-	if true {
-		return nil, errors.New("gcal GetEvent not implemented")
-	}
-
-	e := &remote.Event{}
-
-	err := c.rbuilder.Users().ID(remoteUserID).Events().ID(eventID).Request().JSONRequest(
-		c.ctx, http.MethodGet, "", nil, &e)
-	if err != nil {
-		return nil, errors.Wrap(err, "msgraph GetEvent")
-	}
-	return e, nil
+	return nil, errors.New("gcal GetEvent not implemented")
 }
 
 // CreateEvent creates a calendar event
@@ -52,42 +39,15 @@ func (c *client) CreateEvent(_ string, in *remote.Event) (*remote.Event, error) 
 }
 
 func (c *client) AcceptEvent(remoteUserID, eventID string) error {
-	if true {
-		return errors.New("gcal AcceptEvent not implemented")
-	}
-
-	dummy := &msgraph.EventAcceptRequestParameter{}
-	err := c.rbuilder.Users().ID(remoteUserID).Events().ID(eventID).Accept(dummy).Request().Post(c.ctx)
-	if err != nil {
-		return errors.Wrap(err, "msgraph Accept Event")
-	}
-	return nil
+	return errors.New("gcal AcceptEvent not implemented")
 }
 
 func (c *client) DeclineEvent(remoteUserID, eventID string) error {
-	if true {
-		return errors.New("gcal DeclineEvent not implemented")
-	}
-
-	dummy := &msgraph.EventDeclineRequestParameter{}
-	err := c.rbuilder.Users().ID(remoteUserID).Events().ID(eventID).Decline(dummy).Request().Post(c.ctx)
-	if err != nil {
-		return errors.Wrap(err, "msgraph DeclineEvent")
-	}
-	return nil
+	return errors.New("gcal DeclineEvent not implemented")
 }
 
 func (c *client) TentativelyAcceptEvent(remoteUserID, eventID string) error {
-	if true {
-		return errors.New("gcal TentativelyAcceptEvent not implemented")
-	}
-
-	dummy := &msgraph.EventTentativelyAcceptRequestParameter{}
-	err := c.rbuilder.Users().ID(remoteUserID).Events().ID(eventID).TentativelyAccept(dummy).Request().Post(c.ctx)
-	if err != nil {
-		return errors.Wrap(err, "msgraph TentativelyAcceptEvent")
-	}
-	return nil
+	return errors.New("gcal TentativelyAcceptEvent not implemented")
 }
 
 func (c *client) GetEventsBetweenDates(_ string, start, end time.Time) (events []*remote.Event, err error) {

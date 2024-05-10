@@ -7,8 +7,6 @@ import (
 	"context"
 	"net/http"
 
-	msgraph "github.com/yaegashi/msgraph.go/v1.0"
-
 	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/config"
 	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/utils/bot"
 )
@@ -19,7 +17,6 @@ type client struct {
 	ctx context.Context
 
 	httpClient *http.Client
-	rbuilder   *msgraph.GraphServiceRequestBuilder
 
 	conf *config.Config
 	bot.Logger
