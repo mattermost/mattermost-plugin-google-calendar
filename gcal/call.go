@@ -33,7 +33,7 @@ func (c *client) CallFormPost(method, path string, in url.Values, out interface{
 }
 
 func (c *client) call(method, path, contentType string, inBody io.Reader, out interface{}) (responseData []byte, err error) {
-	errContext := fmt.Sprintf("msgraph: Call failed: method:%s, path:%s", method, path)
+	errContext := fmt.Sprintf("gcal: Call failed: method:%s, path:%s", method, path)
 	pathURL, err := url.Parse(path)
 	if err != nil {
 		return nil, errors.WithMessage(err, errContext)

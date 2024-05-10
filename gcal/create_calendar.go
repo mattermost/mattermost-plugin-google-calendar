@@ -25,6 +25,6 @@ func (c *client) CreateCalendar(remoteUserID string, calIn *remote.Calendar) (*r
 	}
 	c.Logger.With(bot.LogContext{
 		"v": calOut,
-	}).Infof("msgraph: CreateCalendar created the following calendar.")
+	}).Infof("gcal: CreateCalendar created the following calendar.")
 	return &calOut, nil
 }

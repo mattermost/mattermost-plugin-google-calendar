@@ -18,6 +18,6 @@ func (c *client) DeleteCalendar(remoteUserID string, calID string) error {
 	if err != nil {
 		return errors.Wrap(err, "msgraph DeleteCalendar")
 	}
-	c.Logger.With(bot.LogContext{}).Infof("msgraph: DeleteCalendar deleted calendar `%v`.", calID)
+	c.Logger.With(bot.LogContext{}).Infof("gcal: DeleteCalendar deleted calendar `%v`.", calID)
 	return nil
 }
