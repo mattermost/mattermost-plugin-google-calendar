@@ -3,9 +3,9 @@ import {useSelector} from 'react-redux';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {getTodayString} from '@/utils/datetime';
-
 import ReactSelectSetting from './react_select_setting';
+
+import {getTodayString} from '@/utils/datetime';
 
 const minuteStep = 15;
 
@@ -69,11 +69,9 @@ export default function TimeSelector(props: Props) {
         }));
     }, [props.startTime, props.endTime, props.date]);
 
-    let value: Option | undefined | null = options[0];
+    let value: Option | undefined | null;
     if (props.value) {
         value = options.find((option: Option) => option.value === props.value);
-    } else {
-        props.onChange(options[0].value);
     }
 
     const handleChange = (_: string, newValue: string) => {
