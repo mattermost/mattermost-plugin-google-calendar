@@ -72,6 +72,8 @@ export default function TimeSelector(props: Props) {
     let value: Option | undefined | null = options[0];
     if (props.value) {
         value = options.find((option: Option) => option.value === props.value);
+    } else {
+        props.onChange(options[0].value);
     }
 
     const handleChange = (_: string, newValue: string) => {
