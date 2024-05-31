@@ -3,9 +3,9 @@ import {useSelector} from 'react-redux';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import ReactSelectSetting from './react_select_setting';
-
 import {getTodayString} from '@/utils/datetime';
+
+import ReactSelectSetting from './react_select_setting';
 
 const minuteStep = 15;
 
