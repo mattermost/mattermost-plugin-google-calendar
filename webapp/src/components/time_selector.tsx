@@ -3,15 +3,15 @@ import {useSelector} from 'react-redux';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
-import {getTodayString} from '@/utils/datetime';
-
 import ReactSelectSetting from './react_select_setting';
+
+import {getTodayString} from '@/utils/datetime';
 
 const minuteStep = 15;
 
 type Props = {
     value: string;
-    onChange: (value: string) => void;
+    onChange: (value: string, name: string) => void;
     startTime?: string
     endTime?: string
     date?: string
@@ -75,7 +75,17 @@ export default function TimeSelector(props: Props) {
     }
 
     const handleChange = (_: string, newValue: string) => {
-        props.onChange(newValue);
+        if (props.startTime) {
+            props.onChange('end_time', newValue);
+        } else {
+            props.onChange('start_time', newValue);
+
+            options.forEach((option: Option, i: number) => {
+                if (option.value === newValue && i + 2 < options.length) {
+                    props.onChange('end_time', options[i + 2].value);
+                }
+            });
+        }
     };
 
     return (
