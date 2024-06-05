@@ -4,6 +4,7 @@ import {useSelector} from 'react-redux';
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {getTodayString} from '@/utils/datetime';
+import {CreateEventPayload} from '@/types/calendar_api_types';
 
 import ReactSelectSetting from './react_select_setting';
 
@@ -11,7 +12,7 @@ const minuteStep = 15;
 
 type Props = {
     value: string;
-    onChange: (value: string, name: string) => void;
+    onChange: (name: keyof CreateEventPayload, value: string) => void;
     startTime?: string
     endTime?: string
     date?: string

@@ -222,7 +222,7 @@ const ActualForm = (props: ActualFormProps) => {
                     value={formValues.start_time}
                     endTime={formValues.end_time}
                     date={formValues.date}
-                    onChange={(name: any, value: string) => setFormValue(name, value)}
+                    onChange={(name: keyof CreateEventPayload, value: string) => setFormValue(name, value)}
                 />
             ),
         },
@@ -234,7 +234,7 @@ const ActualForm = (props: ActualFormProps) => {
                     value={formValues.end_time}
                     startTime={formValues.start_time}
                     date={formValues.date}
-                    onChange={(name: any, value: string) => setFormValue(name, value)}
+                    onChange={(name: keyof CreateEventPayload, value: string) => setFormValue(name, value)}
                 />
             ),
         },
