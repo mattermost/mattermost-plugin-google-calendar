@@ -40,6 +40,46 @@ A Google Calendar plugin for Mattermost.
 2. When the build process finishes the plugin tarball will be available at `dist/com.mattermost.gcal-$(VERSION).tar.gz`
 3. In your Mattermost Server, go to **System Console > Plugin Management** and upload the `.tar.gz` file to install the plugin.
 
+## How to Release
+
+To trigger a release, follow these steps:
+
+1. **For Patch Release:** Run the following command:
+    ```
+    make patch
+    ```
+   This will release a patch change.
+
+2. **For Minor Release:** Run the following command:
+    ```
+    make minor
+    ```
+   This will release a minor change.
+
+3. **For Major Release:** Run the following command:
+    ```
+    make major
+    ```
+   This will release a major change.
+
+4. **For Patch Release Candidate (RC):** Run the following command:
+    ```
+    make patch-rc
+    ```
+   This will release a patch release candidate.
+
+5. **For Minor Release Candidate (RC):** Run the following command:
+    ```
+    make minor-rc
+    ```
+   This will release a minor release candidate.
+
+6. **For Major Release Candidate (RC):** Run the following command:
+    ```
+    make major-rc
+    ```
+   This will release a major release candidate.
+
 ## Acknowledgments
 
 * [Hossein Ahmadian-Yazdi](https://github.com/hahmadia) for the previous version of the Google Calendar plugin:
