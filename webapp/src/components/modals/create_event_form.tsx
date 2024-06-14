@@ -8,6 +8,8 @@ import {Modal} from 'react-bootstrap';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 
+import ChannelSelector from '../channel_selector';
+
 import {CreateEventPayload} from '@/types/calendar_api_types';
 
 import {getModalStyles} from '@/utils/styles';
@@ -17,7 +19,6 @@ import Loading from '@/components/loading';
 import Setting from '@/components/setting';
 import AttendeeSelector from '@/components/attendee_selector';
 import TimeSelector from '@/components/time_selector';
-import ChannelSelector from '../channel_selector';
 import {capitalizeFirstCharacter} from '@/utils/text';
 import {CreateCalendarEventResponse, createCalendarEvent} from '@/actions';
 import {getTodayString} from '@/utils/datetime';
@@ -221,7 +222,7 @@ const ActualForm = (props: ActualFormProps) => {
                     value={formValues.start_time}
                     endTime={formValues.end_time}
                     date={formValues.date}
-                    onChange={(value) => setFormValue('start_time', value)}
+                    onChange={(name: keyof CreateEventPayload, value: string) => setFormValue(name, value)}
                 />
             ),
         },
@@ -233,7 +234,7 @@ const ActualForm = (props: ActualFormProps) => {
                     value={formValues.end_time}
                     startTime={formValues.start_time}
                     date={formValues.date}
-                    onChange={(value) => setFormValue('end_time', value)}
+                    onChange={(name: keyof CreateEventPayload, value: string) => setFormValue(name, value)}
                 />
             ),
         },
