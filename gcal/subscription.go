@@ -5,8 +5,6 @@ package gcal
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"fmt"
 	"time"
 
@@ -24,12 +22,7 @@ const defaultCalendarName = "primary"
 const googleSubscriptionType = "webhook"
 const subscriptionSuffix = "_calendar_event_notifications_"
 
-func newRandomString() string {
-	b := make([]byte, 96)
-	rand.Read(b)
-	return base64.URLEncoding.EncodeToString(b)
-}
-
+// CreateMySubscription creates a subscription for the user's calendar
 func (c *client) CreateMySubscription(notificationURL, remoteUserID string) (*remote.Subscription, error) {
 	service, err := calendar.NewService(context.Background(), option.WithHTTPClient(c.httpClient))
 	if err != nil {
@@ -73,6 +66,7 @@ func (c *client) CreateMySubscription(notificationURL, remoteUserID string) (*re
 	return sub, nil
 }
 
+// DeleteSubscription deletes a subscription
 func (c *client) DeleteSubscription(sub *remote.Subscription) error {
 	service, err := calendar.NewService(context.Background(), option.WithHTTPClient(c.httpClient))
 	if err != nil {
@@ -96,6 +90,7 @@ func (c *client) DeleteSubscription(sub *remote.Subscription) error {
 	return nil
 }
 
+// RenewSubscription deletes the old subscription and creates a new one in order to "renew" it
 func (c *client) RenewSubscription(notificationURL, remoteUserID string, oldSub *remote.Subscription) (*remote.Subscription, error) {
 	err := c.DeleteSubscription(oldSub)
 	if err != nil {
@@ -112,6 +107,7 @@ func (c *client) RenewSubscription(notificationURL, remoteUserID string, oldSub 
 	return sub, nil
 }
 
+// ListSubscriptions lists all subscriptions
 func (c *client) ListSubscriptions() ([]*remote.Subscription, error) {
 	return nil, errors.New("gcal ListSubscriptions not implemented. only used for debug command")
 }

@@ -51,3 +51,7 @@ func (c *client) GetMe() (*remote.User, error) {
 
 	return remoteUser, nil
 }
+
+func (c *client) GetSuperuserToken() (string, error) {
+	return "", remote.ErrNotImplemented
+}

@@ -11,7 +11,6 @@ import (
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/people/v1"
 
-	// msgraph "github.com/yaegashi/msgraph.go/v1.0"
 	"golang.org/x/oauth2/google"
 
 	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/config"
@@ -45,7 +44,6 @@ func (r *impl) MakeClient(ctx context.Context, token *oauth2.Token) remote.Clien
 		ctx:        ctx,
 		httpClient: httpClient,
 		Logger:     r.logger,
-		rbuilder:   nil,
 	}
 	return c
 }
