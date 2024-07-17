@@ -25,7 +25,25 @@ func (c *client) DeleteCalendar(remoteUserID string, calID string) error {
 
 // GetCalendars returns a list of calendars
 func (c *client) GetCalendars(remoteUserID string) ([]*remote.Calendar, error) {
-	return nil, errors.New("gcal GetCalendars not implemented")
+	service, err := calendar.NewService(context.Background(), option.WithHTTPClient(c.httpClient))
+	if err != nil {
+		return nil, errors.Wrap(err, "gcal GetNotificationData, error creating service")
+	}
+
+	res, err := service.CalendarList.List().Do()
+	if err != nil {
+		return nil, errors.Wrap(err, "gcal GetNotificationData, error getting list of calendars")
+	}
+
+	calendarList := []*remote.Calendar{}
+	for _, calendar := range res.Items {
+		calendarList = append(calendarList, &remote.Calendar{
+			ID:   calendar.Id,
+			Name: calendar.Summary,
+		})
+	}
+
+	return calendarList, nil
 }
 
 // GetDefaultCalendar returns the default calendar for the user

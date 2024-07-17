@@ -89,6 +89,27 @@ export const autocompleteUserChannels = (input: string, teamId: string) => async
     }
 };
 
+type Calendar = {
+    id: string;
+    name: string;
+}
+
+export type CalendarListResponse = {data?: Calendar[]; error?: string};
+
+export const fetchCalendarList = () => async (dispatch, getState): Promise<CalendarListResponse> => {
+    const state = getState();
+    const pluginServerRoute = getPluginServerRoute(state);
+
+    return doFetchWithResponse(`${pluginServerRoute}/api/v1/calendar/list`).
+        then((response) => {
+            return {data: response.data};
+        }).
+        catch((response) => {
+            const error = response.message?.error || 'An error occurred while fetching calendars list.';
+            return {data: [], error};
+        });
+};
+
 export type CreateCalendarEventResponse = {data?: any; error?: string};
 
 export const createCalendarEvent = (payload: CreateEventPayload) => async (dispatch, getState): Promise<CreateCalendarEventResponse> => {

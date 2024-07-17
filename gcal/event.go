@@ -19,16 +19,19 @@ func (c *client) GetEvent(remoteUserID, eventID string) (*remote.Event, error) {
 }
 
 // CreateEvent creates a calendar event
-func (c *client) CreateEvent(_ string, in *remote.Event) (*remote.Event, error) {
+func (c *client) CreateEvent(calendarID, _ string, in *remote.Event) (*remote.Event, error) {
 	service, err := calendar.NewService(context.Background(), option.WithHTTPClient(c.httpClient))
 	if err != nil {
 		return nil, errors.Wrap(err, "gcal CreateEvent, error creating service")
 	}
 
 	evt := convertRemoteEventToGcalEvent(in)
-
+	calendar := defaultCalendarName
+	if calendarID != "" {
+		calendar = calendarID
+	}
 	resultEvent, err := service.Events.
-		Insert(defaultCalendarName, evt).
+		Insert(calendar, evt).
 		SendUpdates("all"). // Send notifications to all attendees.
 		Do()
 	if err != nil {
