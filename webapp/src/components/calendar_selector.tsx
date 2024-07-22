@@ -58,9 +58,7 @@ export default function CalendarSelector(props: Props) {
                 isMulti={false}
             />
             {storedError && (
-                <div>
-                    <span className='error-text'>{storedError}</span>
-                </div>
+                <span className='error-text'>{storedError}</span>
             )}
         </>
     );

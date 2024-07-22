@@ -27,12 +27,12 @@ func (c *client) DeleteCalendar(remoteUserID string, calID string) error {
 func (c *client) GetCalendars(remoteUserID string) ([]*remote.Calendar, error) {
 	service, err := calendar.NewService(context.Background(), option.WithHTTPClient(c.httpClient))
 	if err != nil {
-		return nil, errors.Wrap(err, "gcal GetNotificationData, error creating service")
+		return nil, errors.Wrap(err, "gcal GetCalendars, error creating service")
 	}
 
 	res, err := service.CalendarList.List().Do()
 	if err != nil {
-		return nil, errors.Wrap(err, "gcal GetNotificationData, error getting list of calendars")
+		return nil, errors.Wrap(err, "gcal GetCalendars, error getting list of calendars")
 	}
 
 	calendarList := []*remote.Calendar{}
