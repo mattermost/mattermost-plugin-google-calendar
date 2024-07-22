@@ -24,6 +24,7 @@ import {CreateCalendarEventResponse, createCalendarEvent} from '@/actions';
 import {getTodayString} from '@/utils/datetime';
 
 import './create_event_form.scss';
+import CalendarSelector from '../calendar_selector';
 
 type Props = {
     close: (e?: Event) => void;
@@ -46,6 +47,7 @@ export default function CreateEventForm(props: Props) {
         description: '',
         channel_id: '',
         location: '',
+        calendar_id: '',
     });
 
     const setFormValue = <Key extends keyof CreateEventPayload>(name: Key, value: CreateEventPayload[Key]) => {
@@ -167,6 +169,14 @@ const ActualForm = (props: ActualFormProps) => {
     const theme = useSelector(getTheme);
 
     const components = [
+        {
+            label: 'Calendar (optional)',
+            component: (
+                <CalendarSelector
+                    onChange={(selected) => setFormValue('calendar_id', selected)}
+                />
+            ),
+        },
         {
             label: 'Subject',
             required: true,

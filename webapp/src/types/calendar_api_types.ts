@@ -9,4 +9,5 @@ export type CreateEventPayload = {
     subject: string;
     location?: string;
     channel_id?: string;
+    calendar_id?: string;
 }
