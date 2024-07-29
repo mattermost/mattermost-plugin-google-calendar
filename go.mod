@@ -3,7 +3,7 @@ module github.com/mattermost/mattermost-plugin-google-calendar
 go 1.21
 
 require (
-	github.com/mattermost/mattermost-plugin-mscalendar v1.3.0
+	github.com/mattermost/mattermost-plugin-mscalendar v1.2.2-0.20240729101139-b61c35cf3761
 	github.com/mattermost/mattermost/server/public v0.1.1
 	github.com/pkg/errors v0.9.1
 	github.com/stretchr/testify v1.9.0
