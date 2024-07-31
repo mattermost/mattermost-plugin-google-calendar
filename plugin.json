@@ -4,9 +4,7 @@
     "description": "Google Calendar Integration",
     "homepage_url": "https://github.com/mattermost/mattermost-plugin-google-calendar",
     "support_url": "https://github.com/mattermost/mattermost-plugin-google-calendar/issues",
-    "release_notes_url": "https://github.com/mattermost/mattermost-plugin-google-calendar/releases/tag/v1.1.1",
     "icon_path": "assets/profile-gcal.svg",
-    "version": "1.1.1",
     "min_server_version": "6.3.0",
     "server": {
         "executables": {
