@@ -30,7 +30,6 @@ default: all
 
 # Verify environment, and define PLUGIN_ID, PLUGIN_VERSION, HAS_SERVER and HAS_WEBAPP as needed.
 include build/setup.mk
-include build/legacy.mk
 
 BUNDLE_NAME ?= $(PLUGIN_ID)-$(PLUGIN_VERSION).tar.gz
 
@@ -156,9 +155,14 @@ major-rc: ## to bump major release candidate version (semver)
 .PHONY: all
 all: check-style test dist
 
+## Propagates plugin manifest information into the server/ and webapp/ folders.
+.PHONY: apply
+apply:
+	./build/bin/manifest apply
+
 ## Runs golangci-lint and eslint.
 .PHONY: check-style
-check-style: webapp/node_modules
+check-style: webapp/node_modules apply
 	@echo Checking for style guide compliance
 
 ifneq ($(HAS_WEBAPP),)
@@ -260,7 +264,7 @@ validate-go-version: ## Validates the installed version of go against Mattermost
 bundle:
 	rm -rf dist/
 	mkdir -p dist/$(PLUGIN_ID)
-	cp $(MANIFEST_FILE) dist/$(PLUGIN_ID)/plugin.json
+	./build/bin/manifest dist
 ifneq ($(wildcard $(ASSETS_DIR)/.),)
 	cp -r $(ASSETS_DIR) dist/$(PLUGIN_ID)/
 endif
@@ -281,7 +285,7 @@ endif
 
 ## Builds and bundles the plugin.
 .PHONY: dist
-dist:	server webapp bundle
+dist: apply server webapp bundle
 
 ## Builds and installs the plugin to a server.
 .PHONY: deploy
@@ -290,7 +294,7 @@ deploy: dist
 
 ## Builds and installs the plugin to a server, updating the webapp automatically when changed.
 .PHONY: watch
-watch: server bundle
+watch: apply server bundle
 ifeq ($(MM_DEBUG),)
 	cd webapp && $(NPM) run build:watch
 else
@@ -344,7 +348,7 @@ detach: setup-attach
 
 ## Runs any lints and unit tests defined for the server and webapp, if they exist.
 .PHONY: test
-test: webapp/node_modules
+test: apply webapp/node_modules
 ifneq ($(HAS_SERVER),)
 	$(GO) test -v $(GO_TEST_FLAGS) $(GO_PACKAGES)
 endif
@@ -354,7 +358,7 @@ endif
 
 ## Creates a coverage report for the server code.
 .PHONY: coverage
-coverage: webapp/node_modules
+coverage: apply webapp/node_modules
 ifneq ($(HAS_SERVER),)
 	$(GO) test $(GO_TEST_FLAGS) -coverprofile=server/coverage.txt $(GO_PACKAGES)
 	$(GO) tool cover -html=server/coverage.txt
