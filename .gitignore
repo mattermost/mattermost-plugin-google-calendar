@@ -2,3 +2,5 @@ dist*
 .DS_Store
 .npminstall
 webapp/node_modules
+webapp/src/manifest.ts
+server/manifest.go
