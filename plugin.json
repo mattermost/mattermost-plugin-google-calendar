@@ -73,7 +73,8 @@
                 "key": "EncryptionKey",
                 "display_name": "Encryption key",
                 "type": "generated",
-                "help_text": "**Required**: The encryption key used to store data in the database. If this is regenerated all user authentication data will be lost and users will need to reconnect again."
+                "help_text": "**Required**: The encryption key used to store data in the database. If this is regenerated all user authentication data will be lost and users will need to reconnect again.",
+                "secret": true
             },
             {
                 "key": "OAuth2ClientId",
@@ -89,7 +90,8 @@
                 "type": "text",
                 "help_text": "Google Auth Client Secret.",
                 "placeholder": "",
-                "default": ""
+                "default": "",
+                "secret": true
             }
         ]
     }
