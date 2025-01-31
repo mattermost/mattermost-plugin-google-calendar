@@ -212,6 +212,9 @@ webapp: webapp/node_modules
 ifneq ($(HAS_WEBAPP),)
 ifeq ($(MM_DEBUG),)
 	cd webapp && $(NPM) run build;
+else
+	cd webapp && $(NPM) run debug;
+endif
 endif
 
 ## Builds the webapp in debug mode, if it exists.
@@ -238,7 +241,6 @@ else ifeq ($(OS),Windows_NT)
 	cd server && env GOOS=windows GOARCH=amd64 $(GOBUILD) -gcflags "all=-N -l" -o dist/plugin-windows-amd64.exe;
 else
 	cd webapp && $(NPM) run debug;
-endif
 endif
 	rm -rf dist/
 	mkdir -p dist/$(PLUGIN_ID)/server/dist
