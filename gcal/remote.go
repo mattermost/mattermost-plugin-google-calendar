@@ -36,8 +36,8 @@ func NewRemote(conf *config.Config, logger bot.Logger) remote.Remote {
 	}
 }
 
-// MakeClient creates a new client for user-delegated permissions.
-func (r *impl) MakeClient(ctx context.Context, token *oauth2.Token) remote.Client {
+// MakeUserClient creates a new client for user-delegated permissions.
+func (r *impl) MakeUserClient(ctx context.Context, token *oauth2.Token, _ string, _ bot.Poster, _ remote.UserTokenHelpers) remote.Client {
 	httpClient := r.NewOAuth2Config().Client(ctx, token)
 	c := &client{
 		conf:       r.conf,
