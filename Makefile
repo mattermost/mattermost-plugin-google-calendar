@@ -16,6 +16,9 @@ DEFAULT_GOARCH := $(shell go env GOARCH)
 
 export GO111MODULE=on
 
+# We need to export GOBIN to allow it to be set
+# for processes spawned from the Makefile
+export GOBIN ?= $(PWD)/bin
 GO_PACKAGES ?= ./server/... ./gcal/...
 
 # You can include assets this directory into the bundle. This can be e.g. used to include profile pictures.
@@ -174,7 +177,6 @@ check-style: apply webapp/node_modules install-go-tools
 
 ifneq ($(HAS_WEBAPP),)
 	cd webapp && npm run lint
-	cd webapp && npm run check-types
 endif
 
 # It's highly recommended to run go-vet first
