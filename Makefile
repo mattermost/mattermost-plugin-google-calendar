@@ -160,23 +160,31 @@ all: check-style test dist
 apply:
 	./build/bin/manifest apply
 
+## Install go tools
+install-go-tools:
+	@echo Installing go tools
+	$(GO) install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.64.7
+	$(GO) install gotest.tools/gotestsum@v1.7.0
+	$(GO) install github.com/mattermost/mattermost-govet/v2@3f08281c344327ac09364f196b15f9a81c7eff08
+
 ## Runs golangci-lint and eslint.
 .PHONY: check-style
-check-style: webapp/node_modules apply
+check-style: apply webapp/node_modules install-go-tools
 	@echo Checking for style guide compliance
 
 ifneq ($(HAS_WEBAPP),)
 	cd webapp && npm run lint
+	cd webapp && npm run check-types
 endif
 
+# It's highly recommended to run go-vet first
+# to find potential compile errors that could introduce
+# weird reports at golangci-lint step
 ifneq ($(HAS_SERVER),)
-	@if ! [ -x "$$(command -v golangci-lint)" ]; then \
-		echo "golangci-lint is not installed. Please see https://github.com/golangci/golangci-lint#install for installation instructions."; \
-		exit 1; \
-	fi; \
-
 	@echo Running golangci-lint
-	golangci-lint run ./...
+	$(GO) vet ./...
+	$(GOBIN)/golangci-lint run ./...
+	$(GO) vet -vettool=$(GOBIN)/mattermost-govet -license -license.year=2019 ./...
 endif
 
 ## Builds the server, if it exists, for all supported architectures, unless MM_SERVICESETTINGS_ENABLEDEVELOPER is set.
@@ -267,6 +275,12 @@ bundle:
 	rm -rf dist/
 	mkdir -p dist/$(PLUGIN_ID)
 	./build/bin/manifest dist
+ifneq ($(wildcard LICENSE.txt),)
+	cp -r LICENSE.txt dist/$(PLUGIN_ID)/
+endif
+ifneq ($(wildcard NOTICE.txt),)
+	cp -r NOTICE.txt dist/$(PLUGIN_ID)/
+endif
 ifneq ($(wildcard $(ASSETS_DIR)/.),)
 	cp -r $(ASSETS_DIR) dist/$(PLUGIN_ID)/
 endif
@@ -350,9 +364,20 @@ detach: setup-attach
 
 ## Runs any lints and unit tests defined for the server and webapp, if they exist.
 .PHONY: test
-test: apply webapp/node_modules
+test: apply webapp/node_modules install-go-tools
 ifneq ($(HAS_SERVER),)
-	$(GO) test -v $(GO_TEST_FLAGS) $(GO_PACKAGES)
+	$(GOBIN)/gotestsum -- -v ./...
+endif
+ifneq ($(HAS_WEBAPP),)
+	cd webapp && $(NPM) run test;
+endif
+
+## Runs any lints and unit tests defined for the server and webapp, if they exist, optimized
+## for a CI environment.
+.PHONY: test-ci
+test-ci: apply webapp/node_modules install-go-tools
+ifneq ($(HAS_SERVER),)
+	$(GOBIN)/gotestsum --format standard-verbose --junitfile report.xml -- ./...
 endif
 ifneq ($(HAS_WEBAPP),)
 	cd webapp && $(NPM) run test;
@@ -416,6 +441,14 @@ ifneq ($(HAS_WEBAPP),)
 	rm -fr webapp/node_modules
 endif
 	rm -fr build/bin/
+
+.PHONY: logs
+logs:
+	./build/bin/pluginctl logs $(PLUGIN_ID)
+
+.PHONY: logs-watch
+logs-watch:
+	./build/bin/pluginctl logs-watch $(PLUGIN_ID)
 
 # Help documentation à la https://marmelab.com/blog/2016/02/29/auto-documented-makefile.html
 help:
