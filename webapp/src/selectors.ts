@@ -5,7 +5,7 @@ import {createSelector} from 'reselect';
 
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {getCurrentUser} from 'mattermost-redux/selectors/entities/users';
-
+    
 import {PluginId} from './plugin_id';
 
 import {ProviderConfig, ReducerState} from './reducers';

@@ -1,10 +1,10 @@
-import Client4 from 'mattermost-redux/client/client4';
+import {Client4} from '@mattermost/client';
 import {PostTypes} from 'mattermost-redux/action_types';
-import {GlobalState} from 'mattermost-redux/types/store';
+import {GlobalState} from '@mattermost/types/store';
 import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import Permissions from 'mattermost-redux/constants/permissions';
-import {Channel} from '@mattermost/types/lib/channels';
+import {Channel} from '@mattermost/types/channels';
 
 import {getCurrentChannelId} from 'mattermost-redux/selectors/entities/common';
 
