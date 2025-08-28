@@ -378,7 +378,7 @@
          }
       ],
       "no-use-before-define": [
-         2,
+         0,
          {
             "classes": false,
             "functions": false,
