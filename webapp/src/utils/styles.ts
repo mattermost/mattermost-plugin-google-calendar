@@ -1,7 +1,7 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-import {Theme} from '@mattermost/types/lib/preferences';
+import {Theme} from 'mattermost-redux/selectors/entities/preferences';
 
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
@@ -18,7 +18,7 @@ export const getBaseStyles = (theme: Theme) => {
     };
 };
 
-export const getModalStyles = (theme) => ({
+export const getModalStyles = (theme: Theme) => ({
     modalBody: {
         padding: '2em 2em 3em',
         color: theme.centerChannelColor,
@@ -34,7 +34,7 @@ export const getModalStyles = (theme) => ({
     },
 });
 
-export const getStyleForReactSelect = (theme) => {
+export const getStyleForReactSelect = (theme: Theme) => {
     if (!theme) {
         return {};
     }
