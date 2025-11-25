@@ -81,7 +81,7 @@ export const autocompleteUserChannels = (input: string, teamId: string) => async
 
     try {
         const channels = await client.autocompleteChannels(teamId, input);
-        const channelsCanWriteTo = channels.filter((c) => haveIChannelPermission(state, {channel: c.id, permission: Permissions.CREATE_POST}));
+        const channelsCanWriteTo = channels.filter((c) => haveIChannelPermission(state, teamId, c.id, Permissions.CREATE_POST));
         return {data: channelsCanWriteTo};
     } catch (e) {
         const error = response.message?.error || 'An error occurred while searching for channels.';
