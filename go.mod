@@ -3,10 +3,10 @@ module github.com/mattermost/mattermost-plugin-google-calendar
 go 1.24.6
 
 require (
-	github.com/mattermost/mattermost-plugin-mscalendar v1.4.0-rc1.0.20250516114304-a08fbc657f68
+	github.com/mattermost/mattermost-plugin-mscalendar v1.4.0
 	github.com/mattermost/mattermost/server/public v0.1.13
 	github.com/pkg/errors v0.9.1
-	github.com/stretchr/testify v1.10.0
+	github.com/stretchr/testify v1.11.1
 	golang.org/x/oauth2 v0.25.0
 	google.golang.org/api v0.179.0
 )
