@@ -108,8 +108,10 @@ formatters:
 issues:
   exclude-rules:
     - path: server/manifest.go
-issues:
-  exclude-rules:
+      linters:
+        - deadcode
+        - unused
+        - varcheck
     - path: server/configuration.go
       linters:
         - unused
