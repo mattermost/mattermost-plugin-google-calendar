@@ -5,7 +5,7 @@
     "homepage_url": "https://github.com/mattermost/mattermost-plugin-google-calendar",
     "support_url": "https://github.com/mattermost/mattermost-plugin-google-calendar/issues",
     "icon_path": "assets/profile-gcal.svg",
-    "min_server_version": "6.3.0",
+    "min_server_version": "10.7.0",
     "server": {
         "executables": {
             "darwin-amd64": "server/dist/plugin-darwin-amd64",
