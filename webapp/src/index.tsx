@@ -16,7 +16,15 @@ import {getProviderConfiguration, handleConnectChange, openCreateEventModal} fro
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 export default class Plugin {
+    private haveSetupUI = false;
+
+    private finishedSetupUI = () => {
+        this.haveSetupUI = true;
+    };
+
     public async initialize(registry: PluginRegistry, store: Store<GlobalState, Action<Record<string, unknown>>>) {
+        this.haveSetupUI = false;
+
         registry.registerReducer(reducer);
 
         const hooks = new Hooks(store);
@@ -41,16 +49,31 @@ export default class Plugin {
             registry.registerWebSocketEventHandler(`custom_${PluginId}_disconnected`, handleConnectChange(store));
         };
 
-        registry.registerRootComponent(() => <SetupUI setup={setup}/>);
+        registry.registerRootComponent(() => (
+            <SetupUI
+                setup={setup}
+                haveSetupUI={this.haveSetupUI}
+                finishedSetupUI={this.finishedSetupUI}
+            />
+        ));
 
         // reminder to set up site url for any API calls
         // and i18n
     }
 }
 
-const SetupUI = ({setup}) => {
+interface SetupUIProps {
+    setup: () => Promise<void>;
+    haveSetupUI: boolean;
+    finishedSetupUI: () => void;
+}
+
+const SetupUI = ({setup, haveSetupUI, finishedSetupUI}: SetupUIProps) => {
     useEffect(() => {
-        setup();
+        if (!haveSetupUI) {
+            setup();
+            finishedSetupUI();
+        }
     }, []);
 
     return null;
