@@ -71,8 +71,9 @@ interface SetupUIProps {
 const SetupUI = ({setup, haveSetupUI, finishedSetupUI}: SetupUIProps) => {
     useEffect(() => {
         if (!haveSetupUI) {
-            setup();
-            finishedSetupUI();
+            setup().then(() => {
+                finishedSetupUI();
+            });
         }
     }, []);
 
