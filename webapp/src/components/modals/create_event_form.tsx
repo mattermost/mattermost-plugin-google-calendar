@@ -12,7 +12,7 @@ import ChannelSelector from '../channel_selector';
 
 import {CreateEventPayload} from '@/types/calendar_api_types';
 
-import {getModalStyles} from '@/utils/styles';
+import {getModalStyles, getStyleForDateInput} from '@/utils/styles';
 
 import FormButton from '@/components/form_button';
 import Loading from '@/components/loading';
@@ -211,6 +211,7 @@ const ActualForm = (props: ActualFormProps) => {
                     value={formValues.date}
                     className='form-control'
                     type='date'
+                    style={getStyleForDateInput(theme)}
                 />
             ),
         },
