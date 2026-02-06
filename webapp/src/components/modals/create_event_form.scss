@@ -1,31 +1,33 @@
 .mscalendar-create-event-form {
-    input[type="date"] {
-        &::-webkit-calendar-picker-indicator {
-            // Use mask-image so we can control color via background-color
-            -webkit-mask-image: var(--date-picker-icon);
-            mask-image: var(--date-picker-icon);
-            -webkit-mask-repeat: no-repeat;
-            mask-repeat: no-repeat;
+    .date-input-wrapper {
+        position: relative;
+        display: flex;
+        align-items: center;
 
-            // Fixed icon size (visual size of the icon)
-            -webkit-mask-size: var(--date-picker-icon-size);
-            mask-size: var(--date-picker-icon-size);
+        input[type="date"] {
+            flex: 1;
+            padding-right: 40px; // Make room for the icon
 
-            // Center the icon within the larger clickable area
-            -webkit-mask-position: right;
-            mask-position: right;
+            // Hide the native calendar picker indicator
+            &::-webkit-calendar-picker-indicator {
+                display: none;
+            }
+        }
 
-            background-color: var(--date-picker-icon-color);
-            background-image: none;
-            display: block;
-
-            // Total clickable area (larger than icon for easier interaction)
-            height: var(--date-picker-clickable-size);
-            width: var(--date-picker-clickable-size);
+        .date-input-icon {
+            position: absolute;
+            right: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
             cursor: pointer;
+            opacity: 0.56;
+            transition: opacity 0.15s ease;
 
             &:hover {
-                background-color: var(--date-picker-icon-color-hover);
+                opacity: 1;
             }
         }
     }

@@ -12,13 +12,14 @@ import ChannelSelector from '../channel_selector';
 
 import {CreateEventPayload} from '@/types/calendar_api_types';
 
-import {getModalStyles, getStyleForDateInput} from '@/utils/styles';
+import {getModalStyles} from '@/utils/styles';
 
 import FormButton from '@/components/form_button';
 import Loading from '@/components/loading';
 import Setting from '@/components/setting';
 import AttendeeSelector from '@/components/attendee_selector';
 import TimeSelector from '@/components/time_selector';
+import DateInput from '@/components/date_input';
 import {capitalizeFirstCharacter} from '@/utils/text';
 import {CreateCalendarEventResponse, createCalendarEvent} from '@/actions';
 import {getTodayString} from '@/utils/datetime';
@@ -201,17 +202,15 @@ const ActualForm = (props: ActualFormProps) => {
             label: 'Date',
             required: true,
             component: (
-                <input
-                    onChange={(e) => {
-                        setFormValue('date', e.target.value);
+                <DateInput
+                    value={formValues.date}
+                    min={getTodayString()}
+                    onChange={(value) => {
+                        setFormValue('date', value);
                         setFormValue('start_time', '');
                         setFormValue('end_time', '');
                     }}
-                    min={getTodayString()}
-                    value={formValues.date}
                     className='form-control'
-                    type='date'
-                    style={getStyleForDateInput(theme)}
                 />
             ),
         },
