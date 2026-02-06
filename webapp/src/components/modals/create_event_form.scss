@@ -12,8 +12,8 @@
             mask-size: var(--date-picker-icon-size);
 
             // Center the icon within the larger clickable area
-            -webkit-mask-position: center;
-            mask-position: center;
+            -webkit-mask-position: right;
+            mask-position: right;
 
             background-color: var(--date-picker-icon-color);
             background-image: none;

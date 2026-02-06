@@ -133,8 +133,8 @@ export const getStyleForReactSelect = (theme: Theme) => {
     };
 };
 
-// Calendar icon SVG as a data URI for use with CSS mask
-const calendarIconSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 12H17V17H12V12M19 3H18V1H16V3H8V1H6V3H5C3.9 3 3 3.9 3 5V19C3 20.1 3.9 21 5 21H19C20.1 21 21 20.1 21 19V5C21 3.9 20.1 3 19 3M19 5V7H5V5H19M5 19V9H19V19H5Z' /%3E%3C/svg%3E";
+// Calendar icon SVG from Mattermost Compass Icons (icon-calendar-outline) as a data URI for use with CSS mask
+const calendarIconSvg = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1000 1000'%3E%3Cpath d='M791.7 125H750V41.7H666.7V125H333.3V41.7H250V125H208.3C162.1 125 125 162.5 125 208.3V791.7C125 837.5 162.1 875 208.3 875H791.7C837.5 875 875 837.5 875 791.7V208.3C875 162.5 837.5 125 791.7 125ZM791.7 791.7H208.3V375H791.7V791.7ZM791.7 291.7H208.3V208.3H791.7V291.7ZM291.7 458.3H500V666.7H291.7Z'/%3E%3C/svg%3E";
 
 export const getStyleForDateInput = (theme: Theme): React.CSSProperties => {
     if (!theme) {
