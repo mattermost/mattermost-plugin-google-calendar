@@ -30,15 +30,15 @@ export default function Setting(props: Props) {
                     htmlFor={inputId}
                 >
                     {label}
+                    {required && !hideRequiredStar &&
+                        <span
+                            className='error-text'
+                            style={{marginLeft: '6px'}}
+                        >
+                            {'*'}
+                        </span>
+                    }
                 </label>
-            }
-            {required && !hideRequiredStar &&
-                <span
-                    className='error-text'
-                    style={{marginLeft: '3px'}}
-                >
-                    {'*'}
-                </span>
             }
             <div>
                 {children}
