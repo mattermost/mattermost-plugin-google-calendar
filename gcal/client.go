@@ -28,7 +28,7 @@ type client struct {
 	bot.Logger
 }
 
-func (c *client) CallJSON(method, url string, in, out interface{}) (responseData []byte, err error) {
+func (c *client) CallJSON(method, url string, in, out any) (responseData []byte, err error) {
 	contentType := "application/json"
 	buf := &bytes.Buffer{}
 	err = json.NewEncoder(buf).Encode(in)
@@ -38,13 +38,13 @@ func (c *client) CallJSON(method, url string, in, out interface{}) (responseData
 	return c.call(method, url, contentType, buf, out)
 }
 
-func (c *client) CallFormPost(method, url string, in url.Values, out interface{}) (responseData []byte, err error) {
+func (c *client) CallFormPost(method, url string, in url.Values, out any) (responseData []byte, err error) {
 	contentType := "application/x-www-form-urlencoded"
 	buf := strings.NewReader(in.Encode())
 	return c.call(method, url, contentType, buf, out)
 }
 
-func (c *client) call(method, callURL, contentType string, inBody io.Reader, out interface{}) (responseData []byte, err error) {
+func (c *client) call(method, callURL, contentType string, inBody io.Reader, out any) (responseData []byte, err error) {
 	req, err := http.NewRequest(method, callURL, inBody)
 	if err != nil {
 		return nil, err
@@ -65,7 +65,7 @@ func (c *client) call(method, callURL, contentType string, inBody io.Reader, out
 	if resp.Body == nil {
 		return nil, nil
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	responseData, err = io.ReadAll(resp.Body)
 	if err != nil {

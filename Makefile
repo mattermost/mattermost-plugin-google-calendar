@@ -2,11 +2,7 @@ GO ?= $(shell command -v go 2> /dev/null)
 NPM ?= $(shell command -v npm 2> /dev/null)
 CURL ?= $(shell command -v curl 2> /dev/null)
 MM_DEBUG ?=
-MANIFEST_FILE ?= plugin.json
 GOPATH ?= $(shell go env GOPATH)
-
-MANIFEST_FILE ?= plugin.json
-
 GO_TEST_FLAGS ?= -race
 GO_BUILD_FLAGS ?= -tags timetzdata
 MM_UTILITIES_DIR ?= ../mattermost-utilities
@@ -23,9 +19,6 @@ GO_PACKAGES ?= ./server/... ./gcal/...
 
 # You can include assets this directory into the bundle. This can be e.g. used to include profile pictures.
 ASSETS_DIR ?= assets
-
-# Repository URL
-REPOSITORY_URL ?= github.com/mattermost/mattermost-plugin-google-calendar
 
 ## Define the default target (make all)
 .PHONY: default
@@ -47,16 +40,12 @@ else
 	GO_BUILD_GCFLAGS =
 endif
 
+
 # ====================================================================================
 # Used for semver bumping
 PROTECTED_BRANCH := master
 APP_NAME    := $(shell basename -s .git `git config --get remote.origin.url`)
-CURRENT_VERSION := $(strip $(shell git describe --abbrev=0 --tags))
-LATEST_RELEASE_TAG_RAW := $(shell git tag -l "v*" --sort=-v:refname | grep -v '\-rc' | head -n 1 || true)
-LATEST_RELEASE_TAG := $(strip $(LATEST_RELEASE_TAG_RAW))
-ifeq ($(LATEST_RELEASE_TAG),)
-LATEST_RELEASE_TAG := $(CURRENT_VERSION)
-endif
+CURRENT_VERSION := $(shell git describe --abbrev=0 --tags)
 VERSION_PARTS := $(subst ., ,$(subst v,,$(subst -rc, ,$(CURRENT_VERSION))))
 MAJOR := $(word 1,$(VERSION_PARTS))
 MINOR := $(word 2,$(VERSION_PARTS))
@@ -94,11 +83,6 @@ endef
 patch: ## to bump patch version (semver)
 	$(call check_protected_branch)
 	$(call check_pending_pulls)
-	@$(eval BASE_VERSION := $(strip $(LATEST_RELEASE_TAG)))
-	@$(eval BASE_VERSION_PARTS := $(subst ., ,$(subst v,,$(subst -rc, ,$(BASE_VERSION)))))
-	@$(eval MAJOR := $(word 1,$(BASE_VERSION_PARTS)))
-	@$(eval MINOR := $(word 2,$(BASE_VERSION_PARTS)))
-	@$(eval PATCH := $(word 3,$(BASE_VERSION_PARTS)))
 	@$(eval PATCH := $(shell echo $$(($(PATCH)+1))))
 	$(call prompt_approval,$(MAJOR).$(MINOR).$(PATCH))
 	@echo Bumping $(APP_NAME) to Patch version $(MAJOR).$(MINOR).$(PATCH)
@@ -109,11 +93,6 @@ patch: ## to bump patch version (semver)
 minor: ## to bump minor version (semver)
 	$(call check_protected_branch)
 	$(call check_pending_pulls)
-	@$(eval BASE_VERSION := $(strip $(LATEST_RELEASE_TAG)))
-	@$(eval BASE_VERSION_PARTS := $(subst ., ,$(subst v,,$(subst -rc, ,$(BASE_VERSION)))))
-	@$(eval MAJOR := $(word 1,$(BASE_VERSION_PARTS)))
-	@$(eval MINOR := $(word 2,$(BASE_VERSION_PARTS)))
-	@$(eval PATCH := $(word 3,$(BASE_VERSION_PARTS)))
 	@$(eval MINOR := $(shell echo $$(($(MINOR)+1))))
 	@$(eval PATCH := 0)
 	$(call prompt_approval,$(MAJOR).$(MINOR).$(PATCH))
@@ -125,11 +104,6 @@ minor: ## to bump minor version (semver)
 major: ## to bump major version (semver)
 	$(call check_protected_branch)
 	$(call check_pending_pulls)
-	@$(eval BASE_VERSION := $(strip $(LATEST_RELEASE_TAG)))
-	@$(eval BASE_VERSION_PARTS := $(subst ., ,$(subst v,,$(subst -rc, ,$(BASE_VERSION)))))
-	@$(eval MAJOR := $(word 1,$(BASE_VERSION_PARTS)))
-	@$(eval MINOR := $(word 2,$(BASE_VERSION_PARTS)))
-	@$(eval PATCH := $(word 3,$(BASE_VERSION_PARTS)))
 	$(eval MAJOR := $(shell echo $$(($(MAJOR)+1))))
 	$(eval MINOR := 0)
 	$(eval PATCH := 0)
@@ -178,6 +152,11 @@ major-rc: ## to bump major release candidate version (semver)
 .PHONY: all
 all: check-style test dist
 
+## Ensures the plugin manifest is valid
+.PHONY: manifest-check
+manifest-check:
+	./build/bin/manifest check
+
 ## Propagates plugin manifest information into the server/ and webapp/ folders.
 .PHONY: apply
 apply:
@@ -186,13 +165,13 @@ apply:
 ## Install go tools
 install-go-tools:
 	@echo Installing go tools
-	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.6.0
-	$(GO) install gotest.tools/gotestsum@v1.7.0
+	$(GO) install github.com/golangci/golangci-lint/v2/cmd/golangci-lint@v2.8.0
+	$(GO) install gotest.tools/gotestsum@v1.13.0
 	$(GO) install github.com/mattermost/mattermost-govet/v2@7d8db289e508999dfcac47b97c9490a0fec12d66
 
-## Runs golangci-lint and eslint.
+## Runs eslint and golangci-lint
 .PHONY: check-style
-check-style: apply webapp/node_modules install-go-tools
+check-style: manifest-check apply webapp/node_modules install-go-tools
 	@echo Checking for style guide compliance
 
 ifneq ($(HAS_WEBAPP),)
@@ -247,50 +226,6 @@ else
 endif
 endif
 
-## Builds the webapp in debug mode, if it exists.
-.PHONY: webapp-debug
-webapp-debug: webapp/.npminstall
-ifneq ($(HAS_WEBAPP),)
-	cd webapp && \
-	$(NPM) run debug;
-endif
-
-# server-debug builds and deploys a debug version of the plugin for your architecture.
-# Then resets the plugin to pick up the changes.
-.PHONY: server-debug
-server-debug: server-debug-deploy reset
-
-.PHONY: server-debug-deploy
-server-debug-deploy: validate-go-version
-	mkdir -p server/dist
-ifeq ($(OS),Darwin)
-	cd server && env GOOS=darwin GOARCH=amd64 $(GOBUILD) -gcflags "all=-N -l" -o dist/plugin-darwin-amd64;
-else ifeq ($(OS),Linux)
-	cd server && env GOOS=linux GOARCH=amd64 $(GOBUILD) -gcflags "all=-N -l" -o dist/plugin-linux-amd64;
-else ifeq ($(OS),Windows_NT)
-	cd server && env GOOS=windows GOARCH=amd64 $(GOBUILD) -gcflags "all=-N -l" -o dist/plugin-windows-amd64.exe;
-else
-	cd webapp && $(NPM) run debug;
-endif
-	rm -rf dist/
-	mkdir -p dist/$(PLUGIN_ID)/server/dist
-	cp $(MANIFEST_FILE) dist/$(PLUGIN_ID)/plugin.json
-	cp -r server/dist/* dist/$(PLUGIN_ID)/server/dist/
-	mkdir -p ../mattermost-server/plugins
-	cp -r dist/* ../mattermost-server/plugins/
-
-.PHONY: validate-go-version
-validate-go-version: ## Validates the installed version of go against Mattermost's minimum requirement.
-	@if [ $(GO_MAJOR_VERSION) -gt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
-		exit 0 ;\
-	elif [ $(GO_MAJOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MAJOR_VERSION) ]; then \
-		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
-		exit 1; \
-	elif [ $(GO_MINOR_VERSION) -lt $(MINIMUM_SUPPORTED_GO_MINOR_VERSION) ] ; then \
-		echo '$(GO_VERSION_VALIDATION_ERR_MSG)';\
-		exit 1; \
-	fi
-
 ## Generates a tar bundle of the plugin for install.
 .PHONY: bundle
 bundle:
@@ -317,7 +252,11 @@ ifneq ($(HAS_WEBAPP),)
 	mkdir -p dist/$(PLUGIN_ID)/webapp
 	cp -r webapp/dist dist/$(PLUGIN_ID)/webapp/
 endif
+ifeq ($(shell uname),Darwin)
+	cd dist && tar --disable-copyfile -cvzf $(BUNDLE_NAME) $(PLUGIN_ID)
+else
 	cd dist && tar -cvzf $(BUNDLE_NAME) $(PLUGIN_ID)
+endif
 
 	@echo plugin built at: dist/$(BUNDLE_NAME)
 
