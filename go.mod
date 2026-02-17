@@ -1,6 +1,6 @@
 module github.com/mattermost/mattermost-plugin-google-calendar
 
-go 1.24.11
+go 1.25
 
 require (
 	github.com/mattermost/mattermost-plugin-mscalendar v1.5.0
