@@ -1,6 +1,13 @@
-dist*
-.DS_Store
-.npminstall
-webapp/node_modules
+bin/
+dist/
 webapp/src/manifest.ts
 server/manifest.go
+
+# Mac
+.DS_Store
+
+# Jetbrains
+.idea/
+
+# VS Code
+.vscode

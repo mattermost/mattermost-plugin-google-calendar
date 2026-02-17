@@ -11,6 +11,6 @@ import (
 // newRandomString generates a random string used for subscription ID and token
 func newRandomString() string {
 	b := make([]byte, 96)
-	rand.Read(b)
+	_, _ = rand.Read(b)
 	return base64.URLEncoding.EncodeToString(b)
 }
