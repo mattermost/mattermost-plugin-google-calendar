@@ -18,9 +18,11 @@ import (
 
 const subscribeTTL = 7 * 24 * time.Hour // 7 days
 
-const defaultCalendarName = "primary"
-const googleSubscriptionType = "webhook"
-const subscriptionSuffix = "_calendar_event_notifications_"
+const (
+	defaultCalendarName    = "primary"
+	googleSubscriptionType = "webhook"
+	subscriptionSuffix     = "_calendar_event_notifications_"
+)
 
 // CreateMySubscription creates a subscription for the user's calendar
 func (c *client) CreateMySubscription(notificationURL, remoteUserID string) (*remote.Subscription, error) {
@@ -78,7 +80,6 @@ func (c *client) DeleteSubscription(sub *remote.Subscription) error {
 		ResourceId: sub.ResourceID,
 	})
 	err = stopRequest.Do()
-
 	if err != nil {
 		return errors.Wrap(err, "gcal DeleteSubscription, error from google response")
 	}
@@ -102,7 +103,7 @@ func (c *client) RenewSubscription(notificationURL, remoteUserID string, oldSub 
 		return nil, errors.Wrap(err, "gcal RenewSubscription, error deleting subscription")
 	}
 
-	c.Logger.Debugf("gcal: renewed subscription.")
+	c.Debugf("gcal: renewed subscription.")
 
 	return sub, nil
 }
