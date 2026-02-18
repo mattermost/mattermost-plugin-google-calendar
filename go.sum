@@ -144,8 +144,8 @@ github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 h1:Y1Tu/swM31pVwwb
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956/go.mod h1:SRl30Lb7/QoYyohYeVBuqYvvmXSZJxZgiV3Zf6VbxjI=
 github.com/mattermost/logr/v2 v2.0.22 h1:npFkXlkAWR9J8payh8ftPcCZvLbHSI125mAM5/r/lP4=
 github.com/mattermost/logr/v2 v2.0.22/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
-github.com/mattermost/mattermost-plugin-mscalendar v1.5.0 h1:IPAF1ywjR62CxOA/tfSVovcX8c18ZbRZn4A8kgePd3M=
-github.com/mattermost/mattermost-plugin-mscalendar v1.5.0/go.mod h1:6u1cI71BW+CsUBbOYj8pMnXmg4EX68ulDoQ8SCE4/+s=
+github.com/mattermost/mattermost-plugin-mscalendar v1.6.0 h1:mj+50qVlbHN5J3MsI5KTxYxwMwq/SvkQHjnXnIgZDKo=
+github.com/mattermost/mattermost-plugin-mscalendar v1.6.0/go.mod h1:6u1cI71BW+CsUBbOYj8pMnXmg4EX68ulDoQ8SCE4/+s=
 github.com/mattermost/mattermost/server/public v0.1.22 h1:IFb0K9CbUpDSan27ZxAM7ovu/RQaiokJOzpYIZ3LOqE=
 github.com/mattermost/mattermost/server/public v0.1.22/go.mod h1:Euzcra4BqwHxm74pocPOd0gu15c93Q9jjvXvZvaoQu4=
 github.com/mattermost/mattermost/server/v8 v8.0.0-20251014075701-833e0125320d h1:etRyN6FNd6fc7BGZ8X+XB2u/5Hb2HNz5/K53YZNvfrs=

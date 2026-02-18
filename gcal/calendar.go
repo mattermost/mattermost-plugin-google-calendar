@@ -14,12 +14,12 @@ import (
 )
 
 // CreateCalendar creates a calendar
-func (c *client) CreateCalendar(remoteUserID string, calIn *remote.Calendar) (*remote.Calendar, error) {
+func (c *client) CreateCalendar(calIn *remote.Calendar) (*remote.Calendar, error) {
 	return nil, errors.New("gcal CreateCalendar not implemented")
 }
 
 // DeleteCalendar deletes a calendar
-func (c *client) DeleteCalendar(remoteUserID string, calID string) error {
+func (c *client) DeleteCalendar(calID string) error {
 	return errors.New("gcal DeleteCalendar not implemented")
 }
 

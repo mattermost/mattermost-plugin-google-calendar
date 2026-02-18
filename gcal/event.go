@@ -19,7 +19,7 @@ func (c *client) GetEvent(remoteUserID, eventID string) (*remote.Event, error) {
 }
 
 // CreateEvent creates a calendar event
-func (c *client) CreateEvent(_ string, in *remote.Event) (*remote.Event, error) {
+func (c *client) CreateEvent(in *remote.Event) (*remote.Event, error) {
 	service, err := calendar.NewService(context.Background(), option.WithHTTPClient(c.httpClient))
 	if err != nil {
 		return nil, errors.Wrap(err, "gcal CreateEvent, error creating service")
@@ -46,7 +46,7 @@ func (c *client) DeclineEvent(remoteUserID, eventID string) error {
 	return errors.New("gcal DeclineEvent not implemented")
 }
 
-func (c *client) TentativelyAcceptEvent(remoteUserID, eventID string) error {
+func (c *client) TentativelyAcceptEvent(eventID string) error {
 	return errors.New("gcal TentativelyAcceptEvent not implemented")
 }
 
