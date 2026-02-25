@@ -37,8 +37,16 @@ func NewRemote(conf *config.Config, logger bot.Logger) remote.Remote {
 }
 
 // MakeUserClient creates a new client for user-delegated permissions.
-func (r *impl) MakeUserClient(ctx context.Context, token *oauth2.Token, _ string, _ bot.Poster, _ remote.UserTokenHelpers) remote.Client {
-	httpClient := r.NewOAuth2Config().Client(ctx, token)
+func (r *impl) MakeUserClient(ctx context.Context, oauthToken *oauth2.Token, mattermostUserID string, poster bot.Poster, userTokenHelpers remote.UserTokenHelpers) remote.Client {
+	config := r.NewOAuth2Config()
+
+	token, err := userTokenHelpers.RefreshAndStoreToken(oauthToken, config, mattermostUserID)
+	if err != nil {
+		r.logger.Warnf("Not able to refresh or store the token for user %s: %s", mattermostUserID, err.Error())
+		return &client{}
+	}
+
+	httpClient := config.Client(ctx, token)
 	c := &client{
 		conf:       r.conf,
 		ctx:        ctx,
