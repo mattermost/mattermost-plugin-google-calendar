@@ -33,7 +33,6 @@ module.exports = (api) => {
             '@babel/plugin-syntax-dynamic-import',
             '@babel/plugin-transform-object-rest-spread',
             '@babel/plugin-transform-optional-chaining',
-            'babel-plugin-typescript-to-proptypes',
         ],
     };
 };
