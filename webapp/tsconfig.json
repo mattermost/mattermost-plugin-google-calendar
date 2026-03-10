@@ -25,7 +25,7 @@
     "isolatedModules": true,
     "noEmit": true,
     "experimentalDecorators": true,
-    "jsx": "react",
+    "jsx": "react-jsx",
     "typeRoots": [
       "./types"
     ],
