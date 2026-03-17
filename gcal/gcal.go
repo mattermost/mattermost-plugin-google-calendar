@@ -28,6 +28,7 @@ func GetGcalProviderConfig() config.ProviderConfig {
 		Features: config.ProviderFeatures{
 			EncryptedStore:     true,
 			EventNotifications: false,
+			ForceOAuth2Consent: true,
 		},
 	}
 }
