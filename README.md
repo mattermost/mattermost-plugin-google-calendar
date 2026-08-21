@@ -16,7 +16,7 @@ A Google Calendar plugin for Mattermost.
 - Receive a daily summary at a specific time
 - Receive event reminders 5 minutes before a meeting via direct message
 - Create events directly from a channel, optionally linking them to a channel for reminders
-- Receive event remidners 5 minutes before a meeting via message post
+- Receive event reminders 5 minutes before a meeting via message post
 - Automatically set an user status (away, DND) during meetings
 - View your today or tomorrow's agenda with a slash command
 - Easily configurable settings using an attachment interface
