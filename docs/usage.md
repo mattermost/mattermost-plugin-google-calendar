@@ -39,7 +39,7 @@ The plugin only considers an event to be a meeting if **all three** of the follo
 
 **Notes**:
 
-- The plugin checks your calendar every 5 minutes, so it can take up to 5 minutes for your custom status to be set after an event starts.
+- The plugin checks your calendar every 5 minutes and looks 10 minutes ahead, so your custom status is typically set 5 to 10 minutes before an event starts rather than at its start time.
 - The custom status expires when the event ends. For overlapping or back-to-back events, the plugin keeps the custom status set until the last of those events ends.
 - If you already have a custom status set manually, the plugin doesn't replace it.
 
