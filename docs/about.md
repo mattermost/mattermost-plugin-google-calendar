@@ -6,6 +6,7 @@ The Mattermost Google Calendar integration enables a two-way integration between
 - Schedule a daily summary of your events, or review your events today, tomorrow, or this week.
 - Receive an event reminder 5 minutes before a meeting via direct message and linked channel message.
 - Automatically set your user status as Away or Do Not Disturb during scheduled events.
+- Automatically set an "In a meeting" custom status during scheduled events.
 
 See the following documentation to install and use Mattermost Google Calendar integration:
 - [Set up](setup.md) the Mattermost Google Calendar integration

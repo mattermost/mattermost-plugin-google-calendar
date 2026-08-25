@@ -18,15 +18,30 @@ Mattermost confirms when you’ve successfully connected your account. You can c
 
 Mattermost prompts you to configure the plugin based on your personal preferences with the following options. You only need to complete this step once.
 
-- **Update status**: The plugin can update your [Mattermost availability](https://docs.mattermost.com/preferences/set-your-status-availability.html#set-your-availability) when you have an event scheduled.
+- **Update status**: The plugin can update your [Mattermost availability](https://docs.mattermost.com/preferences/set-your-status-availability.html#set-your-availability) when you have an event scheduled. See [Which events the plugin treats as meetings](#which-events-the-plugin-treats-as-meetings) for the conditions an event must meet.
 - **Get Confirmation**: You can manually confirm every availability change, or the plugin can update your availability automatically.
     - If you select Yes, Mattermost confirms your availability update 5 minutes before each event starts. You’ll also be prompted to change your availability back to Online once an event ends.
     - Select No to enable the plugin to update your availability automatically.
 - **Receive notifications during meetings**: During an event, your availability can be set to Away or No Not Disturb when you’re in a meeting.
     - Set your availability to **Away** to clearly communicate to others in Mattermost that you’re unavailable. You’ll continue to receive desktop, email, and push notifications based on your Mattermost notification preferences.
     - Set your availability to **Do Not Disturb** to disable all desktop, email, and push notifications.
+- **Set Custom Status**: The plugin can automatically set your Mattermost [custom status](https://docs.mattermost.com/preferences/set-your-status-availability.html#set-a-custom-status) to :calendar: **In a meeting** while an event is in progress, and clear it when the event ends. See [Which events the plugin treats as meetings](#which-events-the-plugin-treats-as-meetings) for the conditions an event must meet.
 - **Receive reminders**: You can choose to receive an event reminder 5 minutes before a meeting in a direct message.
 - **Daily summary**: You can get a daily summary of your events delivered in a direct message.
+
+### Which events the plugin treats as meetings
+
+The plugin only considers an event to be a meeting if **all three** of the following conditions are true in Google Calendar. Events that don't meet every condition are ignored for both the :calendar: **In a meeting** custom status and availability updates.
+
+1. The event's **Busy/Free** setting is **Busy**. Events marked as **Free** are ignored, because they don't indicate that you're unavailable. New Google Calendar events default to **Busy**.
+2. The event has **at least one guest**. Events without guests are ignored, because they're unlikely to be meetings.
+3. The event hasn't been **cancelled**.
+
+**Notes**:
+
+- The plugin checks your calendar every 5 minutes, so it can take up to 5 minutes for your custom status to be set after an event starts.
+- The custom status expires when the event ends. For overlapping or back-to-back events, the plugin keeps the custom status set until the last of those events ends.
+- If you already have a custom status set manually, the plugin doesn't replace it.
 
 ## Create a calendar event
 
