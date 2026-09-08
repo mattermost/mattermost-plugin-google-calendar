@@ -1,9 +1,6 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
-import React from 'react';
-import ReactSelect, {ActionMeta} from 'react-select';
-import AsyncSelect, {Props as ReactSelectProps} from 'react-select/async';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import ReactSelect, {ActionMeta, GroupBase, Props as ReactSelectBaseProps} from 'react-select';
+import AsyncSelect from 'react-select/async';
 import CreatableSelect from 'react-select/creatable';
 
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
@@ -19,10 +16,12 @@ type ReactSelectOption = {
 
 const MAX_NUM_OPTIONS = 100;
 
-type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
+type OmitKeys<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>
 
-export type Props = Omit<ReactSelectProps<ReactSelectOption>, 'theme'> & {
+export type Props = OmitKeys<ReactSelectBaseProps<ReactSelectOption, boolean, GroupBase<ReactSelectOption>>, 'theme' | 'onChange'> & {
     theme: Theme;
+    label?: React.ReactNode;
+    onChange?: (name: string | undefined, value: string | string[] | null) => void;
     addValidate?: (isValid: () => boolean) => void;
     removeValidate?: (isValid: () => boolean) => void;
     allowUserDefinedValue?: boolean;
@@ -30,128 +29,190 @@ export type Props = Omit<ReactSelectProps<ReactSelectOption>, 'theme'> & {
     resetInvalidOnChange?: boolean;
 };
 
-type State = {
-    invalid: boolean;
-};
-
-export default class ReactSelectSetting extends React.PureComponent<Props, State> {
-    state: State = {invalid: false};
-
-    componentDidMount() {
-        if (this.props.addValidate) {
-            this.props.addValidate(this.isValid);
-        }
+function getComparableValue(v: Props['value']): string | null {
+    if (!v) {
+        return null;
     }
-
-    componentWillUnmount() {
-        if (this.props.removeValidate) {
-            this.props.removeValidate(this.isValid);
-        }
+    if (Array.isArray(v)) {
+        return (v as ReactSelectOption[]).map((o) => o.value).sort().join(',');
     }
+    return (v as ReactSelectOption).value;
+}
 
-    componentDidUpdate(prevProps: Props, prevState: State) {
-        if (prevState.invalid && (this.props.value && this.props.value.value) !== (prevProps.value && prevProps.value.value)) {
-            this.setState({invalid: false}); //eslint-disable-line react/no-did-update-set-state
-        }
-    }
+function ReactSelectSetting(props: Props) {
+    const {
+        theme,
+        label,
+        addValidate,
+        removeValidate,
+        allowUserDefinedValue,
+        limitOptions,
+        resetInvalidOnChange,
+        onChange,
+        ...selectProps
+    } = props;
 
-    handleChange = (value: ReactSelectOption | ReactSelectOption[], action: ActionMeta) => {
-        if (this.props.onChange) {
-            if (Array.isArray(value)) {
-                this.props.onChange(this.props.name, value.map((x) => x.value));
-            } else {
-                const newValue = value ? value.value : null;
-                this.props.onChange(this.props.name, newValue);
-            }
-        }
-        if (this.props.resetInvalidOnChange) {
-            this.setState({invalid: false});
-        }
-    };
+    const [invalid, setInvalid] = useState(false);
+    const prevValueRef = useRef(getComparableValue(props.value));
+    const valueRef = useRef(props.value);
+    const requiredRef = useRef(props.required);
+    valueRef.current = props.value;
+    requiredRef.current = props.required;
 
-    // Standard search term matching plus reducing to < 100 items
-    filterOptions = (input: string) => {
-        let options = this.props.options;
-        if (input) {
-            options = options.filter((opt: ReactSelectOption) => opt.label.toUpperCase().includes(input.toUpperCase()));
-        }
-        return Promise.resolve(options.slice(0, MAX_NUM_OPTIONS));
-    };
-
-    isValid = () => {
-        if (!this.props.required) {
+    const isValid = useCallback(() => {
+        if (!requiredRef.current) {
             return true;
         }
 
-        let valid = Boolean(this.props.value);
-        if (this.props.value && Array.isArray(this.props.value)) {
-            valid = Boolean(this.props.value.length);
+        let valid = Boolean(valueRef.current);
+        if (valueRef.current && Array.isArray(valueRef.current)) {
+            valid = Boolean(valueRef.current.length);
         }
 
-        this.setState({invalid: !valid});
+        setInvalid(!valid);
         return valid;
-    };
+    }, []);
 
-    render() {
-        const requiredMsg = 'This field is required.';
-        let validationError = null;
+    useEffect(() => {
+        addValidate?.(isValid);
+        return () => {
+            removeValidate?.(isValid);
+        };
+    }, [addValidate, removeValidate, isValid]);
 
-        if (this.props.required && this.state.invalid) {
-            validationError = (
-                <p className='help-text error-text'>
-                    <span>{requiredMsg}</span>
-                </p>
-            );
+    useEffect(() => {
+        const current = getComparableValue(props.value);
+        if (invalid && current !== prevValueRef.current) {
+            let valueIsValid = Boolean(props.value);
+            if (props.value && Array.isArray(props.value)) {
+                valueIsValid = Boolean(props.value.length);
+            }
+            if (valueIsValid) {
+                setInvalid(false);
+            }
         }
+        prevValueRef.current = current;
+    }, [props.value, invalid]);
 
-        let selectComponent = null;
-        if (this.props.limitOptions && this.props.options.length > MAX_NUM_OPTIONS) {
-            // The parent component has let us know that we may have a large number of options, and that
-            // the dataset is static. In this case, we use the AsyncSelect component and synchronous func
-            // this.filterOptions() to limit the number of options being rendered at a given time.
-            selectComponent = (
-                <AsyncSelect
-                    {...this.props}
-                    loadOptions={this.filterOptions}
-                    defaultOptions={true}
-                    menuPortalTarget={document.body}
-                    menuPlacement='auto'
-                    onChange={this.handleChange}
-                    styles={getStyleForReactSelect(this.props.theme)}
-                />
-            );
-        } else if (this.props.allowUserDefinedValue) {
-            selectComponent = (
-                <CreatableSelect
-                    {...this.props}
-                    noOptionsMessage={() => 'Start typing...'}
-                    formatCreateLabel={(value) => `Add "${value}"`}
-                    placeholder=''
-                    menuPortalTarget={document.body}
-                    menuPlacement='auto'
-                    onChange={this.handleChange}
-                    styles={getStyleForReactSelect(this.props.theme)}
-                />
-            );
-        } else {
-            selectComponent = (
-                <ReactSelect
-                    {...this.props}
-                    menuPortalTarget={document.body}
-                    menuPlacement='auto'
-                    onChange={this.handleChange}
-                    styles={getStyleForReactSelect(this.props.theme)}
-                />
-            );
+    const handleChange = useCallback((value: readonly ReactSelectOption[] | ReactSelectOption | null, _action: ActionMeta<ReactSelectOption>) => {
+        if (onChange) {
+            if (Array.isArray(value)) {
+                onChange(props.name, (value as ReactSelectOption[]).map((x) => x.value));
+            } else {
+                const single = value as ReactSelectOption | null;
+                onChange(props.name, single ? single.value : null);
+            }
         }
-        return (
-            <Setting
-                inputId={this.props.name}
-                {...this.props}
-            >
-                {selectComponent}
-                {validationError}
-            </Setting>
+        if (resetInvalidOnChange) {
+            setInvalid(false);
+        }
+    }, [onChange, props.name, resetInvalidOnChange]);
+
+    const filterOptions = useCallback((input: string) => {
+        const raw = props.options ?? [];
+
+        const limitResults = (entries: readonly (ReactSelectOption | GroupBase<ReactSelectOption>)[]) => {
+            const result: (ReactSelectOption | GroupBase<ReactSelectOption>)[] = [];
+            let count = 0;
+            for (const entry of entries) {
+                if (count >= MAX_NUM_OPTIONS) {
+                    break;
+                }
+                if ('options' in entry) {
+                    const remaining = MAX_NUM_OPTIONS - count;
+                    const children = entry.options.slice(0, remaining);
+                    result.push({...entry, options: children});
+                    count += children.length;
+                } else {
+                    result.push(entry);
+                    count += 1;
+                }
+            }
+            return result;
+        };
+
+        if (!input) {
+            return Promise.resolve(limitResults(raw));
+        }
+        const term = input.toUpperCase();
+        const filtered: (ReactSelectOption | GroupBase<ReactSelectOption>)[] = [];
+        for (const entry of raw) {
+            if ('options' in entry) {
+                const children = entry.options.filter((child) => child.label?.toUpperCase().includes(term));
+                if (children.length) {
+                    filtered.push({...entry, options: children});
+                }
+            } else if (entry.label?.toUpperCase().includes(term)) {
+                filtered.push(entry);
+            }
+        }
+        return Promise.resolve(limitResults(filtered));
+    }, [props.options]);
+
+    const requiredMsg = 'This field is required.';
+    let validationError = null;
+
+    if (props.required && invalid) {
+        validationError = (
+            <p className='help-text error-text'>
+                <span>{requiredMsg}</span>
+            </p>
         );
     }
+
+    const inputId = selectProps.inputId || props.name;
+
+    let selectComponent = null;
+    if (limitOptions && (selectProps.options?.length ?? 0) > MAX_NUM_OPTIONS) {
+        selectComponent = (
+            <AsyncSelect
+                {...selectProps}
+                inputId={inputId}
+                loadOptions={filterOptions}
+                defaultOptions={true}
+                menuPortalTarget={document.body}
+                menuPlacement='auto'
+                onChange={handleChange}
+                styles={getStyleForReactSelect(theme)}
+            />
+        );
+    } else if (allowUserDefinedValue) {
+        selectComponent = (
+            <CreatableSelect
+                {...selectProps}
+                inputId={inputId}
+                noOptionsMessage={() => 'Start typing...'}
+                formatCreateLabel={(value) => `Add "${value}"`}
+                placeholder=''
+                menuPortalTarget={document.body}
+                menuPlacement='auto'
+                onChange={handleChange}
+                styles={getStyleForReactSelect(theme)}
+            />
+        );
+    } else {
+        selectComponent = (
+            <ReactSelect
+                {...selectProps}
+                inputId={inputId}
+                menuPortalTarget={document.body}
+                menuPlacement='auto'
+                onChange={handleChange}
+                styles={getStyleForReactSelect(theme)}
+            />
+        );
+    }
+
+    return (
+        <Setting
+            inputId={inputId}
+            label={props.label}
+            required={props.required}
+        >
+            {selectComponent}
+            {validationError}
+        </Setting>
+    );
 }
+
+export default memo(ReactSelectSetting);

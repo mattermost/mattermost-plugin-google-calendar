@@ -28,13 +28,12 @@
     "@mattermost/client": "10.9.0",
     "@mattermost/types": "10.9.0",
     "@testing-library/jest-dom": "6.4.0",
-    "@testing-library/react": "14.2.1",
+    "@testing-library/react": "16.3.3",
     "@testing-library/user-event": "14.5.2",
     "@types/jest": "29.5.11",
     "@types/node": "17.0.12",
     "@types/react": "18.3.28",
     "@types/react-dom": "18.3.7",
-    "@types/react-redux": "7.1.22",
     "@types/react-router-dom": "5.1.5",
     "@types/react-transition-group": "4.4.7",
     "@typescript-eslint/eslint-plugin": "5.41.0",
@@ -63,9 +62,16 @@
     "webpack-cli": "5.1.4"
   },
   "dependencies": {
+    "@emotion/react": "11.14.0",
+    "@fullcalendar/core": "6.1.21",
+    "@fullcalendar/interaction": "6.1.21",
+    "@fullcalendar/moment-timezone": "6.1.21",
+    "@fullcalendar/react": "6.1.21",
+    "@fullcalendar/timegrid": "6.1.21",
     "@mattermost/compass-icons": "0.1.53",
     "core-js": "3.39.0",
     "mattermost-redux": "10.9.0",
+    "moment-timezone": "0.6.3",
     "react": "18.3.1",
     "react-bootstrap": "github:mattermost/react-bootstrap#05559f4c61c5a314783c390d2d82906ee8c7e558",
     "react-dom": "18.3.1",
@@ -74,6 +80,11 @@
     "redux": "4.2.1",
     "reselect": "5.1.1",
     "typescript": "5.6.3"
+  },
+  "overrides": {
+    "@fullcalendar/moment-timezone": {
+      "moment-timezone": "$moment-timezone"
+    }
   },
   "jest": {
     "testPathIgnorePatterns": [
@@ -89,6 +100,7 @@
       "text-summary"
     ],
     "moduleNameMapper": {
+      "^@/(.*)$": "<rootDir>/src/$1",
       "^.+\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "identity-obj-proxy",
       "^.+\\.(css|less|scss)$": "identity-obj-proxy",
       "^.*i18n.*\\.(json)$": "<rootDir>/tests/i18n_mock.json",

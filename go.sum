@@ -144,8 +144,8 @@ github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956 h1:Y1Tu/swM31pVwwb
 github.com/mattermost/ldap v0.0.0-20231116144001-0f480c025956/go.mod h1:SRl30Lb7/QoYyohYeVBuqYvvmXSZJxZgiV3Zf6VbxjI=
 github.com/mattermost/logr/v2 v2.0.22 h1:npFkXlkAWR9J8payh8ftPcCZvLbHSI125mAM5/r/lP4=
 github.com/mattermost/logr/v2 v2.0.22/go.mod h1:0sUKpO+XNMZApeumaid7PYaUZPBIydfuWZ0dqixXo+s=
-github.com/mattermost/mattermost-plugin-mscalendar v1.6.1 h1:hISLr8WvILc2nZI/6+fu22vRmkgNiC3E+USG/b5SxCI=
-github.com/mattermost/mattermost-plugin-mscalendar v1.6.1/go.mod h1:oObq5dTo8u0dfeK9BQAyr4aq8zahLjI7tCw6WX8mFi0=
+github.com/mattermost/mattermost-plugin-mscalendar v1.7.0 h1:alfyJ6lmTCnWMoH+WT6eN5T15f4FBNBIKStuzyC+Ifk=
+github.com/mattermost/mattermost-plugin-mscalendar v1.7.0/go.mod h1:7IUbmvpmYAUuz3GIQ1A1f/GFEpPtDwuRnlSV+aXLPJw=
 github.com/mattermost/mattermost/server/public v0.3.0 h1:AtzCjypbLcvSVQZMg0vKWL57vVfLSCC46j1nsOof2Ko=
 github.com/mattermost/mattermost/server/public v0.3.0/go.mod h1:QnF/1Evlh7e3G8ifwut7Q5Joy/t4oHYNcDoyBTYuXho=
 github.com/mattermost/xml-roundtrip-validator v0.1.0 h1:RXbVD2UAl7A7nOTR4u7E3ILa4IbtvKBHw64LDsmu9hU=

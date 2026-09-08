@@ -1,0 +1,119 @@
+import {MattermostTheme} from '@/utils/calendar_theme';
+
+interface CalendarIconSVGProps {
+    theme: MattermostTheme;
+}
+
+const CalendarIconSVG = ({theme}: CalendarIconSVGProps) => (
+    <svg
+        width='80'
+        height='80'
+        viewBox='0 0 48 48'
+        fill='none'
+        xmlns='http://www.w3.org/2000/svg'
+        aria-hidden='true'
+        focusable='false'
+    >
+        <path
+            d='M36 8H12a4 4 0 00-4 4v24a4 4 0 004 4h24a4 4 0 004-4V12a4 4 0 00-4-4z'
+            fill={theme.buttonBg}
+            opacity='0.12'
+        />
+        <path
+            d='M36 8H12a4 4 0 00-4 4v4h32v-4a4 4 0 00-4-4z'
+            fill={theme.buttonBg}
+        />
+        <rect
+            x='14'
+            y='6'
+            width='2'
+            height='6'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.56'
+        />
+        <rect
+            x='32'
+            y='6'
+            width='2'
+            height='6'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.56'
+        />
+        <rect
+            x='12'
+            y='20'
+            width='6'
+            height='2'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.32'
+        />
+        <rect
+            x='21'
+            y='20'
+            width='6'
+            height='2'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.32'
+        />
+        <rect
+            x='30'
+            y='20'
+            width='6'
+            height='2'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.32'
+        />
+        <rect
+            x='12'
+            y='26'
+            width='6'
+            height='2'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.32'
+        />
+        <rect
+            x='21'
+            y='26'
+            width='6'
+            height='2'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.32'
+        />
+        <rect
+            x='30'
+            y='26'
+            width='6'
+            height='2'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.32'
+        />
+        <rect
+            x='12'
+            y='32'
+            width='6'
+            height='2'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.32'
+        />
+        <rect
+            x='21'
+            y='32'
+            width='6'
+            height='2'
+            rx='1'
+            fill={theme.centerChannelColor}
+            opacity='0.32'
+        />
+    </svg>
+);
+
+export default CalendarIconSVG;
