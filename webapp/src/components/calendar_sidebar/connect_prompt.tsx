@@ -5,6 +5,7 @@ import {MattermostTheme} from '@/utils/calendar_theme';
 
 import CalendarIconSVG from './calendar_icon_svg';
 
+/** Detects the Mattermost desktop (Electron) app, which can't open OAuth popup windows. */
 function isDesktopApp(): boolean {
     const userAgent = window.navigator.userAgent;
     return userAgent.indexOf('Mattermost') !== -1 && userAgent.indexOf('Electron') !== -1;
@@ -16,6 +17,7 @@ interface ConnectPromptProps {
     sendEphemeralPost: (message: string) => void;
 }
 
+/** Shown in the sidebar when the user hasn't connected their account; starts the OAuth flow. */
 const ConnectPrompt = ({theme, pluginServerRoute, sendEphemeralPost}: ConnectPromptProps) => {
     const pluginName = manifest.name;
 

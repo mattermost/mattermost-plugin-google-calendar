@@ -36,6 +36,7 @@ export interface CalendarSidebarProps {
 const EXPANDED_WIDTH_THRESHOLD = 500;
 const POLL_INTERVAL_MS = 60_000;
 
+/** Returns an "HH:00:00" string one hour before the current time in the given timezone, for FullCalendar's initial scroll position. */
 function getCurrentScrollTime(tz?: string): string {
     const now = new Date();
     let hours: number;
@@ -65,6 +66,12 @@ interface DateRange {
     end: Date;
 }
 
+/**
+ * Right-hand-sidebar component rendering the calendar. Shows a connect
+ * prompt when the user hasn't authenticated, otherwise renders a FullCalendar
+ * view that switches between day/week based on available width, polls for
+ * new events, and surfaces event details/creation via tooltip and modal.
+ */
 const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pluginServerRoute, actions}: CalendarSidebarProps) => {
     const calendarRef = useRef<FullCalendar>(null);
     const containerRef = useRef<HTMLDivElement>(null);

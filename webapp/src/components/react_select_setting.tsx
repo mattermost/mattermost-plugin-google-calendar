@@ -29,6 +29,7 @@ export type Props = OmitKeys<ReactSelectBaseProps<ReactSelectOption, boolean, Gr
     resetInvalidOnChange?: boolean;
 };
 
+/** Normalizes a react-select value (single option, multi-option array, or empty) into a comparable string. */
 function getComparableValue(v: Props['value']): string | null {
     if (!v) {
         return null;
@@ -39,6 +40,10 @@ function getComparableValue(v: Props['value']): string | null {
     return (v as ReactSelectOption).value;
 }
 
+/**
+ * Wraps react-select (or its async/creatable variants) in a labeled Setting,
+ * adding required-field validation and Mattermost theming.
+ */
 function ReactSelectSetting(props: Props) {
     const {
         theme,

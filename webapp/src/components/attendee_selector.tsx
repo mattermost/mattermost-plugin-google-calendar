@@ -21,6 +21,10 @@ type Props = {
     value: string[];
 };
 
+/**
+ * Multi-select input for event attendees: autocompletes connected Mattermost
+ * users and also accepts freeform, validated email addresses.
+ */
 export default function AttendeeSelector(props: Props) {
     const [storedError, setStoredError] = useState('');
     const [labelMap, setLabelMap] = useState<Record<string, string>>({});

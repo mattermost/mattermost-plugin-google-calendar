@@ -8,6 +8,7 @@ import {getCalendarEvents, getCalendarEventsLoading, getCalendarEventsError, isU
 
 import CalendarSidebar from './calendar_sidebar';
 
+/** Maps Redux state to CalendarSidebar's data props. */
 function mapStateToProps(state: GlobalState) {
     return {
         events: getCalendarEvents(state),
@@ -19,6 +20,7 @@ function mapStateToProps(state: GlobalState) {
     };
 }
 
+/** Binds calendar action creators to dispatch for CalendarSidebar's action props. */
 function mapDispatchToProps(dispatch: Dispatch) {
     return {
         actions: bindActionCreators({

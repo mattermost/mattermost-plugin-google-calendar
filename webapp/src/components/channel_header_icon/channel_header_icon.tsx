@@ -1,5 +1,6 @@
 import {GOOGLE_CALENDAR_ICON_DATA_URI} from './google_calendar_icon_data';
 
+/** Google Calendar glyph shown in the channel header button that toggles the sidebar. */
 const ChannelHeaderIcon = () => (
     <img
         src={GOOGLE_CALENDAR_ICON_DATA_URI}

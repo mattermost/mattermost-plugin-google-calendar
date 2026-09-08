@@ -9,6 +9,7 @@ type Props = {
     hideRequiredStar?: boolean;
 }
 
+/** Generic labeled form field wrapper with optional help text and a required-field indicator. */
 export default function Setting(props: Props) {
     const {
         children,

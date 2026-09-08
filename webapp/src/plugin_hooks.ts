@@ -14,6 +14,7 @@ interface Store {
     getState(): GlobalState;
 }
 
+/** Slash command hooks for intercepting the provider's "event create" command client-side. */
 export default class Hooks {
     private store: Store;
 
@@ -21,6 +22,7 @@ export default class Hooks {
         this.store = store;
     }
 
+    /** Intercepts the "/<trigger> event create" slash command, opening the create-event modal instead of sending it to the server. */
     slashCommandWillBePostedHook = async (rawMessage: string, contextArgs: ContextArgs) => {
         const message = rawMessage ? rawMessage.trim() : '';
 
@@ -39,6 +41,7 @@ export default class Hooks {
         return {message: rawMessage, args: contextArgs};
     };
 
+    /** Opens the create-event modal for the given channel, provided the user has connected their account. */
     handleCreateEventSlashCommand = async (_message: string, contextArgs: ContextArgs) => {
         if (!(await this.checkUserIsConnected())) {
             return {};
@@ -48,6 +51,7 @@ export default class Hooks {
         return {};
     };
 
+    /** Ensures the user's connection status is loaded, posting an ephemeral hint and returning false if not connected. */
     checkUserIsConnected = async (): Promise<boolean> => {
         let connected = isUserConnected(this.store.getState());
         if (connected === null) {

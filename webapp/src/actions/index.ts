@@ -30,6 +30,7 @@ export interface CreateEventPreFill {
     endTime?: string;
 }
 
+/** Opens the create-event modal, optionally pre-filling the channel and/or date/time. */
 export const openCreateEventModal = (channelIdOrPreFill: string | CreateEventPreFill) => {
     const data = typeof channelIdOrPreFill === 'string' ?
         {channelId: channelIdOrPreFill} :
@@ -41,6 +42,7 @@ export const openCreateEventModal = (channelIdOrPreFill: string | CreateEventPre
     };
 };
 
+/** Closes the create-event modal and clears its pre-fill data. */
 export const closeCreateEventModal = () => {
     return {
         type: ActionTypes.CLOSE_CREATE_EVENT_MODAL,
@@ -55,6 +57,7 @@ type AutocompleteUser = {
 
 export type AutocompleteConnectedUsersResponse = {data?: AutocompleteUser[]; error?: string};
 
+/** Searches for Mattermost users who have connected their calendar account, for use in autocomplete fields. */
 export const autocompleteConnectedUsers = (input: string): AppThunk<Promise<AutocompleteConnectedUsersResponse>> => async (_, getState) => {
     const state = getState();
     const pluginServerRoute = getPluginServerRoute(state);
@@ -71,6 +74,7 @@ export const autocompleteConnectedUsers = (input: string): AppThunk<Promise<Auto
 
 export type AutocompleteChannelsResponse = {data?: Channel[]; error?: string};
 
+/** Searches the team's channels the current user can post to, for use in the channel-selector autocomplete. */
 export const autocompleteUserChannels = (input: string, teamId: string): AppThunk<Promise<AutocompleteChannelsResponse>> => async (_, getState) => {
     const state = getState();
     const siteURL = getSiteURL(state);
@@ -88,6 +92,7 @@ export const autocompleteUserChannels = (input: string, teamId: string): AppThun
 
 export type CreateCalendarEventResponse = {data?: any; error?: string};
 
+/** Submits a new calendar event to the provider via the plugin server. */
 export const createCalendarEvent = (payload: CreateEventPayload): AppThunk<Promise<CreateCalendarEventResponse>> => async (_, getState) => {
     const state = getState();
     const pluginServerRoute = getPluginServerRoute(state);
@@ -108,6 +113,7 @@ export const createCalendarEvent = (payload: CreateEventPayload): AppThunk<Promi
         });
 };
 
+/** Fetches the current user's connection status and stores it in Redux. */
 export function getConnected(): AppThunk<Promise<{data?: unknown; error?: unknown}>> {
     return async (dispatch, getState) => {
         let data;
@@ -130,6 +136,7 @@ export function getConnected(): AppThunk<Promise<{data?: unknown; error?: unknow
     };
 }
 
+/** Dispatches a client-side-only ephemeral post into the given (or current) channel. */
 export function sendEphemeralPost(message: string, channelId?: string): AppThunk {
     return (dispatch, getState) => {
         const resolvedChannelId = channelId || getCurrentChannelId(getState());
@@ -155,6 +162,7 @@ export function sendEphemeralPost(message: string, channelId?: string): AppThunk
     };
 }
 
+/** Builds a WebSocket event handler that marks the user as connected. */
 export function handleConnect(store: Store<GlobalState>) {
     return (msg: {data: any}) => {
         store.dispatch({
@@ -164,6 +172,7 @@ export function handleConnect(store: Store<GlobalState>) {
     };
 }
 
+/** Builds a WebSocket event handler that marks the user as disconnected. */
 export function handleDisconnect(store: Store<GlobalState>) {
     return (msg: {data: any}) => {
         store.dispatch({
@@ -173,6 +182,7 @@ export function handleDisconnect(store: Store<GlobalState>) {
     };
 }
 
+/** Fetches the active calendar provider's configuration/capabilities and stores it in Redux. */
 export function getProviderConfiguration(): AppThunk<Promise<ProviderConfig | {error?: string}>> {
     return async (dispatch, getState) => {
         let data;
@@ -194,6 +204,7 @@ export function getProviderConfiguration(): AppThunk<Promise<ProviderConfig | {e
     };
 }
 
+/** Builds the cache key used to index fetched event ranges by their from/to bounds. */
 function makeEventsCacheKey(from: string, to: string): string {
     return `${from}|${to}`;
 }
@@ -202,11 +213,17 @@ type FetchEventsResult = {data: RemoteEvent[] | null; error: unknown};
 
 const inflightControllers = new Map<string, AbortController>();
 
+/** Aborts and clears all in-flight event-fetch requests, e.g. on sidebar teardown. */
 export function resetInflightControllers() {
     inflightControllers.forEach((controller) => controller.abort());
     inflightControllers.clear();
 }
 
+/**
+ * Fetches events for the given range, cancelling any previous in-flight
+ * request for the same cache key and dispatching the result (or a fetch
+ * error, ignoring aborts) under successType/FETCH_EVENTS_ERROR.
+ */
 function fetchEventsRange(
     from: string,
     to: string,
@@ -248,12 +265,14 @@ function fetchEventsRange(
     });
 }
 
+/** Re-fetches events for the given range from the server, bypassing the cache. */
 export const refreshCalendarEvents = (from: string, to: string): AppThunk<Promise<FetchEventsResult>> => async (dispatch, getState) => {
     const key = makeEventsCacheKey(from, to);
     dispatch({type: ActionTypes.FETCH_EVENTS_REQUEST, key, from, to});
     return fetchEventsRange(from, to, key, ActionTypes.RECEIVED_FRESH_EVENTS, dispatch as AppDispatch, getState);
 };
 
+/** Re-fetches events for whichever range the sidebar is currently displaying, if any. */
 export const refreshActiveCalendarView = (): AppThunk<Promise<void>> => async (dispatch, getState) => {
     const state = getState() as Record<string, any>;
     const pluginState = state['plugins-' + PluginId];
@@ -266,6 +285,7 @@ export const refreshActiveCalendarView = (): AppThunk<Promise<void>> => async (d
     await (dispatch as AppDispatch)(refreshCalendarEvents(from, to));
 };
 
+/** Returns cached events for the given range if available, otherwise fetches them from the server. */
 export const fetchCalendarEvents = (from: string, to: string): AppThunk<Promise<FetchEventsResult>> => async (dispatch, getState) => {
     const key = makeEventsCacheKey(from, to);
     const state = getState() as Record<string, any>;

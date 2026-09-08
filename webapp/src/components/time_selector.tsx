@@ -23,6 +23,10 @@ type Option = {
     value: string
 }
 
+/**
+ * Select dropdown of time-of-day options in MINUTE_STEP increments, constrained
+ * by the current time (for today's date) and by the paired start/end time.
+ */
 export default function TimeSelector(props: Props) {
     const theme = useSelector(getTheme);
 
@@ -116,6 +120,7 @@ export default function TimeSelector(props: Props) {
     );
 }
 
+/** Parses an "HH:MM" string into numeric hour/minute, defaulting invalid parts to 0. */
 const parseHHMM = (time: string): {hour: number; minute: number} => {
     const parts = time.split(':');
     const hour = parseInt(parts[0], 10);
@@ -126,6 +131,7 @@ const parseHHMM = (time: string): {hour: number; minute: number} => {
     };
 };
 
+/** Generates "HH:MM" time strings in `step`-minute increments between the given bounds. */
 const generateMilitaryTimeArray = (fromHour = 0, fromMinute = 0, toHour = 23, toMinute = 45, step = MINUTE_STEP) => {
     const timeArray = [];
     for (let hour = fromHour; hour <= toHour; hour++) {

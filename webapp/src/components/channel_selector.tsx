@@ -21,6 +21,10 @@ type Props = {
     value: string | null;
 };
 
+/**
+ * Single-select input for a channel the user can post to, with async
+ * autocomplete and resolution of a pre-selected channel ID to its label.
+ */
 export default function ChannelSelector(props: Props) {
     const [storedError, setStoredError] = useState('');
     const [selectedOption, setSelectedOption] = useState<SelectOption | null>(null);

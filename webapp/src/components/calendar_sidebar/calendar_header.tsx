@@ -12,6 +12,7 @@ interface CalendarHeaderProps {
     theme: MattermostTheme;
 }
 
+/** Formats the header's date label: a single day, or a start-end range when in week view. */
 function formatDateLabel(start: Date, end: Date, isWeekView: boolean): string {
     if (!isWeekView) {
         return start.toLocaleDateString([], {
@@ -37,6 +38,7 @@ function formatDateLabel(start: Date, end: Date, isWeekView: boolean): string {
     return `${startStr} - ${endStr}`;
 }
 
+/** Sidebar header with prev/next/today navigation, a refresh button, and the current date range label. */
 const CalendarHeader = ({onPrev, onNext, onToday, onRefresh, loading, currentStart, currentEnd, isWeekView, theme}: CalendarHeaderProps) => {
     const label = formatDateLabel(currentStart, currentEnd, isWeekView);
 

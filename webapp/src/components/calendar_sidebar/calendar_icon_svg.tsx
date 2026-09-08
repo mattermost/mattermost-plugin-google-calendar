@@ -4,6 +4,7 @@ interface CalendarIconSVGProps {
     theme: MattermostTheme;
 }
 
+/** Theme-aware calendar glyph shown on the connect prompt. */
 const CalendarIconSVG = ({theme}: CalendarIconSVGProps) => (
     <svg
         width='80'

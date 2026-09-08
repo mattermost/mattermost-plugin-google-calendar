@@ -14,6 +14,7 @@ interface EventTooltipProps {
     onClose: () => void;
 }
 
+/** Maps a raw RSVP response status to a display label and status-specific CSS class. */
 function formatResponseStatus(response?: string): {label: string; className: string} {
     switch (response) {
     case 'accepted':
@@ -31,6 +32,7 @@ function formatResponseStatus(response?: string): {label: string; className: str
     }
 }
 
+/** Returns Intl formatting options for the given timezone, or none if it's invalid/local. */
 function buildTzOptions(timezone: string): Intl.DateTimeFormatOptions {
     if (!timezone || timezone === 'local') {
         return {};
@@ -43,6 +45,7 @@ function buildTzOptions(timezone: string): Intl.DateTimeFormatOptions {
     }
 }
 
+/** Formats an event's start/end time for display, collapsing to a single date when both fall on the same day. */
 function formatEventTime(event: RemoteEvent, timezone: string): string {
     if (event.isAllDay) {
         return 'All day';
@@ -85,6 +88,10 @@ function formatEventTime(event: RemoteEvent, timezone: string): string {
     return `${start.toLocaleString([], dateOptions)} - ${end.toLocaleString([], dateOptions)}`;
 }
 
+/**
+ * Popover with event details (time, location, conference link, organizer, RSVP
+ * status), portaled to document.body and positioned relative to the clicked event.
+ */
 const EventTooltip = ({event, anchorRect, timezone, theme, onClose}: EventTooltipProps) => {
     const tooltipRef = useRef<HTMLDivElement>(null);
 

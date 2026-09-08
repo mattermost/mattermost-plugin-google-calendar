@@ -12,6 +12,7 @@ type Props = {
     className?: string;
 };
 
+/** Native date input paired with a themed calendar icon button that opens the picker. */
 export default function DateInput(props: Props) {
     const {id, value, min, onChange, className} = props;
     const inputRef = useRef<HTMLInputElement>(null);

@@ -2,12 +2,17 @@ import {Client4} from 'mattermost-redux/client';
 import {ClientError} from '@mattermost/client';
 import {Options} from '@mattermost/types/client4';
 
+/** Performs a fetch request and returns only the parsed response body. */
 export const doFetch = async (url: string, options: Options) => {
     const {data} = await doFetchWithResponse(url, options);
 
     return data;
 };
 
+/**
+ * Performs a fetch request against the plugin server, parsing JSON bodies
+ * (tolerating empty 204 responses) and throwing a ClientError on failure.
+ */
 export const doFetchWithResponse = async (url: string, options: Options = {}) => {
     const response = await fetch(url, Client4.getOptions(options));
 

@@ -35,6 +35,7 @@ type Props = {
     close: (e?: Event) => void;
 };
 
+/** Form body for the create-event modal: manages field state, validation, and submission. */
 export default function CreateEventForm(props: Props) {
     const [storedError, setStoredError] = useState('');
     const [submitting, setSubmitting] = useState(false);
@@ -172,6 +173,7 @@ type ActualFormProps = {
     setFormValue: <Key extends keyof CreateEventPayload>(name: Key, value: CreateEventPayload[Key]) => void;
 }
 
+/** Renders the labeled input fields (subject, location, attendees, date/time, etc.) for the event form. */
 const ActualForm = (props: ActualFormProps) => {
     const {formValues, setFormValue} = props;
 

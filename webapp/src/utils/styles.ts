@@ -5,6 +5,7 @@ import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
 type AnySelectOption = {label: string; value: string};
 
+/** Returns shared inline styles (currently just the code-block style) themed to the given palette. */
 export const getBaseStyles = (theme: Theme) => {
     return {
         codeBlock: ({
@@ -18,6 +19,7 @@ export const getBaseStyles = (theme: Theme) => {
     };
 };
 
+/** Returns themed inline styles for the create-event modal's body/footer/description area. */
 export const getModalStyles = (theme: Theme) => ({
     modalBody: {
         padding: '2em 2em 3em',
@@ -38,6 +40,7 @@ export const Z_INDEX_BACKDROP = 1000;
 export const Z_INDEX_TOOLTIP = 1010;
 export const Z_INDEX_MENU_PORTAL = 1060;
 
+/** Builds a react-select StylesConfig matching the active Mattermost theme. */
 export const getStyleForReactSelect = (theme: Theme): StylesConfig<AnySelectOption> => {
     return {
         menuPortal: (provided) => ({

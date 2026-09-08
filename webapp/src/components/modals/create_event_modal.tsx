@@ -23,6 +23,7 @@ const Modal = BootstrapModal as unknown as React.FC<ModalRootProps> & {
     Title: React.FC<React.PropsWithChildren<Record<string, unknown>>>;
 };
 
+/** Modal shell that renders CreateEventForm when the create-event modal is open. */
 export default function CreateEventModal() {
     const visible = useSelector(isCreateEventModalVisible);
 

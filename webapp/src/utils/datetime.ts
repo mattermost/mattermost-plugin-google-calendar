@@ -3,6 +3,7 @@ export const MINUTE_STEP = 15;
 // Latest selectable time in the day, matching the option constraints in TimeSelector.
 const LATEST_TIME = '23:45';
 
+/** Returns today's date as "YYYY-MM-DD" in the local timezone. */
 export function getTodayString(): string {
     const now = new Date();
     const year = now.getFullYear();

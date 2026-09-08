@@ -19,9 +19,11 @@ import CreateEventModal from './components/modals/create_event_modal';
 import {getProviderConfiguration, handleConnect, handleDisconnect, openCreateEventModal, resetInflightControllers} from './actions';
 import {getProviderConfiguration as getProviderConfigSelector} from './selectors';
 
+/** Webapp entry point: registers the Redux reducer, hooks, and (once provider config loads) the experimental sidebar UI. */
 export default class Plugin {
     private setupComplete = false;
 
+    /** Registers reducers, hooks, and menu actions, then kicks off async UI setup that depends on provider configuration. */
     public async initialize(registry: PluginRegistry, store: Store<GlobalState, Action<Record<string, unknown>>>) {
         this.setupComplete = false;
         resetInflightControllers();
@@ -85,6 +87,7 @@ export default class Plugin {
         ));
     }
 
+    /** Cleans up in-flight requests and setup state when the plugin is disabled. */
     public uninitialize() {
         this.setupComplete = false;
         resetInflightControllers();
@@ -104,6 +107,7 @@ interface SetupUIProps {
     setupStatus: SetupStatus;
 }
 
+/** Headless root component that runs `setup` once, retrying with backoff up to MAX_RETRIES on failure. */
 const SetupUI = ({setup, setupStatus}: SetupUIProps) => {
     const [retryCount, setRetryCount] = useState(0);
     const runningRef = useRef(false);

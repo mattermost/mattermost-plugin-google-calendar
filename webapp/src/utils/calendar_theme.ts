@@ -20,6 +20,7 @@ export interface MattermostTheme {
     [key: string]: string;
 }
 
+/** Maps the Mattermost theme onto FullCalendar's CSS custom properties. */
 export function getCalendarCSSVars(theme: MattermostTheme): Record<string, string> {
     return {
         '--fc-page-bg-color': theme.centerChannelBg,
@@ -42,6 +43,7 @@ export function getCalendarCSSVars(theme: MattermostTheme): Record<string, strin
     };
 }
 
+/** Returns the theme color representing an event's "show as" availability (free/tentative/oof/busy). */
 export function getShowAsColor(showAs: string | undefined, theme: MattermostTheme): string {
     switch (showAs) {
     case 'free':
@@ -65,6 +67,7 @@ export interface EventStyle {
     classNames: string[];
 }
 
+/** Derives an event's calendar rendering style (colors, border, css classes) from its RSVP status. */
 export function getEventStyle(event: {showAs?: string; responseStatus?: {response?: string}}, theme: MattermostTheme): EventStyle {
     const baseColor = theme.buttonBg;
     const response = event.responseStatus?.response;
@@ -123,6 +126,7 @@ export function getEventStyle(event: {showAs?: string; responseStatus?: {respons
     }
 }
 
+/** Returns the themed container style (background/text color, height, calendar CSS vars) for the sidebar wrapper. */
 export function getContainerStyle(theme: MattermostTheme): CSSProperties {
     return {
         color: theme.centerChannelColor,

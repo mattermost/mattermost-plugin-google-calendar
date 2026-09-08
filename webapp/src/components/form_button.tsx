@@ -15,6 +15,7 @@ type Props = React.ButtonHTMLAttributes<HTMLButtonElement> & {
     type?: 'button' | 'submit' | 'reset';
 };
 
+/** Submit/action button that swaps its label for a spinner while executing or saving. */
 function FormButton({
     id,
     executing = false,

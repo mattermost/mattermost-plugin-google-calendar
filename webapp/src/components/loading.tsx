@@ -5,6 +5,7 @@ type Props = {
     style?: CSSProperties;
 };
 
+/** Animated three-dot loading indicator. */
 function Loading({position = 'relative', style = {}}: Props) {
     return (
         <div
