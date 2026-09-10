@@ -2,8 +2,9 @@ import React, {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {MINUTE_STEP, getTodayString} from '@/utils/datetime';
+import {MINUTE_STEP, getNextTimeStep, getTodayString} from '@/utils/datetime';
 import {CreateEventPayload} from '@/types/calendar_api_types';
 
 import ReactSelectSetting from './react_select_setting';
@@ -29,6 +30,7 @@ type Option = {
  */
 export default function TimeSelector(props: Props) {
     const theme = useSelector(getTheme);
+    const timezone = useSelector(getCurrentTimezone);
 
     const isStartTimeSelector = props.name === 'start_time';
     const isEndTimeSelector = props.name === 'end_time';
@@ -41,12 +43,11 @@ export default function TimeSelector(props: Props) {
         let ranges: string[] = [];
         let constrainedByDate = false;
 
-        if (props.date === getTodayString()) {
+        if (props.date === getTodayString(timezone)) {
             constrainedByDate = true;
-            const now = new Date();
-            const roundedMinutes = Math.ceil(now.getMinutes() / MINUTE_STEP) * MINUTE_STEP;
-            fromHour = now.getHours() + Math.floor(roundedMinutes / 60);
-            fromMinute = roundedMinutes % 60;
+            const next = getNextTimeStep(timezone);
+            fromHour = next.hour;
+            fromMinute = next.minute;
             ranges = generateMilitaryTimeArray(fromHour, fromMinute, toHour, toMinute);
         }
 
@@ -86,7 +87,7 @@ export default function TimeSelector(props: Props) {
             label: t,
             value: t,
         }));
-    }, [props.startTime, props.endTime, props.date, props.name, isStartTimeSelector]);
+    }, [props.startTime, props.endTime, props.date, props.name, isStartTimeSelector, timezone]);
 
     let value: Option | undefined | null;
     if (props.value) {

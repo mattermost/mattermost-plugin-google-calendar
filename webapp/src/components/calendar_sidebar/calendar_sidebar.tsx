@@ -117,7 +117,7 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
             // The create-event API has no all-day mode, so pre-fill a default
             // slot instead of opening the modal with empty (unsubmittable) times.
             const date = arg.dateStr.slice(0, 10);
-            actions.openCreateEventModal({date, ...getDefaultTimesForDate(date)});
+            actions.openCreateEventModal({date, ...getDefaultTimesForDate(date, timezone)});
             return;
         }
 
@@ -134,7 +134,7 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
         const endTime = `${endH}:${endM}`;
 
         actions.openCreateEventModal({date, startTime, endTime});
-    }, [actions]);
+    }, [actions, timezone]);
 
     useEffect(() => {
         if (connected && currentRange) {

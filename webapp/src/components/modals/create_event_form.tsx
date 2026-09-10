@@ -11,6 +11,7 @@ const ModalBody = BootstrapModal.Body as unknown as React.FC<ModalSectionProps>;
 const ModalFooter = BootstrapModal.Footer as unknown as React.FC<ModalSectionProps>;
 
 import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import ChannelSelector from '../channel_selector';
 
@@ -176,6 +177,7 @@ type ActualFormProps = {
 /** Renders the labeled input fields (subject, location, attendees, date/time, etc.) for the event form. */
 const ActualForm = (props: ActualFormProps) => {
     const {formValues, setFormValue} = props;
+    const timezone = useSelector(getCurrentTimezone);
 
     const components = [
         {
@@ -223,16 +225,16 @@ const ActualForm = (props: ActualFormProps) => {
                 <DateInput
                     id='date'
                     value={formValues.date}
-                    min={getTodayString()}
+                    min={getTodayString(timezone)}
                     onChange={(value) => {
                         setFormValue('date', value);
 
                         // Only clear the times when they become invalid for the new
                         // date (i.e. now in the past when switching to today), so the
                         // form stays submittable after simply changing the date.
-                        const startInPast = value === getTodayString() &&
+                        const startInPast = value === getTodayString(timezone) &&
                             formValues.start_time !== '' &&
-                            formValues.start_time < getEarliestTimeForToday();
+                            formValues.start_time < getEarliestTimeForToday(timezone);
                         if (startInPast) {
                             setFormValue('start_time', '');
                             setFormValue('end_time', '');

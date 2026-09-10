@@ -7,22 +7,80 @@ const LATEST_TIME = '23:45';
 const DEFAULT_START_TIME = '09:00';
 const DEFAULT_DURATION_MINUTES = 30;
 
-/** Returns today's date as "YYYY-MM-DD" in the local timezone. */
-export function getTodayString(): string {
+interface ZonedNow {
+    date: string;
+    hour: number;
+    minute: number;
+    secondsIntoMinute: number;
+}
+
+/**
+ * Reads the current wall clock in the calendar's timezone, falling back to the
+ * browser's when none is configured or the timezone isn't recognised.
+ */
+function getZonedNow(timeZone?: string): ZonedNow {
     const now = new Date();
-    const year = now.getFullYear();
+    const secondsIntoMinute = now.getSeconds() + (now.getMilliseconds() / 1000);
+
+    if (timeZone && timeZone !== 'local') {
+        try {
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone,
+                hourCycle: 'h23',
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+            }).formatToParts(now);
+            const partValue = (type: string) => parts.find((part) => part.type === type)?.value ?? '';
+
+            return {
+                date: `${partValue('year')}-${partValue('month')}-${partValue('day')}`,
+                hour: Number(partValue('hour')),
+                minute: Number(partValue('minute')),
+                secondsIntoMinute,
+            };
+        } catch {
+            // Fall through to the browser's timezone.
+        }
+    }
+
     const month = String(now.getMonth() + 1).padStart(2, '0');
     const day = String(now.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
+
+    return {
+        date: `${now.getFullYear()}-${month}-${day}`,
+        hour: now.getHours(),
+        minute: now.getMinutes(),
+        secondsIntoMinute,
+    };
+}
+
+/** Returns today's date as "YYYY-MM-DD" in the calendar's timezone. */
+export function getTodayString(timeZone?: string): string {
+    return getZonedNow(timeZone).date;
+}
+
+/**
+ * Returns the next selectable time step, rounding a partially elapsed minute up
+ * so the result is never in the past. The hour rolls past 23 near the end of the
+ * day, which callers handle themselves.
+ */
+export function getNextTimeStep(timeZone?: string): {hour: number; minute: number} {
+    const now = getZonedNow(timeZone);
+    const roundedMinutes = Math.ceil((now.minute + (now.secondsIntoMinute / 60)) / MINUTE_STEP) * MINUTE_STEP;
+
+    return {
+        hour: now.hour + Math.floor(roundedMinutes / 60),
+        minute: roundedMinutes % 60,
+    };
 }
 
 // Earliest selectable time for today, rounded up to the next MINUTE_STEP.
 // Kept consistent with the option constraints in TimeSelector.
-export function getEarliestTimeForToday(): string {
-    const now = new Date();
-    const roundedMinutes = Math.ceil(now.getMinutes() / MINUTE_STEP) * MINUTE_STEP;
-    const hour = now.getHours() + Math.floor(roundedMinutes / 60);
-    const minute = roundedMinutes % 60;
+export function getEarliestTimeForToday(timeZone?: string): string {
+    const {hour, minute} = getNextTimeStep(timeZone);
 
     // When rounding pushes past the end of the day (e.g. now >= 23:45), clamp to
     // the latest selectable time so lex comparisons don't treat every start time
@@ -38,8 +96,8 @@ export function getEarliestTimeForToday(): string {
  * Returns the start/end times to pre-fill for a date the user picked without a
  * time of day, keeping them selectable in TimeSelector for that date.
  */
-export function getDefaultTimesForDate(date: string): {startTime: string; endTime: string} {
-    const earliest = date === getTodayString() ? getEarliestTimeForToday() : '00:00';
+export function getDefaultTimesForDate(date: string, timeZone?: string): {startTime: string; endTime: string} {
+    const earliest = date === getTodayString(timeZone) ? getEarliestTimeForToday(timeZone) : '00:00';
     const startTime = earliest > DEFAULT_START_TIME ? earliest : DEFAULT_START_TIME;
 
     return {startTime, endTime: addMinutes(startTime, DEFAULT_DURATION_MINUTES)};
