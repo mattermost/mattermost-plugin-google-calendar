@@ -1,0 +1,230 @@
+.gcal-sidebar {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0 8px 8px;
+
+    .gcal-sidebar__loading {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        opacity: 0.56;
+        font-size: 14px;
+    }
+
+    .gcal-sidebar__connect {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        padding: 24px;
+        text-align: center;
+    }
+
+    .gcal-sidebar__connect-welcome {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 24px;
+    }
+
+    .gcal-sidebar__connect-icon {
+        margin-bottom: 24px;
+    }
+
+    .gcal-sidebar__connect-prompt {
+        font-size: 16px;
+        line-height: 1.5;
+        margin-bottom: 24px;
+        opacity: 0.72;
+    }
+
+    .gcal-sidebar__connect-btn {
+        display: inline-block;
+        padding: 10px 24px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        transition: opacity 0.15s ease;
+
+        &:hover {
+            opacity: 0.88;
+            text-decoration: none;
+        }
+    }
+
+    .gcal-sidebar__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        flex-shrink: 0;
+    }
+
+    .gcal-sidebar__header-nav {
+        display: flex;
+        align-items: center;
+        gap: 2px;
+    }
+
+    .gcal-sidebar__header-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 28px;
+        height: 28px;
+        padding: 0;
+        border: none;
+        border-radius: 4px;
+        background: transparent;
+        cursor: pointer;
+        font-size: 18px;
+        opacity: 0.72;
+        transition: opacity 0.12s ease, background-color 0.12s ease;
+
+        &:hover {
+            opacity: 1;
+            background-color: rgba(var(--center-channel-color-rgb), 0.08);
+        }
+    }
+
+    .gcal-sidebar__header-label {
+        font-size: 13px;
+        font-weight: 600;
+        padding: 0 4px;
+        white-space: nowrap;
+        user-select: none;
+    }
+
+    .gcal-sidebar__header-actions {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    .gcal-sidebar__header-today {
+        padding: 4px 12px;
+        border: 1px solid rgba(var(--center-channel-color-rgb), 0.32);
+        border-radius: 4px;
+        background: transparent;
+        font-size: 12px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: opacity 0.12s ease, background-color 0.12s ease;
+
+        &:hover {
+            opacity: 0.8;
+        }
+    }
+
+    .gcal-sidebar__calendar {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .fc {
+        height: 100%;
+    }
+
+    .fc .fc-timegrid-slot-label-cushion {
+        color: inherit;
+        font-size: 0.8em;
+    }
+
+    .fc .fc-col-header-cell-cushion {
+        color: inherit;
+    }
+
+    .fc-theme-standard td,
+    .fc-theme-standard th {
+        border-color: var(--fc-border-color);
+    }
+
+    .fc-theme-standard .fc-scrollgrid {
+        border-color: var(--fc-border-color);
+    }
+
+    .fc .fc-timegrid-now-indicator-line {
+        border-color: var(--fc-now-indicator-color);
+        border-width: 2px 0 0;
+    }
+
+    .fc .fc-timegrid-now-indicator-arrow {
+        border-color: var(--fc-now-indicator-color);
+        border-top-color: transparent;
+        border-bottom-color: transparent;
+    }
+
+    .fc .fc-daygrid-body {
+        font-size: 0.85em;
+    }
+
+    .fc .fc-daygrid-event {
+        border-radius: 4px;
+        padding: 1px 4px;
+        font-weight: 600;
+    }
+
+    .fc .fc-timegrid-event {
+        border-radius: 4px;
+        font-size: 0.85em;
+    }
+
+    .fc .fc-timegrid-event .fc-event-main {
+        padding: 2px 4px;
+    }
+
+    .fc .fc-timegrid-event .fc-event-title {
+        font-weight: 600;
+    }
+
+    .fc .fc-timegrid-event .fc-event-time {
+        font-size: 0.85em;
+        opacity: 0.85;
+    }
+
+    .fc .fc-timegrid-slot {
+        height: 3em;
+    }
+
+    .fc-direction-ltr .fc-timegrid-col-events {
+        margin: 0 2px;
+    }
+
+    .gcal-event--tentative .fc-event-main {
+        opacity: 0.85;
+    }
+
+    .gcal-event--declined {
+        .fc-event-main {
+            opacity: 0.5;
+        }
+
+        .fc-event-title {
+            text-decoration: line-through;
+        }
+    }
+
+    .gcal-event--pending .fc-event-main {
+        opacity: 0.85;
+    }
+}
+
+@keyframes gcal-spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+.gcal-spin {
+    animation: gcal-spin 0.8s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .gcal-spin {
+        animation: none;
+    }
+}

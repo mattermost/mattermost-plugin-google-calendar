@@ -26,6 +26,11 @@ const (
 	GoogleResponseStatusMaybe = "tentative"
 	GoogleResponseStatusNo    = "declined"
 	GoogleResponseStatusNone  = "needsAction"
+
+	googleMeetApplication = "Google Meet"
+
+	// gcalDateFormat is the date-only layout Google uses for all-day events.
+	gcalDateFormat = "2006-01-02"
 )
 
 var responseStatusConversion = map[string]string{
@@ -74,7 +79,7 @@ func (c *client) GetDefaultCalendarView(_ string, start, end time.Time) ([]*remo
 func convertGCalEventDateTimeToRemoteDateTime(dt *calendar.EventDateTime) *remote.DateTime {
 	// Handle all-day events
 	if len(dt.Date) > 0 {
-		t, _ := time.Parse("2006-01-02", dt.Date)
+		t, _ := time.Parse(gcalDateFormat, dt.Date)
 		return remote.NewDateTime(t.UTC(), "UTC")
 	}
 
@@ -94,14 +99,20 @@ func convertGCalEventToRemoteEvent(event *calendar.Event) *remote.Event {
 	var conference *remote.Conference
 	var location *remote.Location
 
-	if event.ConferenceData != nil && len(event.ConferenceData.EntryPoints) > 0 {
+	switch {
+	case event.ConferenceData != nil && len(event.ConferenceData.EntryPoints) > 0:
 		conference = &remote.Conference{
 			URL: event.ConferenceData.EntryPoints[0].Uri,
 		}
 		if event.ConferenceData.ConferenceSolution != nil {
 			conference.Application = event.ConferenceData.ConferenceSolution.Name
 		}
-	} else if utils.IsURL(event.Location) {
+	case event.HangoutLink != "":
+		conference = &remote.Conference{
+			URL:         event.HangoutLink,
+			Application: googleMeetApplication,
+		}
+	case utils.IsURL(event.Location):
 		conference = &remote.Conference{
 			URL: event.Location,
 		}

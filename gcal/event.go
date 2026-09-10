@@ -82,8 +82,12 @@ func (c *client) GetEventsBetweenDates(_ string, start, end time.Time) (events [
 func convertRemoteEventToGcalEvent(in *remote.Event) *calendar.Event {
 	out := &calendar.Event{}
 	out.Summary = in.Subject
-	out.Start = convertRemoteDateTimeToGcalEventDateTime(in.Start)
-	out.End = convertRemoteDateTimeToGcalEventDateTime(in.End)
+	if in.IsAllDay {
+		out.Start, out.End = convertRemoteAllDayEventToGcalDates(in)
+	} else {
+		out.Start = convertRemoteDateTimeToGcalEventDateTime(in.Start)
+		out.End = convertRemoteDateTimeToGcalEventDateTime(in.End)
+	}
 	if in.Body != nil {
 		out.Description = in.Body.Content
 	}
@@ -103,6 +107,23 @@ func convertRemoteEventToGcalEvent(in *remote.Event) *calendar.Event {
 	}
 
 	return out
+}
+
+// convertRemoteAllDayEventToGcalDates maps an all-day event onto Google's date-only
+// fields. Remote events carry an inclusive end (the last moment of the final day),
+// while Google expects the end date to be exclusive.
+func convertRemoteAllDayEventToGcalDates(in *remote.Event) (start, end *calendar.EventDateTime) {
+	startTime := in.Start.Time()
+
+	endTime := startTime
+	if in.End != nil {
+		if t := in.End.Time(); t.After(startTime) {
+			endTime = t
+		}
+	}
+
+	return &calendar.EventDateTime{Date: startTime.Format(gcalDateFormat)},
+		&calendar.EventDateTime{Date: endTime.AddDate(0, 0, 1).Format(gcalDateFormat)}
 }
 
 func convertRemoteDateTimeToGcalEventDateTime(in *remote.DateTime) *calendar.EventDateTime {

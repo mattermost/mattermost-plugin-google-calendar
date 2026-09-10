@@ -1,10 +1,11 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import {Theme} from 'mattermost-redux/selectors/entities/preferences';
+import {StylesConfig} from 'react-select';
 
 import {changeOpacity} from 'mattermost-redux/utils/theme_utils';
 
+type AnySelectOption = {label: string; value: string};
+
+/** Returns shared inline styles (currently just the code-block style) themed to the given palette. */
 export const getBaseStyles = (theme: Theme) => {
     return {
         codeBlock: ({
@@ -18,6 +19,7 @@ export const getBaseStyles = (theme: Theme) => {
     };
 };
 
+/** Returns themed inline styles for the create-event modal's body/footer/description area. */
 export const getModalStyles = (theme: Theme) => ({
     modalBody: {
         padding: '2em 2em 3em',
@@ -30,33 +32,29 @@ export const getModalStyles = (theme: Theme) => ({
     descriptionArea: {
         height: 'auto',
         width: '100%',
-        color: '#000',
+        color: theme.centerChannelColor,
     },
 });
 
-export const getStyleForReactSelect = (theme: Theme) => {
-    if (!theme) {
-        return {};
-    }
+export const Z_INDEX_BACKDROP = 1000;
+export const Z_INDEX_TOOLTIP = 1010;
+export const Z_INDEX_MENU_PORTAL = 1060;
 
+/** Builds a react-select StylesConfig matching the active Mattermost theme. */
+export const getStyleForReactSelect = (theme: Theme): StylesConfig<AnySelectOption> => {
     return {
         menuPortal: (provided) => ({
             ...provided,
-            zIndex: 9999,
+            zIndex: Z_INDEX_MENU_PORTAL,
         }),
         control: (provided, state) => ({
             ...provided,
             color: theme.centerChannelColor,
             background: theme.centerChannelBg,
-
-            // Overwrittes the different states of border
             borderColor: state.isFocused ? changeOpacity(theme.centerChannelColor, 0.25) : changeOpacity(theme.centerChannelColor, 0.2),
             padding: '2px 4px 2px 6px',
-
-            // Removes weird border around container
             boxShadow: 'inset 0 1px 1px ' + changeOpacity(theme.centerChannelColor, 0.075),
             borderRadius: '4px',
-
             '&:hover': {
                 borderColor: changeOpacity(theme.centerChannelColor, 0.25),
             },
@@ -117,7 +115,6 @@ export const getStyleForReactSelect = (theme: Theme) => {
         }),
         dropdownIndicator: (provided) => ({
             ...provided,
-
             '&:hover': {
                 color: theme.centerChannelColor,
             },

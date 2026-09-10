@@ -1,17 +1,15 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
-
 import React from 'react';
 
 type Props = {
     inputId?: string;
     label: React.ReactNode;
-    children: React.ReactChildren;
+    children: React.ReactNode;
     helpText?: React.ReactNode;
     required?: boolean;
     hideRequiredStar?: boolean;
 }
 
+/** Generic labeled form field wrapper with optional help text and a required-field indicator. */
 export default function Setting(props: Props) {
     const {
         children,
@@ -42,9 +40,11 @@ export default function Setting(props: Props) {
             }
             <div>
                 {children}
-                <div className='help-text'>
-                    {helpText}
-                </div>
+                {helpText && (
+                    <div className='help-text'>
+                        {helpText}
+                    </div>
+                )}
             </div>
         </div>
     );
