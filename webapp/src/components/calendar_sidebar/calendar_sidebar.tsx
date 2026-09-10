@@ -8,6 +8,7 @@ import {DatesSetArg, EventClickArg, EventMountArg} from '@fullcalendar/core';
 import {RemoteEvent} from '@/types/calendar';
 import {CreateEventPreFill} from '@/actions';
 import {getContainerStyle, MattermostTheme} from '@/utils/calendar_theme';
+import {getDefaultTimesForDate} from '@/utils/datetime';
 import {mapToFullCalendarEvents} from '@/utils/event_mapper';
 import EventTooltip from '@/components/event_tooltip/event_tooltip';
 
@@ -113,8 +114,10 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
 
     const handleDateClick = useCallback((arg: DateClickArg) => {
         if (arg.allDay) {
+            // The create-event API has no all-day mode, so pre-fill a default
+            // slot instead of opening the modal with empty (unsubmittable) times.
             const date = arg.dateStr.slice(0, 10);
-            actions.openCreateEventModal({date, startTime: '', endTime: ''});
+            actions.openCreateEventModal({date, ...getDefaultTimesForDate(date)});
             return;
         }
 

@@ -1,5 +1,6 @@
 import {render, screen} from '@testing-library/react';
 import '@testing-library/jest-dom';
+import FullCalendar from '@fullcalendar/react';
 
 import {mockTheme} from '@/testutils/theme';
 
@@ -77,6 +78,37 @@ describe('CalendarSidebar', () => {
         const actions = makeProps().actions;
         render(<CalendarSidebar {...makeProps({actions})}/>);
         expect(actions.getConnected).toHaveBeenCalledTimes(1);
+    });
+
+    const getCalendarProps = () => {
+        const mock = FullCalendar as unknown as jest.Mock;
+        return mock.mock.calls[mock.mock.calls.length - 1][0];
+    };
+
+    it('pre-fills the clicked time slot when creating an event', () => {
+        const actions = makeProps().actions;
+        render(<CalendarSidebar {...makeProps({actions})}/>);
+
+        getCalendarProps().dateClick({allDay: false, dateStr: '2099-01-01T10:00:00Z'});
+
+        expect(actions.openCreateEventModal).toHaveBeenCalledWith({
+            date: '2099-01-01',
+            startTime: '10:00',
+            endTime: '10:30',
+        });
+    });
+
+    it('pre-fills a default time slot when clicking the all-day row', () => {
+        const actions = makeProps().actions;
+        render(<CalendarSidebar {...makeProps({actions})}/>);
+
+        getCalendarProps().dateClick({allDay: true, dateStr: '2099-01-01'});
+
+        expect(actions.openCreateEventModal).toHaveBeenCalledWith({
+            date: '2099-01-01',
+            startTime: '09:00',
+            endTime: '09:30',
+        });
     });
 
     it('displays error message when error is set', () => {

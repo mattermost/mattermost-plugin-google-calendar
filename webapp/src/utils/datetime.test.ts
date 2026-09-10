@@ -1,16 +1,16 @@
-import {getEarliestTimeForToday} from './datetime';
+import {getDefaultTimesForDate, getEarliestTimeForToday, getTodayString} from './datetime';
+
+const setNow = (hours: number, minutes: number) => {
+    jest.useFakeTimers();
+    const now = new Date();
+    now.setHours(hours, minutes, 0, 0);
+    jest.setSystemTime(now);
+};
 
 describe('getEarliestTimeForToday', () => {
     afterEach(() => {
         jest.useRealTimers();
     });
-
-    const setNow = (hours: number, minutes: number) => {
-        jest.useFakeTimers();
-        const now = new Date();
-        now.setHours(hours, minutes, 0, 0);
-        jest.setSystemTime(now);
-    };
 
     it('rounds up to the next 15-minute step', () => {
         setNow(9, 1);
@@ -35,5 +35,30 @@ describe('getEarliestTimeForToday', () => {
     it('clamps to 23:45 at exactly 23:45', () => {
         setNow(23, 45);
         expect(getEarliestTimeForToday()).toBe('23:45');
+    });
+});
+
+describe('getDefaultTimesForDate', () => {
+    afterEach(() => {
+        jest.useRealTimers();
+    });
+
+    it('defaults to a 30-minute morning slot on a future date', () => {
+        expect(getDefaultTimesForDate('2099-01-01')).toEqual({startTime: '09:00', endTime: '09:30'});
+    });
+
+    it('keeps the morning slot for today when it has not passed yet', () => {
+        setNow(7, 0);
+        expect(getDefaultTimesForDate(getTodayString())).toEqual({startTime: '09:00', endTime: '09:30'});
+    });
+
+    it('starts at the next selectable slot when the morning has passed', () => {
+        setNow(14, 20);
+        expect(getDefaultTimesForDate(getTodayString())).toEqual({startTime: '14:30', endTime: '15:00'});
+    });
+
+    it('clamps the end time to the end of the day', () => {
+        setNow(23, 50);
+        expect(getDefaultTimesForDate(getTodayString())).toEqual({startTime: '23:45', endTime: '23:59'});
     });
 });

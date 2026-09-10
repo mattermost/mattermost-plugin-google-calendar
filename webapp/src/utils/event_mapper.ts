@@ -18,16 +18,26 @@ export function mapToFullCalendarEvents(events: RemoteEvent[], theme: Mattermost
         map((event) => mapToFullCalendarEvent(event, theme));
 }
 
+/**
+ * Extracts the calendar date of an all-day event. The server encodes those dates
+ * as UTC midnight, so handing FullCalendar the full timestamp would shift the
+ * event a day for anyone whose timezone isn't UTC.
+ */
+function toDateOnly(dateTime?: string): string | undefined {
+    return dateTime?.match(/^\d{4}-\d{2}-\d{2}/)?.[0] ?? dateTime;
+}
+
 /** Converts a single remote event into a FullCalendar EventInput, applying theme-derived styling. */
 function mapToFullCalendarEvent(event: RemoteEventWithStart, theme: MattermostTheme): EventInput {
     const style = getEventStyle(event, theme);
+    const allDay = event.isAllDay || false;
 
     return {
         id: event.id,
         title: event.subject || '(No title)',
-        start: event.start.dateTime,
-        end: event.end?.dateTime,
-        allDay: event.isAllDay || false,
+        start: allDay ? toDateOnly(event.start.dateTime) : event.start.dateTime,
+        end: allDay ? toDateOnly(event.end?.dateTime) : event.end?.dateTime,
+        allDay,
         backgroundColor: style.backgroundColor,
         borderColor: style.borderColor,
         textColor: style.textColor,
