@@ -6,7 +6,7 @@ import React from 'react';
 type Props = {
     inputId?: string;
     label: React.ReactNode;
-    children: React.ReactChildren;
+    children: React.ReactNode;
     helpText?: React.ReactNode;
     required?: boolean;
     hideRequiredStar?: boolean;

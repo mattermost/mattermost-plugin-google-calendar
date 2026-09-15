@@ -22,7 +22,7 @@ export default class Plugin {
         this.haveSetupUI = true;
     };
 
-    public async initialize(registry: PluginRegistry, store: Store<GlobalState, Action<Record<string, unknown>>>) {
+    public async initialize(registry: PluginRegistry, store: Store<GlobalState, Action>) {
         this.haveSetupUI = false;
 
         registry.registerReducer(reducer);
