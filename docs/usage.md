@@ -22,7 +22,7 @@ Mattermost prompts you to configure the plugin based on your personal preference
 - **Get Confirmation**: You can manually confirm every availability change, or the plugin can update your availability automatically.
     - If you select Yes, Mattermost confirms your availability update 5 minutes before each event starts. You’ll also be prompted to change your availability back to Online once an event ends.
     - Select No to enable the plugin to update your availability automatically.
-- **Receive notifications during meetings**: During an event, your availability can be set to Away or No Not Disturb when you’re in a meeting.
+- **Receive notifications during meetings**: During an event, your availability can be set to Away or Do Not Disturb when you’re in a meeting.
     - Set your availability to **Away** to clearly communicate to others in Mattermost that you’re unavailable. You’ll continue to receive desktop, email, and push notifications based on your Mattermost notification preferences.
     - Set your availability to **Do Not Disturb** to disable all desktop, email, and push notifications.
 - **Set Custom Status**: The plugin can automatically set your Mattermost [custom status](https://docs.mattermost.com/preferences/set-your-status-availability.html#set-a-custom-status) to :calendar: **In a meeting** while an event is in progress, and clear it when the event ends. See [Which events the plugin treats as meetings](#which-events-the-plugin-treats-as-meetings) for the conditions an event must meet.

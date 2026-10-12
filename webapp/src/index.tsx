@@ -24,7 +24,7 @@ export default class Plugin {
     private setupComplete = false;
 
     /** Registers reducers, hooks, and menu actions, then kicks off async UI setup that depends on provider configuration. */
-    public async initialize(registry: PluginRegistry, store: Store<GlobalState, Action<Record<string, unknown>>>) {
+    public async initialize(registry: PluginRegistry, store: Store<GlobalState, Action>) {
         this.setupComplete = false;
         resetInflightControllers();
 
