@@ -1,18 +1,20 @@
-// Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
-// See LICENSE.txt for license information.
+import {GlobalState} from '@mattermost/types/store';
+
+import type {AppDispatch} from '@/hooks';
 
 import {getConnected, openCreateEventModal, sendEphemeralPost} from './actions';
 import {getProviderConfiguration, isUserConnected} from './selectors';
 
-type ContextArgs = {channel_id: string};
+type ContextArgs = { channel_id: string };
 
 const createEventCommand = 'event create';
 
 interface Store {
-    dispatch(action: {type: string}): void;
-    getState(): object;
+    dispatch: AppDispatch;
+    getState(): GlobalState;
 }
 
+/** Slash command hooks for intercepting the provider's "event create" command client-side. */
 export default class Hooks {
     private store: Store;
 
@@ -20,41 +22,49 @@ export default class Hooks {
         this.store = store;
     }
 
+    /** Intercepts the "/<trigger> event create" slash command, opening the create-event modal instead of sending it to the server. */
     slashCommandWillBePostedHook = async (rawMessage: string, contextArgs: ContextArgs) => {
-        let message;
-        if (rawMessage) {
-            message = rawMessage.trim();
-        }
+        const message = rawMessage ? rawMessage.trim() : '';
 
         if (!message) {
-            return Promise.resolve({message, args: contextArgs});
+            return {message: rawMessage, args: contextArgs};
         }
 
         const providerConfiguration = getProviderConfiguration(this.store.getState());
-        if (providerConfiguration && message.startsWith(`/${providerConfiguration.CommandTrigger} ` + createEventCommand)) {
-            return this.handleCreateEventSlashCommand(message, contextArgs);
+        if (providerConfiguration) {
+            const prefix = `/${providerConfiguration.CommandTrigger} ${createEventCommand}`;
+            if (message === prefix || message.startsWith(prefix + ' ')) {
+                return this.handleCreateEventSlashCommand(message, contextArgs);
+            }
         }
 
-        return Promise.resolve({message, args: contextArgs});
+        return {message: rawMessage, args: contextArgs};
     };
 
-    handleCreateEventSlashCommand = async (message: string, contextArgs: ContextArgs) => {
+    /** Opens the create-event modal for the given channel, provided the user has connected their account. */
+    handleCreateEventSlashCommand = async (_message: string, contextArgs: ContextArgs) => {
         if (!(await this.checkUserIsConnected())) {
-            return Promise.resolve({});
+            return {};
         }
 
         this.store.dispatch(openCreateEventModal(contextArgs.channel_id));
-        return Promise.resolve({});
+        return {};
     };
 
+    /** Ensures the user's connection status is loaded, posting an ephemeral hint and returning false if not connected. */
     checkUserIsConnected = async (): Promise<boolean> => {
-        if (!isUserConnected(this.store.getState())) {
+        let connected = isUserConnected(this.store.getState());
+        if (connected === null) {
             await this.store.dispatch(getConnected());
-            if (!isUserConnected(this.store.getState())) {
-                const providerConfiguration = await getProviderConfiguration(this.store.getState());
-                this.store.dispatch(sendEphemeralPost(`Your Mattermost account is not connected to ${providerConfiguration.DisplayName}. In order to create a calendar event please connect your account first using \`/${providerConfiguration.CommandTrigger} connect\`.`));
-                return false;
-            }
+            connected = isUserConnected(this.store.getState());
+        }
+
+        if (!connected) {
+            const providerConfiguration = getProviderConfiguration(this.store.getState());
+            const displayName = providerConfiguration?.DisplayName || 'the calendar provider';
+            const commandTrigger = providerConfiguration?.CommandTrigger || 'gcal';
+            this.store.dispatch(sendEphemeralPost(`Your Mattermost account is not connected to ${displayName}. In order to create a calendar event please connect your account first using \`/${commandTrigger} connect\`.`));
+            return false;
         }
 
         return true;

@@ -131,6 +131,38 @@ func TestConvertGCalEventToRemoteEvent(t *testing.T) {
 				require.Empty(t, event.Location)
 			},
 		},
+		{
+			Name: "hangout link used as conference if no conference data is present",
+			In: func() calendar.Event {
+				evt := createMinimalCalendarEvent()
+				evt.HangoutLink = "https://meet.google.com/abc-defg-hij"
+				return evt
+			},
+			Check: func(t *testing.T, event *remote.Event) {
+				require.Equal(t, "https://meet.google.com/abc-defg-hij", event.Conference.URL)
+				require.Equal(t, googleMeetApplication, event.Conference.Application)
+			},
+		},
+		{
+			Name: "conference data takes priority over hangout link",
+			In: func() calendar.Event {
+				evt := createMinimalCalendarEvent()
+				evt.HangoutLink = "https://meet.google.com/abc-defg-hij"
+				evt.ConferenceData = &calendar.ConferenceData{
+					ConferenceSolution: &calendar.ConferenceSolution{
+						Name: "example",
+					},
+					EntryPoints: []*calendar.EntryPoint{{
+						Uri: "https://example.com/meeting",
+					}},
+				}
+				return evt
+			},
+			Check: func(t *testing.T, event *remote.Event) {
+				require.Equal(t, "https://example.com/meeting", event.Conference.URL)
+				require.Equal(t, "example", event.Conference.Application)
+			},
+		},
 	} {
 		t.Run(tc.Name, func(t *testing.T) {
 			event := tc.In()

@@ -1,0 +1,181 @@
+.gcal-tooltip__backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+}
+
+.gcal-tooltip {
+    position: fixed;
+    z-index: 999;
+    min-width: 260px;
+    max-width: 320px;
+    border-radius: 8px;
+    border: var(--border-default);
+    background-color: var(--center-channel-bg);
+    color: var(--center-channel-color);
+    box-shadow: 0 0 6px rgba(0,0,0,.12);
+    padding: 16px;
+    font-size: 13px;
+    line-height: 1.4;
+
+    .gcal-tooltip__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 8px;
+        margin-bottom: 8px;
+    }
+
+    .gcal-tooltip__title {
+        font-size: 16px;
+        font-weight: 600;
+        line-height: 1.3;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        overflow-wrap: break-word;
+
+        &:hover {
+            text-decoration: underline;
+        }
+    }
+
+    .gcal-tooltip__close {
+        background: none;
+        border: none;
+        color: inherit;
+        cursor: pointer;
+        padding: 2px;
+        border-radius: 4px;
+        line-height: 1;
+        opacity: 0.56;
+        flex-shrink: 0;
+
+        &:hover {
+            opacity: 1;
+        }
+
+        &:focus-visible {
+            opacity: 1;
+            outline: 2px solid var(--button-bg);
+            outline-offset: 1px;
+        }
+
+        .icon {
+            font-size: 18px;
+            color: inherit;
+        }
+    }
+
+    .gcal-tooltip__time {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 12px;
+        opacity: 0.72;
+
+        .icon {
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+    }
+
+    .gcal-tooltip__row {
+        display: flex;
+        align-items: flex-start;
+        gap: 6px;
+        margin-bottom: 8px;
+
+        .icon {
+            font-size: 16px;
+            opacity: 0.56;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+    }
+
+    .gcal-tooltip__conference {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .gcal-tooltip__join-btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px 20px;
+        border-radius: 4px;
+        font-size: 13px;
+        font-weight: 600;
+        text-decoration: none;
+        cursor: pointer;
+        border: none;
+        white-space: nowrap;
+
+        &:hover {
+            opacity: 0.88;
+            text-decoration: none;
+        }
+
+        &:focus-visible {
+            outline: 2px solid var(--button-bg);
+            outline-offset: 1px;
+            opacity: 1;
+        }
+    }
+
+    .gcal-tooltip__conference-name {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        opacity: 0.72;
+        font-size: 12px;
+
+        .icon {
+            font-size: 16px;
+        }
+    }
+
+    .gcal-tooltip__organizer {
+        display: flex;
+        flex-direction: column;
+
+        .gcal-tooltip__organizer-label {
+            font-size: 11px;
+            opacity: 0.56;
+        }
+    }
+
+    .gcal-tooltip__row--status {
+        align-items: center;
+
+        .icon {
+            margin-top: 0;
+            line-height: 1;
+        }
+    }
+
+    .gcal-tooltip__status {
+        font-weight: 600;
+        font-size: 12px;
+    }
+
+    .gcal-tooltip__status--accepted {
+        color: var(--online-indicator);
+    }
+
+    .gcal-tooltip__status--tentative {
+        color: var(--away-indicator);
+    }
+
+    .gcal-tooltip__status--declined {
+        color: var(--dnd-indicator);
+    }
+
+    .gcal-tooltip__status--pending {
+        color: var(--button-bg);
+        opacity: 0.56;
+    }
+}

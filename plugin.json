@@ -70,6 +70,14 @@
                 "default": false
             },
             {
+                "key": "EnableExperimentalUI",
+                "display_name": "Enable Experimental Calendar UI:",
+                "type": "bool",
+                "help_text": "When true, a calendar sidebar and channel header button are registered in the Mattermost UI. This feature is experimental and may change in future releases.",
+                "placeholder": "",
+                "default": false
+            },
+            {
                 "key": "EncryptionKey",
                 "display_name": "Encryption key",
                 "type": "generated",

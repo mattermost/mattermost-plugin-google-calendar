@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/pkg/errors"
 	"golang.org/x/oauth2"
 	"google.golang.org/api/calendar/v3"
 	"google.golang.org/api/people/v1"
@@ -37,13 +38,17 @@ func NewRemote(conf *config.Config, logger bot.Logger) remote.Remote {
 }
 
 // MakeUserClient creates a new client for user-delegated permissions.
-func (r *impl) MakeUserClient(ctx context.Context, oauthToken *oauth2.Token, mattermostUserID string, poster bot.Poster, userTokenHelpers remote.UserTokenHelpers) remote.Client {
+func (r *impl) MakeUserClient(ctx context.Context, oauthToken *oauth2.Token, mattermostUserID string, poster bot.Poster, userTokenHelpers remote.UserTokenHelpers) (remote.Client, error) {
 	config := r.NewOAuth2Config()
 
 	token, err := userTokenHelpers.RefreshAndStoreToken(oauthToken, config, mattermostUserID)
 	if err != nil {
-		r.logger.Warnf("Not able to refresh or store the token for user %s: %s", mattermostUserID, err.Error())
-		return &client{}
+		r.logger.With(bot.LogContext{
+			"error":            err.Error(),
+			"mattermostUserID": mattermostUserID,
+		}).Warnf("Not able to refresh or store the token")
+		userTokenHelpers.DisconnectUserFromStoreIfNecessary(err, mattermostUserID)
+		return nil, errors.Wrap(err, "gcal MakeUserClient")
 	}
 
 	httpClient := config.Client(ctx, token)
@@ -53,7 +58,7 @@ func (r *impl) MakeUserClient(ctx context.Context, oauthToken *oauth2.Token, mat
 		httpClient: httpClient,
 		Logger:     r.logger,
 	}
-	return c
+	return c, nil
 }
 
 // MakeSuperuserClient creates a new client used for app-only permissions.
