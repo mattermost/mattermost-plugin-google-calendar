@@ -52,7 +52,7 @@ export default function CreateEventForm(props: Props) {
         subject: '',
         all_day: false,
         attendees: [],
-        date: modalData?.date || getTodayString(),
+        date: modalData?.date || getTodayString(timezone),
         start_time: modalData?.startTime || '',
         end_time: modalData?.endTime || '',
         description: modalData?.description || '',
@@ -144,6 +144,7 @@ export default function CreateEventForm(props: Props) {
             >
                 {storedError && (
                     <SectionNotice
+                        role='alert'
                         type='danger'
                         title={storedError}
                     />

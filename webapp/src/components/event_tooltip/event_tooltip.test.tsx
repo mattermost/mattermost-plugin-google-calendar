@@ -166,7 +166,7 @@ describe('EventTooltip', () => {
 
     it.each([
         ['accepted', 'Accepted', 'success'],
-        ['tentativelyAccepted', 'Tentative', 'warning'],
+        ['tentativelyAccepted', 'Tentative', 'info-dim'],
         ['declined', 'Declined', 'danger'],
         ['needsAction', 'Not responded', 'default'],
     ])('renders %s status as a "%s" tag of type %s', (response, label, type) => {

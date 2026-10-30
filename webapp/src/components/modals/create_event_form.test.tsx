@@ -99,8 +99,9 @@ describe('CreateEventForm', () => {
         typeSubject('Planning');
         await submit();
 
-        const notice = screen.getByText('Calendar unavailable').closest('[class*="section-notice--type-danger"]');
-        expect(notice).toBeInTheDocument();
+        const notice = screen.getByRole('alert');
+        expect(notice).toHaveTextContent('Calendar unavailable');
+        expect(notice.className).toMatch(/section-notice--type-danger/);
         expect(close).not.toHaveBeenCalled();
     });
 

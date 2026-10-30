@@ -266,6 +266,7 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
             )}
             {error && (
                 <SectionNotice
+                    role='alert'
                     type='danger'
                     title='Unable to load calendar events.'
                 />

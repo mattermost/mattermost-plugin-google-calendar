@@ -33,7 +33,7 @@ function formatResponseStatus(response?: string): {label: string; type: NonNulla
         return {label: 'Accepted', type: 'success'};
     case 'tentative':
     case 'tentativelyAccepted':
-        return {label: 'Tentative', type: 'warning'};
+        return {label: 'Tentative', type: 'info-dim'};
     case 'declined':
         return {label: 'Declined', type: 'danger'};
     case 'not_answered':

@@ -167,10 +167,11 @@ describe('CalendarSidebar', () => {
         expect(container.querySelector(`svg [fill="${altTheme.buttonBg}"]`)).toBeInTheDocument();
     });
 
-    it('renders the load error as a danger notice', () => {
+    it('renders the load error as an announced danger notice', () => {
         render(<CalendarSidebar {...makeProps({error: 'fail'})}/>);
-        const notice = screen.getByText('Unable to load calendar events.').closest('[class*="section-notice--type-danger"]');
-        expect(notice).toBeInTheDocument();
+        const notice = screen.getByRole('alert');
+        expect(notice).toHaveTextContent('Unable to load calendar events.');
+        expect(notice.className).toMatch(/section-notice--type-danger/);
     });
 
     it('labels the loading spinner', () => {
