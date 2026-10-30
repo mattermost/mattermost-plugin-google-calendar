@@ -5,6 +5,9 @@ import interactionPlugin, {DateClickArg} from '@fullcalendar/interaction';
 import momentTimezonePlugin from '@fullcalendar/moment-timezone';
 import {DatesSetArg, EventClickArg, EventMountArg} from '@fullcalendar/core';
 
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+import {Spinner} from '@mattermost/compass-ui/components/spinner';
+
 import {RemoteEvent} from '@/types/calendar';
 import {CreateEventPreFill} from '@/actions';
 import {getContainerStyle, MattermostTheme} from '@/utils/calendar_theme';
@@ -222,7 +225,7 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
                 style={containerStyle}
             >
                 <div className='gcal-sidebar__loading'>
-                    <span>{'Loading...'}</span>
+                    <Spinner aria-label='Loading'/>
                 </div>
             </div>
         );
@@ -259,16 +262,13 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
                     currentStart={currentRange.start}
                     currentEnd={currentRange.end}
                     isWeekView={isExpanded}
-                    theme={theme}
                 />
             )}
             {error && (
-                <div
-                    role='alert'
-                    style={{padding: '8px 0', color: theme.dndIndicator || '#D24B4E', fontSize: '0.85em'}}
-                >
-                    {'Unable to load calendar events.'}
-                </div>
+                <SectionNotice
+                    type='danger'
+                    title='Unable to load calendar events.'
+                />
             )}
             <div className='gcal-sidebar__calendar'>
                 <FullCalendar
@@ -297,7 +297,6 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
                     event={tooltip.event}
                     anchorRect={tooltip.anchorRect}
                     timezone={timezone}
-                    theme={theme}
                     onClose={handleTooltipClose}
                 />
             )}

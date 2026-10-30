@@ -36,7 +36,6 @@
     "@types/react": "19.2.18",
     "@types/react-dom": "19.2.6",
     "@types/react-router-dom": "5.1.5",
-    "@types/react-transition-group": "4.4.7",
     "@typescript-eslint/eslint-plugin": "5.41.0",
     "@typescript-eslint/parser": "5.41.0",
     "babel-jest": "29.7.0",
@@ -69,18 +68,18 @@
     "@fullcalendar/moment-timezone": "6.1.21",
     "@fullcalendar/react": "6.1.21",
     "@fullcalendar/timegrid": "6.1.21",
-    "@mattermost/compass-icons": "0.1.53",
+    "@mattermost/compass-icons": "0.1.63",
+    "@mattermost/compass-ui": "0.1.0-alpha.22",
     "core-js": "3.39.0",
     "mattermost-redux": "10.9.0",
     "moment-timezone": "0.6.3",
     "react": "19.2.8",
-    "react-bootstrap": "github:mattermost/react-bootstrap#d693ec8082954f0e6d3e826ca6161979b29001cd",
     "react-dom": "19.2.8",
     "react-redux": "9.2.0",
-    "react-select": "5.10.0",
     "redux": "5.0.1",
     "redux-thunk": "3.1.0",
     "reselect": "5.1.1",
+    "simplebar-react": "3.3.2",
     "typescript": "5.6.3"
   },
   "overrides": {
@@ -106,7 +105,10 @@
       "^.+\\.(jpg|jpeg|png|gif|eot|otf|webp|svg|ttf|woff|woff2|mp4|webm|wav|mp3|m4a|aac|oga)$": "identity-obj-proxy",
       "^.+\\.(css|less|scss)$": "identity-obj-proxy",
       "^.*i18n.*\\.(json)$": "<rootDir>/tests/i18n_mock.json",
-      "^bundle-loader\\?lazy\\!(.*)$": "$1"
+      "^bundle-loader\\?lazy\\!(.*)$": "$1",
+      "^@mattermost/compass-ui/hooks/(.*)$": "<rootDir>/node_modules/@mattermost/compass-ui/dist/hooks/$1.cjs",
+      "^@mattermost/compass-ui/utils/string$": "<rootDir>/node_modules/@mattermost/compass-ui/dist/utils/string.cjs",
+      "^@mattermost/compass-ui/components/(.*)$": "<rootDir>/node_modules/@mattermost/compass-ui/dist/components/$1/index.cjs"
     },
     "transform": {
       "^.+\\.[jt]sx?$": "babel-jest"

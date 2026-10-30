@@ -2,7 +2,6 @@ import {render, screen, fireEvent} from '@testing-library/react';
 import '@testing-library/jest-dom';
 
 import {RemoteEvent} from '@/types/calendar';
-import {mockTheme} from '@/testutils/theme';
 
 import EventTooltip from './event_tooltip';
 
@@ -31,7 +30,6 @@ describe('EventTooltip', () => {
         event: makeEvent(),
         anchorRect: baseAnchorRect,
         timezone: 'UTC',
-        theme: mockTheme,
         onClose: jest.fn(),
     };
 
@@ -81,7 +79,7 @@ describe('EventTooltip', () => {
             }),
         };
         render(<EventTooltip {...props}/>);
-        const joinBtn = screen.getByText('Join');
+        const joinBtn = screen.getByText('Join').closest('a');
         expect(joinBtn).toHaveAttribute('href', 'https://teams.example.com/meet');
         expect(screen.getByText('Teams')).toBeInTheDocument();
     });
@@ -166,16 +164,19 @@ describe('EventTooltip', () => {
         expect(link).toHaveAttribute('target', '_blank');
     });
 
-    it('applies theme background and color to tooltip', () => {
-        render(<EventTooltip {...baseProps}/>);
-        const tooltip = document.body.querySelector('.gcal-tooltip');
-        expect(tooltip).toHaveStyle({
-            backgroundColor: mockTheme.centerChannelBg,
-            color: mockTheme.centerChannelColor,
-        });
+    it.each([
+        ['accepted', 'Accepted', 'success'],
+        ['tentativelyAccepted', 'Tentative', 'warning'],
+        ['declined', 'Declined', 'danger'],
+        ['needsAction', 'Not responded', 'default'],
+    ])('renders %s status as a "%s" tag of type %s', (response, label, type) => {
+        const props = {...baseProps, event: makeEvent({responseStatus: {response}} as Partial<RemoteEvent>)};
+        render(<EventTooltip {...props}/>);
+        const tag = screen.getByText(label).closest(`[class*="tag--type-${type}"]`);
+        expect(tag).toBeInTheDocument();
     });
 
-    it('applies theme color to join button', () => {
+    it('renders the join action as an external link', () => {
         const props = {
             ...baseProps,
             event: makeEvent({
@@ -183,10 +184,14 @@ describe('EventTooltip', () => {
             }),
         };
         render(<EventTooltip {...props}/>);
-        const joinBtn = screen.getByText('Join');
-        expect(joinBtn).toHaveStyle({
-            backgroundColor: mockTheme.buttonBg,
-            color: mockTheme.buttonColor,
-        });
+        const link = screen.getByRole('link', {name: 'Join'});
+        expect(link).toHaveAttribute('target', '_blank');
+        expect(link).toHaveAttribute('rel', 'noopener noreferrer');
+    });
+
+    it('renders the close control as a named button', () => {
+        render(<EventTooltip {...baseProps}/>);
+        fireEvent.click(screen.getByRole('button', {name: 'Close event details'}));
+        expect(baseProps.onClose).toHaveBeenCalledTimes(1);
     });
 });

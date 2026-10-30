@@ -1,57 +1,31 @@
 import React from 'react';
 import {useSelector, useDispatch} from 'react-redux';
 
-import {Modal as BootstrapModal} from 'react-bootstrap';
+import {ModalOverlay} from '@mattermost/compass-ui/components/modal';
 
 import {isCreateEventModalVisible} from '@/selectors';
-
 import {closeCreateEventModal} from '@/actions';
+import {Z_INDEX_BACKDROP} from '@/utils/styles';
 
 import CreateEventForm from './create_event_form';
 
-type ModalRootProps = React.PropsWithChildren<{
-    dialogClassName?: string;
-    show?: boolean;
-    onHide?: () => void;
-    onExited?: () => void;
-    size?: 'sm' | 'lg' | 'xl';
-    backdrop?: string | boolean;
-}>;
+import './create_event_modal.scss';
 
-const Modal = BootstrapModal as unknown as React.FC<ModalRootProps> & {
-    Header: React.FC<React.PropsWithChildren<{closeButton?: boolean}>>;
-    Title: React.FC<React.PropsWithChildren<Record<string, unknown>>>;
-};
-
-/** Modal shell that renders CreateEventForm when the create-event modal is open. */
+/** Overlay for the create-event modal; the backdrop is static, so only Cancel, close, or Escape dismiss it. */
 export default function CreateEventModal() {
     const visible = useSelector(isCreateEventModalVisible);
-
     const dispatch = useDispatch();
     const close = () => dispatch(closeCreateEventModal());
 
-    if (!visible) {
-        return null;
-    }
-
-    const content = (
-        <CreateEventForm
-            close={close}
-        />
-    );
-
     return (
-        <Modal
-            dialogClassName='modal--scroll'
-            show={visible}
-            onHide={close}
-            size='lg'
-            backdrop='static'
+        <ModalOverlay
+            open={visible}
+            zIndex={Z_INDEX_BACKDROP}
         >
-            <Modal.Header closeButton={true}>
-                <Modal.Title>{'Create Calendar Event'}</Modal.Title>
-            </Modal.Header>
-            {content}
-        </Modal>
+            <CreateEventForm
+                open={visible}
+                close={close}
+            />
+        </ModalOverlay>
     );
 }

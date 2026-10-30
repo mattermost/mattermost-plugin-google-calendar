@@ -1,19 +1,14 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
-import AsyncSelect from 'react-select/async';
+import {Combobox, type ComboboxOption} from '@mattermost/compass-ui/components/combobox';
+import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {useAppDispatch} from '@/hooks';
-import {getStyleForReactSelect} from '@/utils/styles';
+import {Z_INDEX_MENU_PORTAL} from '@/utils/styles';
 import {autocompleteUserChannels} from '@/actions';
-
-type SelectOption = {
-    label: string;
-    value: string;
-}
 
 type Props = {
     inputId?: string;
@@ -27,96 +22,95 @@ type Props = {
  */
 export default function ChannelSelector(props: Props) {
     const [storedError, setStoredError] = useState('');
-    const [selectedOption, setSelectedOption] = useState<SelectOption | null>(null);
-    const [resolving, setResolving] = useState(Boolean(props.value));
+    const [options, setOptions] = useState<ComboboxOption[]>([]);
+    const [selectedOption, setSelectedOption] = useState<ComboboxOption | null>(null);
+    const [loading, setLoading] = useState(false);
     const requestIdRef = useRef(0);
 
-    const theme = useSelector(getTheme);
     const teamId = useSelector(getCurrentTeamId);
-
     const dispatch = useAppDispatch();
 
-    const loadOptions = useCallback(async (input: string): Promise<SelectOption[]> => {
+    const loadOptions = useCallback(async (input: string) => {
         const requestId = ++requestIdRef.current;
+        setLoading(true);
 
         try {
             const response = await dispatch(autocompleteUserChannels(input, teamId));
 
             if (requestId !== requestIdRef.current) {
-                return [];
+                return;
             }
 
             if (response.error) {
                 setStoredError(response.error);
-                return [];
+                setOptions([]);
+                return;
             }
 
             setStoredError('');
 
-            const options = (response.data ?? []).map((c) => ({
+            const loaded = (response.data ?? []).map((c) => ({
                 label: c.display_name,
                 value: c.id,
             }));
+            setOptions(loaded);
 
             if (props.value) {
-                const match = options.find((o) => o.value === props.value);
+                const match = loaded.find((o) => o.value === props.value);
                 if (match) {
                     setSelectedOption(match);
                 }
             }
-
-            return options;
         } catch (err) {
             if (requestId === requestIdRef.current) {
                 setStoredError(String(err));
             }
-            return [];
         } finally {
             if (requestId === requestIdRef.current) {
-                setResolving(false);
+                setLoading(false);
             }
         }
     }, [dispatch, teamId, props.value]);
 
     useEffect(() => {
         if (props.value && selectedOption?.value !== props.value) {
-            setResolving(true);
             loadOptions('');
         } else if (!props.value) {
             ++requestIdRef.current;
             setSelectedOption(null);
-            setResolving(false);
+            setLoading(false);
         }
     }, [props.value]); // eslint-disable-line react-hooks/exhaustive-deps
 
-    const handleChange = (selected: SelectOption | null) => {
-        setSelectedOption(selected);
-        props.onChange(selected ? selected.value : '');
+    useEffect(() => {
+        loadOptions('');
+    }, [teamId]); // eslint-disable-line react-hooks/exhaustive-deps
+
+    const handleChange = (selected: string | string[] | null) => {
+        const value = typeof selected === 'string' ? selected : '';
+        setSelectedOption(options.find((o) => o.value === value) ?? null);
+        props.onChange(value);
     };
 
-    const displayValue: SelectOption | null =
-        (props.value && selectedOption?.value === props.value) ? selectedOption : null;
+    const resolved = props.value && selectedOption?.value === props.value ? selectedOption : null;
 
     return (
         <>
-            <AsyncSelect<SelectOption, false>
-                inputId={props.inputId}
-                value={displayValue}
-                loadOptions={loadOptions}
-                defaultOptions={true}
-                isLoading={resolving}
-                menuPortalTarget={document.body}
-                menuPlacement='auto'
+            <Combobox
+                id={props.inputId}
+                label='Link event to channel (optional)'
+                filter={false}
+                clearable={true}
+                loading={loading}
+                value={props.value || null}
+                options={options}
+                selectedOptions={resolved ? [resolved] : []}
                 onChange={handleChange}
-                styles={getStyleForReactSelect(theme)}
-                isMulti={false}
-                isClearable={true}
+                onInputChange={loadOptions}
+                invalid={Boolean(storedError)}
+                zIndex={Z_INDEX_MENU_PORTAL}
             />
-            {storedError && (
-                <div role='alert'>
-                    <span className='error-text'>{storedError}</span>
-                </div>
-            )}
+            {storedError && <ErrorMessage message={storedError}/>}
         </>
     );
 }

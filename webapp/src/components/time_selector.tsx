@@ -1,16 +1,17 @@
 import React, {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {Select} from '@mattermost/compass-ui/components/select';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import {MINUTE_STEP, getNextTimeStep, getTodayString} from '@/utils/datetime';
 import {CreateEventPayload} from '@/types/calendar_api_types';
 
-import ReactSelectSetting from './react_select_setting';
+import {Z_INDEX_MENU_PORTAL} from '@/utils/styles';
 
 type Props = {
     inputId?: string;
+    label?: React.ReactNode;
     name: 'start_time' | 'end_time';
     value: string;
     onChange: (name: keyof CreateEventPayload, value: string) => void;
@@ -29,7 +30,6 @@ type Option = {
  * by the current time (for today's date) and by the paired start/end time.
  */
 export default function TimeSelector(props: Props) {
-    const theme = useSelector(getTheme);
     const timezone = useSelector(getCurrentTimezone);
 
     const isStartTimeSelector = props.name === 'start_time';
@@ -89,13 +89,9 @@ export default function TimeSelector(props: Props) {
         }));
     }, [props.startTime, props.endTime, props.date, props.name, isStartTimeSelector, timezone]);
 
-    let value: Option | undefined | null;
-    if (props.value) {
-        value = options.find((option: Option) => option.value === props.value);
-    }
+    const value = props.value && options.some((o) => o.value === props.value) ? props.value : '';
 
-    const handleChange = (_: string | undefined, newValue: string | string[] | null) => {
-        const selectedTime = typeof newValue === 'string' ? newValue : null;
+    const handleChange = (selectedTime: string) => {
         if (!selectedTime) {
             return;
         }
@@ -111,12 +107,13 @@ export default function TimeSelector(props: Props) {
     };
 
     return (
-        <ReactSelectSetting
-            inputId={props.inputId}
+        <Select
+            id={props.inputId}
+            label={props.label}
             value={value}
             onChange={handleChange}
-            theme={theme}
             options={options}
+            zIndex={Z_INDEX_MENU_PORTAL}
         />
     );
 }

@@ -1,53 +1,39 @@
-import React, {useRef} from 'react';
-import {useSelector} from 'react-redux';
+import React from 'react';
 
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import {CalendarOutlineIcon} from '@mattermost/compass-icons/components';
+import {DateRangePicker} from '@mattermost/compass-ui/components/date-range-picker';
+import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
+
+import {Z_INDEX_MENU_PORTAL} from '@/utils/styles';
 
 type Props = {
     id?: string;
     value: string;
-    min?: string;
+    invalid?: boolean;
     onChange: (value: string) => void;
-    className?: string;
 };
 
-/** Native date input paired with a themed calendar icon button that opens the picker. */
-export default function DateInput(props: Props) {
-    const {id, value, min, onChange, className} = props;
-    const inputRef = useRef<HTMLInputElement>(null);
-    const theme = useSelector(getTheme);
-
-    const handleIconClick = () => {
-        if (inputRef.current && typeof inputRef.current.showPicker === 'function') {
-            inputRef.current.showPicker();
-        } else {
-            inputRef.current?.focus();
-        }
-    };
-
+/** Date picker for the event date; past dates are flagged with an inline error. */
+export default function DateInput({id, value, invalid, onChange}: Props) {
     return (
-        <div className='date-input-wrapper'>
-            <input
-                id={id}
-                ref={inputRef}
-                type='date'
-                value={value}
-                min={min}
-                onChange={(e) => onChange(e.target.value)}
-                className={className}
-            />
-            <button
-                type='button'
-                onClick={handleIconClick}
-                className='date-input-icon'
-                aria-label='Open date picker'
+        <div>
+            <label
+                className='gcal-date-label'
+                htmlFor={id}
             >
-                <CalendarOutlineIcon
-                    size={22}
-                    color={theme.centerChannelColor}
-                />
-            </button>
+                {'Date'}
+                <span
+                    className='gcal-required-star'
+                    aria-hidden={true}
+                >{' *'}</span>
+            </label>
+            <DateRangePicker
+                id={id}
+                mode='date'
+                value={value}
+                onChange={onChange}
+                zIndex={Z_INDEX_MENU_PORTAL}
+            />
+            {invalid && <ErrorMessage message='Date cannot be in the past.'/>}
         </div>
     );
 }

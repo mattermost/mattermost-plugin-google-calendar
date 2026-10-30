@@ -1,4 +1,7 @@
-import {MattermostTheme} from '@/utils/calendar_theme';
+import {ChevronLeftIcon, ChevronRightIcon, RefreshIcon} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 
 interface CalendarHeaderProps {
     onPrev: () => void;
@@ -9,7 +12,6 @@ interface CalendarHeaderProps {
     currentStart: Date;
     currentEnd: Date;
     isWeekView: boolean;
-    theme: MattermostTheme;
 }
 
 /** Formats the header's date label: a single day, or a start-end range when in week view. */
@@ -39,57 +41,45 @@ function formatDateLabel(start: Date, end: Date, isWeekView: boolean): string {
 }
 
 /** Sidebar header with prev/next/today navigation, a refresh button, and the current date range label. */
-const CalendarHeader = ({onPrev, onNext, onToday, onRefresh, loading, currentStart, currentEnd, isWeekView, theme}: CalendarHeaderProps) => {
+const CalendarHeader = ({onPrev, onNext, onToday, onRefresh, loading, currentStart, currentEnd, isWeekView}: CalendarHeaderProps) => {
     const label = formatDateLabel(currentStart, currentEnd, isWeekView);
 
     return (
         <div className='gcal-sidebar__header'>
             <div className='gcal-sidebar__header-nav'>
-                <button
-                    type='button'
-                    className='gcal-sidebar__header-btn'
+                <IconButton
+                    size='small'
                     onClick={onPrev}
                     title='Previous'
                     aria-label='Previous'
-                    style={{color: theme.centerChannelColor}}
-                >
-                    <i className='icon icon-chevron-left'/>
-                </button>
+                    icon={<Icon glyph={<ChevronLeftIcon/>}/>}
+                />
                 <span className='gcal-sidebar__header-label'>{label}</span>
-                <button
-                    type='button'
-                    className='gcal-sidebar__header-btn'
+                <IconButton
+                    size='small'
                     onClick={onNext}
                     title='Next'
                     aria-label='Next'
-                    style={{color: theme.centerChannelColor}}
-                >
-                    <i className='icon icon-chevron-right'/>
-                </button>
+                    icon={<Icon glyph={<ChevronRightIcon/>}/>}
+                />
             </div>
             <div className='gcal-sidebar__header-actions'>
-                <button
-                    type='button'
-                    className='gcal-sidebar__header-btn'
+                <IconButton
+                    size='small'
                     onClick={onRefresh}
                     disabled={loading}
+                    loading={loading}
                     title='Refresh'
                     aria-label='Refresh'
-                    style={{color: theme.centerChannelColor}}
-                >
-                    <i className={`icon icon-refresh${loading ? ' gcal-spin' : ''}`}/>
-                </button>
-                <button
-                    type='button'
-                    className='gcal-sidebar__header-today'
+                    icon={<Icon glyph={<RefreshIcon/>}/>}
+                />
+                <Button
+                    emphasis='secondary'
+                    size='small'
                     onClick={onToday}
-                    style={{
-                        color: theme.buttonBg,
-                        borderColor: theme.buttonBg,
-                    }}
                 >
                     {'Today'}
-                </button>
+                </Button>
             </div>
         </div>
     );

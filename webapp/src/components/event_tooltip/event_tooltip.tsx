@@ -1,8 +1,21 @@
 import {useEffect, useRef} from 'react';
 import {createPortal} from 'react-dom';
 
+import {
+    AccountOutlineIcon,
+    CheckCircleOutlineIcon,
+    ClockOutlineIcon,
+    CloseIcon,
+    MapMarkerOutlineIcon,
+    OpenInNewIcon,
+    VideoOutlineIcon,
+} from '@mattermost/compass-icons/components';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Icon} from '@mattermost/compass-ui/components/icon';
+import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {Tag, type TagProps} from '@mattermost/compass-ui/components/tag';
+
 import {RemoteEvent} from '@/types/calendar';
-import {MattermostTheme} from '@/utils/calendar_theme';
 
 import './event_tooltip.scss';
 
@@ -10,25 +23,24 @@ interface EventTooltipProps {
     event: RemoteEvent;
     anchorRect: DOMRect;
     timezone: string;
-    theme: MattermostTheme;
     onClose: () => void;
 }
 
 /** Maps a raw RSVP response status to a display label and status-specific CSS class. */
-function formatResponseStatus(response?: string): {label: string; className: string} {
+function formatResponseStatus(response?: string): {label: string; type: NonNullable<TagProps['type']>} {
     switch (response) {
     case 'accepted':
-        return {label: 'Accepted', className: 'gcal-tooltip__status--accepted'};
+        return {label: 'Accepted', type: 'success'};
     case 'tentative':
     case 'tentativelyAccepted':
-        return {label: 'Tentative', className: 'gcal-tooltip__status--tentative'};
+        return {label: 'Tentative', type: 'warning'};
     case 'declined':
-        return {label: 'Declined', className: 'gcal-tooltip__status--declined'};
+        return {label: 'Declined', type: 'danger'};
     case 'not_answered':
     case 'notResponded':
     case 'needsAction':
     default:
-        return {label: 'Not responded', className: 'gcal-tooltip__status--pending'};
+        return {label: 'Not responded', type: 'default'};
     }
 }
 
@@ -92,7 +104,7 @@ function formatEventTime(event: RemoteEvent, timezone: string): string {
  * Popover with event details (time, location, conference link, organizer, RSVP
  * status), portaled to document.body and positioned relative to the clicked event.
  */
-const EventTooltip = ({event, anchorRect, timezone, theme, onClose}: EventTooltipProps) => {
+const EventTooltip = ({event, anchorRect, timezone, onClose}: EventTooltipProps) => {
     const tooltipRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
@@ -144,8 +156,6 @@ const EventTooltip = ({event, anchorRect, timezone, theme, onClose}: EventToolti
                 style={{
                     ...verticalPosition,
                     right,
-                    backgroundColor: theme.centerChannelBg,
-                    color: theme.centerChannelColor,
                 }}
             >
                 <div className='gcal-tooltip__header'>
@@ -155,68 +165,65 @@ const EventTooltip = ({event, anchorRect, timezone, theme, onClose}: EventToolti
                             href={weblink}
                             target='_blank'
                             rel='noopener noreferrer'
-                            style={{color: theme.linkColor}}
                         >
                             {event.subject || '(No title)'}
-                            <i
-                                className='icon icon-open-in-new'
-                                style={{fontSize: '14px', marginLeft: '4px'}}
+                            <Icon
+                                className='gcal-tooltip__title-icon'
+                                size='12'
+                                glyph={<OpenInNewIcon/>}
                             />
                         </a>
                     ) : (
-                        <span
-                            className='gcal-tooltip__title'
-                            style={{color: theme.centerChannelColor}}
-                        >
+                        <span className='gcal-tooltip__title'>
                             {event.subject || '(No title)'}
                         </span>
                     )}
-                    <button
-                        type='button'
-                        className='gcal-tooltip__close'
+                    <IconButton
+                        size='small'
                         onClick={onClose}
                         aria-label='Close event details'
-                        style={{color: theme.centerChannelColor}}
-                    >
-                        <i className='icon icon-close'/>
-                    </button>
+                        icon={<Icon glyph={<CloseIcon/>}/>}
+                    />
                 </div>
 
-                <div
-                    className='gcal-tooltip__time'
-                    style={{color: theme.centerChannelColor}}
-                >
-                    <i className='icon icon-clock-outline'/>
+                <div className='gcal-tooltip__time'>
+                    <Icon
+                        size='16'
+                        glyph={<ClockOutlineIcon/>}
+                    />
                     <span>{timeDisplay}</span>
                 </div>
 
                 {locationName && (
                     <div className='gcal-tooltip__row'>
-                        <i className='icon icon-map-marker-outline'/>
+                        <Icon
+                            size='16'
+                            glyph={<MapMarkerOutlineIcon/>}
+                        />
                         <span>{locationName}</span>
                     </div>
                 )}
 
                 {conferenceUrl && (
                     <div className='gcal-tooltip__conference'>
-                        <a
-                            className='gcal-tooltip__join-btn'
-                            href={conferenceUrl}
-                            target='_blank'
-                            rel='noopener noreferrer'
-                            style={{
-                                backgroundColor: theme.buttonBg,
-                                color: theme.buttonColor,
-                            }}
+                        <Button
+                            asChild={true}
+                            size='small'
                         >
-                            {'Join'}
-                        </a>
-                        {conferenceName && (
-                            <span
-                                className='gcal-tooltip__conference-name'
-                                style={{color: theme.centerChannelColor}}
+                            <a
+                                href={conferenceUrl}
+                                target='_blank'
+                                rel='noopener noreferrer'
                             >
-                                <i className='icon icon-video-outline'/>
+                                {'Join'}
+                            </a>
+                        </Button>
+                        {conferenceName && (
+                            <span className='gcal-tooltip__conference-name'>
+                                <Icon
+                                    size='16'
+                                    glyph={<VideoOutlineIcon/>}
+                                />
                                 {conferenceName}
                             </span>
                         )}
@@ -225,7 +232,10 @@ const EventTooltip = ({event, anchorRect, timezone, theme, onClose}: EventToolti
 
                 {organizerName && (
                     <div className='gcal-tooltip__row'>
-                        <i className='icon icon-account-outline'/>
+                        <Icon
+                            size='16'
+                            glyph={<AccountOutlineIcon/>}
+                        />
                         <div className='gcal-tooltip__organizer'>
                             <span>{organizerName}</span>
                             <span className='gcal-tooltip__organizer-label'>{'Organizer'}</span>
@@ -234,10 +244,15 @@ const EventTooltip = ({event, anchorRect, timezone, theme, onClose}: EventToolti
                 )}
 
                 <div className='gcal-tooltip__row gcal-tooltip__row--status'>
-                    <i className='icon icon-check-circle-outline'/>
-                    <span className={`gcal-tooltip__status ${status.className}`}>
-                        {status.label}
-                    </span>
+                    <Icon
+                        size='16'
+                        glyph={<CheckCircleOutlineIcon/>}
+                    />
+                    <Tag
+                        size='small'
+                        type={status.type}
+                        label={status.label}
+                    />
                 </div>
             </div>
         </div>

@@ -55,7 +55,7 @@ describe('CalendarSidebar', () => {
 
     it('shows loading state when connected is null', () => {
         render(<CalendarSidebar {...makeProps({connected: null})}/>);
-        expect(screen.getByText('Loading...')).toBeInTheDocument();
+        expect(screen.getByRole('status')).toBeInTheDocument();
     });
 
     it('shows connect prompt when not connected', () => {
@@ -150,32 +150,6 @@ describe('CalendarSidebar', () => {
         }
     });
 
-    it('theme: passes to ConnectPrompt when disconnected', () => {
-        render(<CalendarSidebar {...makeProps({theme: altTheme, connected: false})}/>);
-        const connectBtn = screen.getByText('Connect account');
-        expect(connectBtn).toHaveStyle({
-            backgroundColor: altTheme.buttonBg,
-            color: altTheme.buttonColor,
-        });
-    });
-
-    it('theme: uses dndIndicator for the error message color', () => {
-        render(
-            <CalendarSidebar {...makeProps({theme: altTheme, error: 'fail'})}/>
-        );
-        const errorEl = screen.getByText(/Unable to load calendar events/);
-        expect(errorEl).toHaveStyle({color: altTheme.dndIndicator});
-    });
-
-    it('theme: falls back to #D24B4E when dndIndicator is empty', () => {
-        const noIndicatorTheme = {...altTheme, dndIndicator: ''};
-        render(
-            <CalendarSidebar {...makeProps({theme: noIndicatorTheme, error: 'fail'})}/>
-        );
-        const errorEl = screen.getByText(/Unable to load calendar events/);
-        expect(errorEl).toHaveStyle({color: '#D24B4E'});
-    });
-
     it('theme: reflects change in container when re-rendered with different theme', () => {
         const {container, rerender} = render(
             <CalendarSidebar {...makeProps({theme: mockTheme})}/>
@@ -186,5 +160,21 @@ describe('CalendarSidebar', () => {
         rerender(<CalendarSidebar {...makeProps({theme: altTheme})}/>);
         sidebar = container.querySelector('.gcal-sidebar');
         expect(sidebar).toHaveStyle({backgroundColor: altTheme.centerChannelBg});
+    });
+
+    it('theme: passes to ConnectPrompt illustration when disconnected', () => {
+        const {container} = render(<CalendarSidebar {...makeProps({theme: altTheme, connected: false})}/>);
+        expect(container.querySelector(`svg [fill="${altTheme.buttonBg}"]`)).toBeInTheDocument();
+    });
+
+    it('renders the load error as a danger notice', () => {
+        render(<CalendarSidebar {...makeProps({error: 'fail'})}/>);
+        const notice = screen.getByText('Unable to load calendar events.').closest('[class*="section-notice--type-danger"]');
+        expect(notice).toBeInTheDocument();
+    });
+
+    it('labels the loading spinner', () => {
+        render(<CalendarSidebar {...makeProps({connected: null})}/>);
+        expect(screen.getByRole('status', {name: 'Loading'})).toBeInTheDocument();
     });
 });

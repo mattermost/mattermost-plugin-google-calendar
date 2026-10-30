@@ -1,26 +1,18 @@
 import React, {useState} from 'react';
 import {useSelector} from 'react-redux';
 
-import {Modal as BootstrapModal} from 'react-bootstrap';
+import {Button} from '@mattermost/compass-ui/components/button';
+import {Modal} from '@mattermost/compass-ui/components/modal';
+import {SectionNotice} from '@mattermost/compass-ui/components/section-notice';
+import {TextArea} from '@mattermost/compass-ui/components/text-area';
+import {TextInput} from '@mattermost/compass-ui/components/text-input';
 
-// react-bootstrap is provided by the Mattermost runtime, not bundled by the
-// plugin. The installed @types/react-bootstrap don't match that runtime version,
-// so we cast through unknown to a compatible FC type.
-type ModalSectionProps = React.PropsWithChildren<{ style?: React.CSSProperties }>;
-const ModalBody = BootstrapModal.Body as unknown as React.FC<ModalSectionProps>;
-const ModalFooter = BootstrapModal.Footer as unknown as React.FC<ModalSectionProps>;
-
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
 import ChannelSelector from '../channel_selector';
 
 import {CreateEventPayload} from '@/types/calendar_api_types';
 
-import {getModalStyles} from '@/utils/styles';
-
-import FormButton from '@/components/form_button';
-import Setting from '@/components/setting';
 import AttendeeSelector from '@/components/attendee_selector';
 import TimeSelector from '@/components/time_selector';
 import DateInput from '@/components/date_input';
@@ -30,19 +22,31 @@ import {createCalendarEvent, refreshActiveCalendarView} from '@/actions';
 import {getEarliestTimeForToday, getTodayString} from '@/utils/datetime';
 import {getCreateEventModal} from '@/selectors';
 
-import './create_event_form.scss';
+const FORM_ID = 'gcal-create-event-form';
+
+const requiredLabel = (text: string) => (
+    <>
+        {text}
+        <span
+            className='gcal-required-star'
+            aria-hidden={true}
+        >{' *'}</span>
+    </>
+);
 
 type Props = {
+    open: boolean;
     close: (e?: Event) => void;
 };
 
-/** Form body for the create-event modal: manages field state, validation, and submission. */
+/** Create-event modal: manages field state, validation, and submission. */
 export default function CreateEventForm(props: Props) {
     const [storedError, setStoredError] = useState('');
     const [submitting, setSubmitting] = useState(false);
 
     const dispatch = useAppDispatch();
     const modalData = useSelector(getCreateEventModal);
+    const timezone = useSelector(getCurrentTimezone);
 
     const [formValues, setFormValues] = useState<CreateEventPayload>({
         subject: '',
@@ -63,21 +67,16 @@ export default function CreateEventForm(props: Props) {
         }));
     };
 
-    const theme = useSelector(getTheme);
-
     const handleClose = () => {
         props.close();
     };
 
     const handleError = (error: string) => {
-        const errorMessage = capitalizeFirstCharacter(error);
-        setStoredError(errorMessage);
+        setStoredError(capitalizeFirstCharacter(error));
     };
 
     const handleSubmit = async (e?: React.FormEvent) => {
-        if (e && e.preventDefault) {
-            e.preventDefault();
-        }
+        e?.preventDefault?.();
 
         if (submitting) {
             return;
@@ -95,143 +94,87 @@ export default function CreateEventForm(props: Props) {
             handleClose();
             dispatch(refreshActiveCalendarView()).catch(() => { /* best-effort refresh */ });
         } catch (err: unknown) {
-            const message = err instanceof Error ? err.message : 'An unexpected error occurred.';
-            handleError(message);
+            handleError(err instanceof Error ? err.message : 'An unexpected error occurred.');
             setSubmitting(false);
         }
     };
 
-    const style = getModalStyles(theme);
+    const dateInPast = Boolean(formValues.date) && formValues.date < getTodayString(timezone);
 
     const disableSubmit = !formValues.subject.trim() ||
         !formValues.date ||
+        dateInPast ||
         (!formValues.all_day && (!formValues.start_time || !formValues.end_time)) ||
         (!formValues.all_day && formValues.start_time >= formValues.end_time);
+
     const footer = (
-        <React.Fragment>
-            <FormButton
+        <>
+            <Button
                 type='button'
-                btnClass='btn-link'
-                defaultMessage='Cancel'
+                emphasis='tertiary'
                 onClick={handleClose}
-            />
-            <FormButton
+            >
+                {'Cancel'}
+            </Button>
+            <Button
                 id='submit-button'
                 type='submit'
-                btnClass='btn-primary'
-                saving={submitting}
+                form={FORM_ID}
+                loading={submitting}
                 disabled={disableSubmit}
             >
                 {'Create'}
-            </FormButton>
-        </React.Fragment>
+            </Button>
+        </>
     );
-
-    const form = (
-        <ActualForm
-            formValues={formValues}
-            setFormValue={setFormValue}
-        />
-    );
-
-    let error;
-    if (storedError) {
-        error = (
-            <p
-                className='alert alert-danger'
-                role='alert'
-            >
-                <i
-                    style={{marginRight: '10px'}}
-                    className='fa fa-warning'
-                    title='Warning Icon'
-                />
-                <span>{storedError}</span>
-            </p>
-        );
-    }
 
     return (
-        <form
-            role='form'
-            onSubmit={handleSubmit}
+        <Modal
+            open={props.open}
+            onClose={handleClose}
+            title='Create Calendar Event'
+            size='medium'
+            footer={footer}
         >
-            <ModalBody
-                style={style.modalBody}
+            <form
+                id={FORM_ID}
+                role='form'
+                className='gcal-create-event-form'
+                onSubmit={handleSubmit}
             >
-                {error}
-                {form}
-            </ModalBody>
-            <ModalFooter style={style.modalFooter}>
-                {footer}
-            </ModalFooter>
-        </form>
-    );
-}
-
-type ActualFormProps = {
-    formValues: CreateEventPayload;
-    setFormValue: <Key extends keyof CreateEventPayload>(name: Key, value: CreateEventPayload[Key]) => void;
-}
-
-/** Renders the labeled input fields (subject, location, attendees, date/time, etc.) for the event form. */
-const ActualForm = (props: ActualFormProps) => {
-    const {formValues, setFormValue} = props;
-    const timezone = useSelector(getCurrentTimezone);
-
-    const components = [
-        {
-            id: 'subject',
-            label: 'Subject',
-            required: true,
-            component: (
-                <input
+                {storedError && (
+                    <SectionNotice
+                        type='danger'
+                        title={storedError}
+                    />
+                )}
+                <TextInput
                     id='subject'
-                    onChange={(e) => setFormValue('subject', e.target.value)}
+                    label={requiredLabel('Subject')}
+                    required={true}
                     value={formValues.subject}
-                    className='form-control'
+                    onChange={(e) => setFormValue('subject', e.target.value)}
                 />
-            ),
-        },
-        {
-            id: 'location',
-            label: 'Location (optional)',
-            required: false,
-            component: (
-                <input
+                <TextInput
                     id='location'
-                    onChange={(e) => setFormValue('location', e.target.value)}
+                    label='Location (optional)'
                     value={formValues.location}
-                    className='form-control'
+                    onChange={(e) => setFormValue('location', e.target.value)}
                 />
-            ),
-        },
-        {
-            id: 'attendees',
-            label: 'Guests (optional)',
-            component: (
                 <AttendeeSelector
                     inputId='attendees'
                     value={formValues.attendees}
                     onChange={(selected) => setFormValue('attendees', selected)}
                 />
-            ),
-        },
-        {
-            id: 'date',
-            label: 'Date',
-            required: true,
-            component: (
                 <DateInput
                     id='date'
                     value={formValues.date}
-                    min={getTodayString(timezone)}
+                    invalid={dateInPast}
                     onChange={(value) => {
                         setFormValue('date', value);
 
                         // Only clear the times when they become invalid for the new
-                        // date (i.e. now in the past when switching to today), so the
-                        // form stays submittable after simply changing the date.
+                        // date (i.e. now in the past when switching to today).
                         const startInPast = value === getTodayString(timezone) &&
                             formValues.start_time !== '' &&
                             formValues.start_time < getEarliestTimeForToday(timezone);
@@ -240,78 +183,39 @@ const ActualForm = (props: ActualFormProps) => {
                             setFormValue('end_time', '');
                         }
                     }}
-                    className='form-control'
                 />
-            ),
-        },
-        {
-            id: 'start_time',
-            label: 'Start Time',
-            required: true,
-            component: (
-                <TimeSelector
-                    inputId='start_time'
-                    name='start_time'
-                    value={formValues.start_time}
-                    endTime={formValues.end_time}
-                    date={formValues.date}
-                    onChange={(name: keyof CreateEventPayload, value: string) => setFormValue(name, value)}
-                />
-            ),
-        },
-        {
-            id: 'end_time',
-            label: 'End Time',
-            required: true,
-            component: (
-                <TimeSelector
-                    inputId='end_time'
-                    name='end_time'
-                    value={formValues.end_time}
-                    startTime={formValues.start_time}
-                    date={formValues.date}
-                    onChange={(name: keyof CreateEventPayload, value: string) => setFormValue(name, value)}
-                />
-            ),
-        },
-        {
-            id: 'description',
-            label: 'Description (optional)',
-            component: (
-                <textarea
+                <div className='gcal-create-event-form__times'>
+                    <TimeSelector
+                        inputId='start_time'
+                        name='start_time'
+                        label={requiredLabel('Start Time')}
+                        value={formValues.start_time}
+                        endTime={formValues.end_time}
+                        date={formValues.date}
+                        onChange={(name: keyof CreateEventPayload, value: string) => setFormValue(name, value)}
+                    />
+                    <TimeSelector
+                        inputId='end_time'
+                        name='end_time'
+                        label={requiredLabel('End Time')}
+                        value={formValues.end_time}
+                        startTime={formValues.start_time}
+                        date={formValues.date}
+                        onChange={(name: keyof CreateEventPayload, value: string) => setFormValue(name, value)}
+                    />
+                </div>
+                <TextArea
                     id='description'
-                    onChange={(e) => setFormValue('description', e.target.value)}
+                    label='Description (optional)'
                     value={formValues.description}
-                    className='form-control'
+                    onChange={(e) => setFormValue('description', e.target.value)}
                 />
-            ),
-        },
-        {
-            id: 'channel_id',
-            label: 'Link event to channel (optional)',
-            component: (
                 <ChannelSelector
                     inputId='channel_id'
                     value={formValues.channel_id || null}
                     onChange={(selected) => setFormValue('channel_id', selected)}
                 />
-            ),
-        },
-
-    ];
-
-    return (
-        <div className='gcal-create-event-form'>
-            {components.map((c) => (
-                <Setting
-                    key={c.id}
-                    label={c.label}
-                    inputId={c.id}
-                    required={c.required}
-                >
-                    {c.component}
-                </Setting>
-            ))}
-        </div>
+            </form>
+        </Modal>
     );
-};
+}
