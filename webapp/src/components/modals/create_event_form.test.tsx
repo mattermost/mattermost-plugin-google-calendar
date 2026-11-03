@@ -1,4 +1,5 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
 import CreateEventForm from './create_event_form';
@@ -46,9 +47,7 @@ describe('CreateEventForm', () => {
     };
 
     const submit = async () => {
-        await act(async () => {
-            fireEvent.submit(document.getElementById('gcal-create-event-form')!);
-        });
+        await userEvent.click(screen.getByRole('button', {name: 'Create'}));
     };
 
     beforeEach(() => {

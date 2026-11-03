@@ -67,7 +67,6 @@ const CalendarHeader = ({onPrev, onNext, onToday, onRefresh, loading, currentSta
                 <IconButton
                     size='small'
                     onClick={onRefresh}
-                    disabled={loading}
                     loading={loading}
                     title='Refresh'
                     aria-label='Refresh'

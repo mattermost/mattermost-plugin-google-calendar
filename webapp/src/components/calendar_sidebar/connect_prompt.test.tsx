@@ -29,9 +29,14 @@ describe('ConnectPrompt', () => {
         expect(screen.getByText(/to get started/)).toBeInTheDocument();
     });
 
-    it('renders Connect account button', () => {
+    it('renders Connect account as a link', () => {
         render(<ConnectPrompt {...baseProps}/>);
-        expect(screen.getByRole('button', {name: 'Connect account'})).toBeInTheDocument();
+        expect(screen.getByRole('link', {name: 'Connect account'})).toBeInTheDocument();
+    });
+
+    it('sets the correct OAuth href', () => {
+        render(<ConnectPrompt {...baseProps}/>);
+        expect(screen.getByRole('link', {name: 'Connect account'})).toHaveAttribute('href', '/plugins/com.mattermost.gcal/oauth2/connect');
     });
 
     it('opens a popup window on click (non-desktop)', () => {

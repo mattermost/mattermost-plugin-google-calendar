@@ -73,18 +73,13 @@ export default function ChannelSelector(props: Props) {
     }, [dispatch, teamId, props.value]);
 
     useEffect(() => {
-        if (props.value && selectedOption?.value !== props.value) {
-            loadOptions('');
-        } else if (!props.value) {
-            ++requestIdRef.current;
+        if (!props.value) {
             setSelectedOption(null);
-            setLoading(false);
+        } else if (selectedOption?.value === props.value) {
+            return;
         }
-    }, [props.value]); // eslint-disable-line react-hooks/exhaustive-deps
-
-    useEffect(() => {
         loadOptions('');
-    }, [teamId]); // eslint-disable-line react-hooks/exhaustive-deps
+    }, [props.value, teamId]); // eslint-disable-line react-hooks/exhaustive-deps
 
     const handleChange = (selected: string | string[] | null) => {
         const value = typeof selected === 'string' ? selected : '';

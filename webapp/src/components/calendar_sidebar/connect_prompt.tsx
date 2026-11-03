@@ -1,5 +1,6 @@
 import {useCallback} from 'react';
 
+import type {ButtonAsChildProps, ButtonProps} from '@mattermost/compass-ui/components/button';
 import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
 
 import manifest from '@/manifest';
@@ -23,7 +24,7 @@ interface ConnectPromptProps {
 const ConnectPrompt = ({theme, pluginServerRoute, sendEphemeralPost}: ConnectPromptProps) => {
     const pluginName = manifest.name;
 
-    const handleConnect = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
+    const handleConnect = useCallback((e: React.MouseEvent<HTMLAnchorElement>) => {
         e.preventDefault();
         if (isDesktopApp()) {
             sendEphemeralPost(`Please connect your ${pluginName} account using your web browser. The desktop app cannot open the OAuth window directly.`);
@@ -36,12 +37,27 @@ const ConnectPrompt = ({theme, pluginServerRoute, sendEphemeralPost}: ConnectPro
         );
     }, [pluginServerRoute, sendEphemeralPost, pluginName]);
 
+    const connectUrl = `${pluginServerRoute}/oauth2/connect`;
+
+    // EmptyState spreads `action` onto Button, which supports asChild, but its type only accepts plain button props.
+    const action: ButtonAsChildProps = {
+        asChild: true,
+        children: (
+            <a
+                href={connectUrl}
+                onClick={handleConnect}
+            >
+                {'Connect account'}
+            </a>
+        ),
+    };
+
     return (
         <EmptyState
             illustration={{children: <CalendarIconSVG theme={theme}/>}}
             title={`Welcome to ${pluginName}`}
             description={'Connect your account to get started'}
-            action={{children: 'Connect account', onClick: handleConnect}}
+            action={action as unknown as ButtonProps}
         />
     );
 };

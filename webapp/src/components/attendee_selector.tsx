@@ -31,34 +31,44 @@ export default function AttendeeSelector(props: Props) {
     const loadOptions = useCallback(async (input: string) => {
         const requestId = ++requestIdRef.current;
         setLoading(true);
-        const response = await dispatch(autocompleteConnectedUsers(input));
 
-        if (requestId !== requestIdRef.current) {
-            return;
-        }
-        setLoading(false);
+        try {
+            const response = await dispatch(autocompleteConnectedUsers(input));
 
-        if (response.error) {
-            setStoredError(response.error);
-            setOptions([]);
-            return;
-        }
-
-        setStoredError('');
-
-        const loaded = (response.data ?? []).map((u) => ({
-            label: u.mm_display_name,
-            value: u.mm_id,
-        }));
-
-        setLabelMap((prev) => {
-            const next = {...prev};
-            for (const opt of loaded) {
-                next[opt.value] = opt.label;
+            if (requestId !== requestIdRef.current) {
+                return;
             }
-            return next;
-        });
-        setOptions(loaded);
+
+            if (response.error) {
+                setStoredError(response.error);
+                setOptions([]);
+                return;
+            }
+
+            setStoredError('');
+
+            const loaded = (response.data ?? []).map((u) => ({
+                label: u.mm_display_name,
+                value: u.mm_id,
+            }));
+
+            setLabelMap((prev) => {
+                const next = {...prev};
+                for (const opt of loaded) {
+                    next[opt.value] = opt.label;
+                }
+                return next;
+            });
+            setOptions(loaded);
+        } catch (err) {
+            if (requestId === requestIdRef.current) {
+                setStoredError(String(err));
+            }
+        } finally {
+            if (requestId === requestIdRef.current) {
+                setLoading(false);
+            }
+        }
     }, [dispatch]);
 
     useEffect(() => {

@@ -110,6 +110,7 @@ export default function TimeSelector(props: Props) {
         <Select
             id={props.inputId}
             label={props.label}
+            listboxLabel={isStartTimeSelector ? 'Start time' : 'End time'}
             value={value}
             onChange={handleChange}
             options={options}

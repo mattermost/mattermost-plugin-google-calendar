@@ -1,4 +1,6 @@
-import {act, render} from '@testing-library/react';
+import {act, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import '@testing-library/jest-dom';
 
 import ChannelSelector from './channel_selector';
 
@@ -15,16 +17,11 @@ jest.mock('@/hooks', () => ({
 }));
 jest.mock('@/actions', () => ({autocompleteUserChannels: jest.fn()}));
 
-let comboProps: any;
-jest.mock('@mattermost/compass-ui/components/combobox', () => ({
-    Combobox: (props: any) => {
-        comboProps = props;
-        return null;
-    },
-}));
+const LABEL = 'Link event to channel (optional)';
 
 describe('ChannelSelector', () => {
-    const renderSelector = async (value: string | null, onChange = jest.fn()) => {
+    const renderSelector = async (value: string | null) => {
+        const onChange = jest.fn();
         await act(async () => {
             render(
                 <ChannelSelector
@@ -44,24 +41,33 @@ describe('ChannelSelector', () => {
         ]});
     });
 
-    it('resolves a pre-filled channel id to its label', async () => {
-        await renderSelector('c1');
-        expect(comboProps.selectedOptions).toEqual([{label: 'Town Square', value: 'c1'}]);
+    it('loads channels once on mount', async () => {
+        await renderSelector(null);
+        expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
 
-    it('reports the selected channel and clears to an empty string', async () => {
+    it('resolves a pre-filled channel id to its label', async () => {
+        await renderSelector('c1');
+        expect(screen.getByRole('combobox', {name: LABEL})).toHaveValue('Town Square');
+    });
+
+    it('reports the selected channel', async () => {
         const onChange = await renderSelector(null);
-
-        act(() => comboProps.onChange('c2'));
+        await userEvent.click(screen.getByRole('combobox', {name: LABEL}));
+        await userEvent.click(await screen.findByRole('option', {name: 'Off-Topic'}));
         expect(onChange).toHaveBeenLastCalledWith('c2');
+    });
 
-        act(() => comboProps.onChange(null));
+    it('clears to an empty string', async () => {
+        const onChange = await renderSelector('c1');
+        await userEvent.click(screen.getByRole('button', {name: /clear/i}));
         expect(onChange).toHaveBeenLastCalledWith('');
     });
 
     it('marks the field invalid and shows the error when loading fails', async () => {
         mockDispatch.mockResolvedValue({error: 'no access'});
         await renderSelector(null);
-        expect(comboProps.invalid).toBe(true);
+        expect(screen.getByRole('combobox', {name: LABEL})).toHaveAttribute('aria-invalid', 'true');
+        expect(screen.getByRole('alert')).toHaveTextContent('no access');
     });
 });
