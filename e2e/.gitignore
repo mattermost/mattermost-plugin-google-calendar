@@ -1,0 +1,6 @@
+node_modules/
+results/
+logs/
+.env.local
+.env.*.local
+storage_state/

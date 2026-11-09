@@ -1,0 +1,32 @@
+# Adds the dockerized Playwright browser for the visual specs (specs/visual.spec.ts). Used only by
+# script/visual.sh, as a second compose project with its own ports and a pinned server image:
+#   docker compose -p gcal-plugin-e2e-visual -f docker-compose.yml -f docker-compose.visual.yml ...
+# The browser shares Mattermost's network namespace, so it opens the SiteURL (localhost) like a
+# local one and renders the same fonts on every machine. Copied from the Google Drive suite
+# (mattermost-plugin-google-drive e2e/playwright/docker-compose.visual.yml).
+
+services:
+  mattermost:
+    ports:
+      # The browser's `playwright run-server`; it listens inside this service's namespace.
+      - "127.0.0.1:${VISUAL_BROWSER_PORT:-3338}:3333"
+
+  browser:
+    image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION:?set by script/visual.sh}-noble
+    # Chromium rasterizes text slightly differently per CPU architecture, so baselines should come
+    # from amd64 (CI). But amd64 Chromium under Rosetta on Apple silicon never finishes loading the
+    # web app, so script/visual.sh defaults to the host's native platform.
+    platform: ${VISUAL_BROWSER_PLATFORM:?set by script/visual.sh}
+    network_mode: service:mattermost
+    depends_on:
+      mattermost:
+        condition: service_healthy
+    # Docker's default 64 MB /dev/shm is too small for Chromium.
+    shm_size: 1gb
+    command: ["npx", "-y", "playwright@${PLAYWRIGHT_VERSION}", "run-server", "--port", "3333", "--host", "0.0.0.0"]
+    healthcheck:
+      test: ["CMD", "bash", "-c", "</dev/tcp/127.0.0.1/3333"]
+      interval: 3s
+      timeout: 5s
+      retries: 60
+      start_period: 10s

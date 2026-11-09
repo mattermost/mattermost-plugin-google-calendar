@@ -1,0 +1,169 @@
+# Playwright e2e suite against the fake Google (e2e/fake-google). Needs no Google accounts or
+# secrets, so it runs on every PR, forks included. The real-Google lane (`make e2e E2E_GOOGLE=real`)
+# is not in CI yet: it waits for the Google Workspace test org and its GCP project.
+# Adapted from the Google Drive suite's e2e.yml.
+name: e2e
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: e2e-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # Two servers: the oldest the plugin supports (min_server_version 12.0.0 in plugin.json; bump
+  # this with it), and master, which catches core changes that break the plugin before they ship.
+  # Only min-server gates merges: master moves daily, so a core regression there should be visible
+  # without blocking unrelated plugin PRs.
+  fake-google:
+    name: fake-google (${{ matrix.server }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: ${{ matrix.server == 'master' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - server: min-server
+            image: mattermost/mattermost-enterprise-edition:12.0
+          - server: master
+            image: mattermostdevelopment/mattermost-enterprise-edition:master
+    env:
+      # Read by e2e/docker-compose.yml (via make e2e-env-up).
+      MM_IMAGE: ${{ matrix.image }}
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            webapp/package-lock.json
+            e2e/package-lock.json
+
+      # Runs in the background so the image pulls overlap with the plugin build (as in
+      # mattermost-plugin-mscalendar's e2e.yml).
+      - name: Start the stack
+        working-directory: .
+        run: |
+          (make e2e-env-up > "$RUNNER_TEMP/stack-up.log" 2>&1; echo $? > "$RUNNER_TEMP/stack-up.exit") &
+
+      - name: Build the plugin bundle
+        working-directory: .
+        run: make dist
+
+      - name: Install e2e dependencies
+        run: |
+          npm ci
+          npx playwright install --with-deps chromium
+
+      # Typecheck (suite and fake), test-doc lint, the Node/Go encryption vector, and the fake's
+      # smoke tests.
+      - name: Check
+        run: npm run check
+
+      - name: Wait for the stack to be healthy
+        timeout-minutes: 10
+        run: |
+          while [ ! -f "$RUNNER_TEMP/stack-up.exit" ]; do sleep 5; done
+          cat "$RUNNER_TEMP/stack-up.log"
+          exit "$(cat "$RUNNER_TEMP/stack-up.exit")"
+
+      - name: Run the suite against the fake Google
+        run: npm test
+        env:
+          CI: "true"
+
+      - name: Collect container logs
+        if: failure()
+        working-directory: .
+        run: |
+          mkdir -p e2e/logs
+          make --no-print-directory e2e-env-logs > e2e/logs/containers.log 2>&1 || true
+
+      # Traces and screenshots stay off in CI (playwright.config.ts), and the fake Google issues
+      # throwaway tokens, so these hold no secrets.
+      - name: Upload report and logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-report-${{ matrix.server }}
+          path: |
+            e2e/results/reporter
+            e2e/logs
+          retention-days: 7
+
+      - name: Stop the stack
+        if: always()
+        working-directory: .
+        run: make e2e-env-down
+
+  # Screenshot baselines (e2e/specs/visual.spec.ts) on a pinned server with a dockerized browser.
+  # Non-blocking: when a baseline changes, a person looks at the diff and commits new PNGs
+  # (npm run test:visual-update-snapshots). The committed baselines were rendered on arm64.
+  visual:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    continue-on-error: true
+    defaults:
+      run:
+        working-directory: e2e
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+          cache-dependency-path: |
+            webapp/package-lock.json
+            e2e/package-lock.json
+
+      - name: Build the plugin bundle
+        working-directory: .
+        run: make dist
+
+      # No local browser: the run uses the Playwright container that script/visual.sh starts in its
+      # own compose project, and stops at the end.
+      - name: Install e2e dependencies
+        run: npm ci
+
+      - name: Compare screenshots with the baselines
+        run: npm run test:visual
+        env:
+          CI: "true"
+
+      # Only the fake Google's tokens and a throwaway server's data end up in these.
+      - name: Upload report, diffs and logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: e2e-visual-report
+          path: |
+            e2e/results/reporter
+            e2e/results/output
+            e2e/logs
+          retention-days: 7

@@ -1,0 +1,1084 @@
+{
+  "api": "calendar",
+  "version": "v3",
+  "methods": {
+    "calendar.calendars.get": {
+      "httpMethod": "GET",
+      "path": "/calendar/v3/calendars/{calendarId}",
+      "parameters": {
+        "calendarId": {
+          "type": "string",
+          "location": "path",
+          "required": true
+        }
+      },
+      "response": "Calendar"
+    },
+    "calendar.channels.stop": {
+      "httpMethod": "POST",
+      "path": "/calendar/v3/channels/stop",
+      "parameters": {},
+      "request": "Channel"
+    },
+    "calendar.events.get": {
+      "httpMethod": "GET",
+      "path": "/calendar/v3/calendars/{calendarId}/events/{eventId}",
+      "parameters": {
+        "timeZone": {
+          "type": "string",
+          "location": "query"
+        },
+        "eventId": {
+          "type": "string",
+          "location": "path",
+          "required": true
+        },
+        "calendarId": {
+          "type": "string",
+          "location": "path",
+          "required": true
+        },
+        "alwaysIncludeEmail": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "maxAttendees": {
+          "type": "integer",
+          "location": "query",
+          "format": "int32"
+        }
+      },
+      "response": "Event"
+    },
+    "calendar.events.insert": {
+      "httpMethod": "POST",
+      "path": "/calendar/v3/calendars/{calendarId}/events",
+      "parameters": {
+        "sendUpdates": {
+          "type": "string",
+          "location": "query",
+          "enum": [
+            "all",
+            "externalOnly",
+            "none"
+          ]
+        },
+        "sendNotifications": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "conferenceDataVersion": {
+          "type": "integer",
+          "location": "query",
+          "format": "int32"
+        },
+        "calendarId": {
+          "type": "string",
+          "location": "path",
+          "required": true
+        },
+        "supportsAttachments": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "maxAttendees": {
+          "type": "integer",
+          "location": "query",
+          "format": "int32"
+        },
+        "eventLabelVersion": {
+          "type": "integer",
+          "location": "query",
+          "format": "int32"
+        }
+      },
+      "request": "Event",
+      "response": "Event"
+    },
+    "calendar.events.list": {
+      "httpMethod": "GET",
+      "path": "/calendar/v3/calendars/{calendarId}/events",
+      "parameters": {
+        "maxAttendees": {
+          "type": "integer",
+          "location": "query",
+          "format": "int32"
+        },
+        "pageToken": {
+          "type": "string",
+          "location": "query"
+        },
+        "updatedMin": {
+          "type": "string",
+          "location": "query",
+          "format": "date-time"
+        },
+        "q": {
+          "type": "string",
+          "location": "query"
+        },
+        "orderBy": {
+          "type": "string",
+          "location": "query",
+          "enum": [
+            "startTime",
+            "updated"
+          ]
+        },
+        "timeMin": {
+          "type": "string",
+          "location": "query",
+          "format": "date-time"
+        },
+        "timeZone": {
+          "type": "string",
+          "location": "query"
+        },
+        "alwaysIncludeEmail": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "timeMax": {
+          "type": "string",
+          "location": "query",
+          "format": "date-time"
+        },
+        "sharedExtendedProperty": {
+          "type": "string",
+          "location": "query",
+          "repeated": true
+        },
+        "singleEvents": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "calendarId": {
+          "type": "string",
+          "location": "path",
+          "required": true
+        },
+        "privateExtendedProperty": {
+          "type": "string",
+          "location": "query",
+          "repeated": true
+        },
+        "showHiddenInvitations": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "eventTypes": {
+          "type": "string",
+          "location": "query",
+          "enum": [
+            "birthday",
+            "default",
+            "focusTime",
+            "fromGmail",
+            "outOfOffice",
+            "workingLocation"
+          ],
+          "repeated": true
+        },
+        "syncToken": {
+          "type": "string",
+          "location": "query"
+        },
+        "showDeleted": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "iCalUID": {
+          "type": "string",
+          "location": "query"
+        },
+        "maxResults": {
+          "type": "integer",
+          "location": "query",
+          "format": "int32"
+        }
+      },
+      "response": "Events"
+    },
+    "calendar.events.watch": {
+      "httpMethod": "POST",
+      "path": "/calendar/v3/calendars/{calendarId}/events/watch",
+      "parameters": {
+        "orderBy": {
+          "type": "string",
+          "location": "query",
+          "enum": [
+            "startTime",
+            "updated"
+          ]
+        },
+        "timeMin": {
+          "type": "string",
+          "location": "query",
+          "format": "date-time"
+        },
+        "q": {
+          "type": "string",
+          "location": "query"
+        },
+        "maxAttendees": {
+          "type": "integer",
+          "location": "query",
+          "format": "int32"
+        },
+        "alwaysIncludeEmail": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "showHiddenInvitations": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "timeZone": {
+          "type": "string",
+          "location": "query"
+        },
+        "syncToken": {
+          "type": "string",
+          "location": "query"
+        },
+        "timeMax": {
+          "type": "string",
+          "location": "query",
+          "format": "date-time"
+        },
+        "updatedMin": {
+          "type": "string",
+          "location": "query",
+          "format": "date-time"
+        },
+        "eventTypes": {
+          "type": "string",
+          "location": "query",
+          "enum": [
+            "birthday",
+            "default",
+            "focusTime",
+            "fromGmail",
+            "outOfOffice",
+            "workingLocation"
+          ],
+          "repeated": true
+        },
+        "iCalUID": {
+          "type": "string",
+          "location": "query"
+        },
+        "singleEvents": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "calendarId": {
+          "type": "string",
+          "location": "path",
+          "required": true
+        },
+        "pageToken": {
+          "type": "string",
+          "location": "query"
+        },
+        "maxResults": {
+          "type": "integer",
+          "location": "query",
+          "format": "int32"
+        },
+        "showDeleted": {
+          "type": "boolean",
+          "location": "query"
+        },
+        "sharedExtendedProperty": {
+          "type": "string",
+          "location": "query",
+          "repeated": true
+        },
+        "privateExtendedProperty": {
+          "type": "string",
+          "location": "query",
+          "repeated": true
+        }
+      },
+      "request": "Channel",
+      "response": "Channel"
+    },
+    "calendar.settings.get": {
+      "httpMethod": "GET",
+      "path": "/calendar/v3/users/me/settings/{setting}",
+      "parameters": {
+        "setting": {
+          "type": "string",
+          "location": "path",
+          "required": true
+        }
+      },
+      "response": "Setting"
+    }
+  },
+  "schemas": {
+    "Calendar": {
+      "type": "object",
+      "properties": {
+        "location": {
+          "type": "string"
+        },
+        "conferenceProperties": {
+          "$ref": "ConferenceProperties"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "etag": {
+          "type": "string"
+        },
+        "labelProperties": {
+          "$ref": "LabelProperties"
+        },
+        "dataOwner": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "timeZone": {
+          "type": "string"
+        },
+        "autoAcceptInvitations": {
+          "type": "boolean"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "workingHours": {
+          "type": "object",
+          "properties": {
+            "workingHoursEnabled": {
+              "type": "boolean"
+            },
+            "availableTimes": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "periodStart": {
+                    "type": "integer"
+                  },
+                  "periodEnd": {
+                    "type": "integer"
+                  },
+                  "dayOfWeek": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false
+              }
+            }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "Channel": {
+      "type": "object",
+      "properties": {
+        "resourceUri": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "address": {
+          "type": "string"
+        },
+        "params": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        },
+        "type": {
+          "type": "string"
+        },
+        "payload": {
+          "type": "boolean"
+        },
+        "resourceId": {
+          "type": "string"
+        },
+        "token": {
+          "type": "string"
+        },
+        "expiration": {
+          "type": "string",
+          "pattern": "^-?[0-9]+$"
+        },
+        "id": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConferenceData": {
+      "type": "object",
+      "properties": {
+        "signature": {
+          "type": "string"
+        },
+        "parameters": {
+          "$ref": "ConferenceParameters"
+        },
+        "entryPoints": {
+          "type": "array",
+          "items": {
+            "$ref": "EntryPoint"
+          }
+        },
+        "conferenceSolution": {
+          "$ref": "ConferenceSolution"
+        },
+        "notes": {
+          "type": "string"
+        },
+        "conferenceId": {
+          "type": "string"
+        },
+        "createRequest": {
+          "$ref": "CreateConferenceRequest"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConferenceParameters": {
+      "type": "object",
+      "properties": {
+        "addOnParameters": {
+          "$ref": "ConferenceParametersAddOnParameters"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConferenceParametersAddOnParameters": {
+      "type": "object",
+      "properties": {
+        "parameters": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConferenceProperties": {
+      "type": "object",
+      "properties": {
+        "allowedConferenceSolutionTypes": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConferenceRequestStatus": {
+      "type": "object",
+      "properties": {
+        "statusCode": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConferenceSolution": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "key": {
+          "$ref": "ConferenceSolutionKey"
+        },
+        "iconUri": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ConferenceSolutionKey": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateConferenceRequest": {
+      "type": "object",
+      "properties": {
+        "status": {
+          "$ref": "ConferenceRequestStatus"
+        },
+        "requestId": {
+          "type": "string"
+        },
+        "conferenceSolutionKey": {
+          "$ref": "ConferenceSolutionKey"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EntryPoint": {
+      "type": "object",
+      "properties": {
+        "entryPointFeatures": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "password": {
+          "type": "string"
+        },
+        "pin": {
+          "type": "string"
+        },
+        "accessCode": {
+          "type": "string"
+        },
+        "regionCode": {
+          "type": "string"
+        },
+        "passcode": {
+          "type": "string"
+        },
+        "uri": {
+          "type": "string"
+        },
+        "meetingCode": {
+          "type": "string"
+        },
+        "label": {
+          "type": "string"
+        },
+        "entryPointType": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "htmlLink": {
+          "type": "string"
+        },
+        "recurrence": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "iCalUID": {
+          "type": "string"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "attendees": {
+          "type": "array",
+          "items": {
+            "$ref": "EventAttendee"
+          }
+        },
+        "guestsCanSeeOtherGuests": {
+          "type": "boolean"
+        },
+        "originalStartTime": {
+          "$ref": "EventDateTime"
+        },
+        "locked": {
+          "type": "boolean"
+        },
+        "start": {
+          "$ref": "EventDateTime"
+        },
+        "visibility": {
+          "type": "string"
+        },
+        "gadget": {
+          "type": "object",
+          "properties": {
+            "preferences": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "display": {
+              "type": "string"
+            },
+            "link": {
+              "type": "string"
+            },
+            "iconLink": {
+              "type": "string"
+            },
+            "height": {
+              "type": "integer"
+            },
+            "title": {
+              "type": "string"
+            },
+            "width": {
+              "type": "integer"
+            },
+            "type": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "organizer": {
+          "type": "object",
+          "properties": {
+            "self": {
+              "type": "boolean"
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "focusTimeProperties": {
+          "$ref": "EventFocusTimeProperties"
+        },
+        "extendedProperties": {
+          "type": "object",
+          "properties": {
+            "private": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            },
+            "shared": {
+              "type": "object",
+              "additionalProperties": {
+                "type": "string"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "guestsCanModify": {
+          "type": "boolean"
+        },
+        "reminders": {
+          "type": "object",
+          "properties": {
+            "useDefault": {
+              "type": "boolean"
+            },
+            "overrides": {
+              "type": "array",
+              "items": {
+                "$ref": "EventReminder"
+              }
+            }
+          },
+          "additionalProperties": false
+        },
+        "id": {
+          "type": "string"
+        },
+        "workingLocationProperties": {
+          "$ref": "EventWorkingLocationProperties"
+        },
+        "etag": {
+          "type": "string"
+        },
+        "hangoutLink": {
+          "type": "string"
+        },
+        "recurringEventId": {
+          "type": "string"
+        },
+        "source": {
+          "type": "object",
+          "properties": {
+            "url": {
+              "type": "string"
+            },
+            "title": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "endTimeUnspecified": {
+          "type": "boolean"
+        },
+        "transparency": {
+          "type": "string"
+        },
+        "eventType": {
+          "type": "string"
+        },
+        "status": {
+          "type": "string"
+        },
+        "created": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "conferenceData": {
+          "$ref": "ConferenceData"
+        },
+        "colorId": {
+          "type": "string"
+        },
+        "anyoneCanAddSelf": {
+          "type": "boolean"
+        },
+        "attendeesOmitted": {
+          "type": "boolean"
+        },
+        "guestsCanInviteOthers": {
+          "type": "boolean"
+        },
+        "end": {
+          "$ref": "EventDateTime"
+        },
+        "privateCopy": {
+          "type": "boolean"
+        },
+        "location": {
+          "type": "string"
+        },
+        "outOfOfficeProperties": {
+          "$ref": "EventOutOfOfficeProperties"
+        },
+        "attachments": {
+          "type": "array",
+          "items": {
+            "$ref": "EventAttachment"
+          }
+        },
+        "eventLabelId": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        },
+        "birthdayProperties": {
+          "$ref": "EventBirthdayProperties"
+        },
+        "description": {
+          "type": "string"
+        },
+        "creator": {
+          "type": "object",
+          "properties": {
+            "self": {
+              "type": "boolean"
+            },
+            "displayName": {
+              "type": "string"
+            },
+            "email": {
+              "type": "string"
+            },
+            "id": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "sequence": {
+          "type": "integer"
+        },
+        "summary": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventAttachment": {
+      "type": "object",
+      "properties": {
+        "iconLink": {
+          "type": "string"
+        },
+        "fileId": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "fileUrl": {
+          "type": "string"
+        },
+        "mimeType": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventAttendee": {
+      "type": "object",
+      "properties": {
+        "comment": {
+          "type": "string"
+        },
+        "self": {
+          "type": "boolean"
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "resource": {
+          "type": "boolean"
+        },
+        "additionalGuests": {
+          "type": "integer"
+        },
+        "responseStatus": {
+          "type": "string"
+        },
+        "email": {
+          "type": "string"
+        },
+        "asyncOperation": {
+          "type": "string"
+        },
+        "displayName": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "organizer": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventBirthdayProperties": {
+      "type": "object",
+      "properties": {
+        "type": {
+          "type": "string"
+        },
+        "customTypeName": {
+          "type": "string"
+        },
+        "contact": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventDateTime": {
+      "type": "object",
+      "properties": {
+        "timeZone": {
+          "type": "string"
+        },
+        "dateTime": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "date": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventFocusTimeProperties": {
+      "type": "object",
+      "properties": {
+        "chatStatus": {
+          "type": "string"
+        },
+        "autoDeclineMode": {
+          "type": "string"
+        },
+        "declineMessage": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventLabel": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "backgroundColor": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventOutOfOfficeProperties": {
+      "type": "object",
+      "properties": {
+        "declineMessage": {
+          "type": "string"
+        },
+        "autoDeclineMode": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventReminder": {
+      "type": "object",
+      "properties": {
+        "method": {
+          "type": "string"
+        },
+        "minutes": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Events": {
+      "type": "object",
+      "properties": {
+        "timeZone": {
+          "type": "string"
+        },
+        "updated": {
+          "type": "string",
+          "format": "date-time"
+        },
+        "etag": {
+          "type": "string"
+        },
+        "nextSyncToken": {
+          "type": "string"
+        },
+        "summary": {
+          "type": "string"
+        },
+        "items": {
+          "type": "array",
+          "items": {
+            "$ref": "Event"
+          }
+        },
+        "accessRole": {
+          "type": "string"
+        },
+        "nextPageToken": {
+          "type": "string"
+        },
+        "defaultReminders": {
+          "type": "array",
+          "items": {
+            "$ref": "EventReminder"
+          }
+        },
+        "kind": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EventWorkingLocationProperties": {
+      "type": "object",
+      "properties": {
+        "homeOffice": {},
+        "customLocation": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "officeLocation": {
+          "type": "object",
+          "properties": {
+            "label": {
+              "type": "string"
+            },
+            "buildingId": {
+              "type": "string"
+            },
+            "deskId": {
+              "type": "string"
+            },
+            "floorSectionId": {
+              "type": "string"
+            },
+            "floorId": {
+              "type": "string"
+            }
+          },
+          "additionalProperties": false
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "LabelProperties": {
+      "type": "object",
+      "properties": {
+        "eventLabels": {
+          "type": "array",
+          "items": {
+            "$ref": "EventLabel"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Setting": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        },
+        "etag": {
+          "type": "string"
+        },
+        "kind": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

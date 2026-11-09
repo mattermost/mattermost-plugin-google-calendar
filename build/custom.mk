@@ -27,3 +27,42 @@ endif
 clean_mock:
 ifneq ($(HAS_SERVER),)
 endif
+
+# E2E suite (e2e/, Playwright). Layout follows mattermost-plugin-mscalendar's e2e targets.
+E2E_DIR = e2e
+# fake (default): the fake Google in e2e/fake-google answers for Google's hosts. real: the stack
+# runs without the fake and Mattermost reaches real Google (needs e2e/.env.local, see .env.example).
+E2E_GOOGLE ?= fake
+ifeq ($(E2E_GOOGLE),real)
+E2E_COMPOSE = MM_SSL_CERT_FILE= docker compose
+else
+E2E_COMPOSE = docker compose --profile fake
+endif
+
+$(E2E_DIR)/node_modules: $(E2E_DIR)/package.json $(E2E_DIR)/package-lock.json
+	cd $(E2E_DIR) && npm ci && npx playwright install chromium
+	touch $@
+
+## Starts the disposable Mattermost (and, unless E2E_GOOGLE=real, the fake Google) for the E2E suite.
+.PHONY: e2e-env-up
+e2e-env-up:
+	cd $(E2E_DIR) && $(E2E_COMPOSE) up -d --wait
+
+## Stops the E2E stack and wipes its data.
+.PHONY: e2e-env-down
+e2e-env-down:
+	cd $(E2E_DIR) && docker compose --profile fake down -v
+
+## Prints the E2E stack's container status and logs (CI collects these on failure).
+.PHONY: e2e-env-logs
+e2e-env-logs:
+	cd $(E2E_DIR) && docker compose --profile fake ps -a && docker compose --profile fake logs --no-color
+
+## Builds the plugin and runs the Playwright E2E suite against the stack from e2e-env-up.
+.PHONY: e2e
+e2e: dist $(E2E_DIR)/node_modules
+ifeq ($(E2E_GOOGLE),real)
+	cd $(E2E_DIR) && npm run check && npm run test:real
+else
+	cd $(E2E_DIR) && npm run check && npm test
+endif

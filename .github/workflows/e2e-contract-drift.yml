@@ -1,0 +1,32 @@
+# Compares the committed copies of Google's Discovery documents (e2e/fake-google/contract/specs)
+# with what Google publishes today. Fails only on breaking changes (a removed method, field or enum
+# value, a changed type or path, a newly required parameter); additive changes are listed in the
+# log for the next `npm run contract:update`. Downloads public documents only, so needs no secrets.
+# Copied from the Google Drive suite's e2e-contract-drift.yml.
+name: e2e-contract-drift
+
+on:
+  schedule:
+    - cron: "0 6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+
+      # The checker uses Node built-ins only, so no npm install.
+      - name: Check Google's published specs for drift
+        working-directory: e2e
+        run: npm run contract:check

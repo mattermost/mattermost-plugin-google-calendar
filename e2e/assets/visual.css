@@ -1,0 +1,14 @@
+/* Core UI that overlaps plugin posts and changes between runs (from mattermost-plugin-jira). */
+.post .status {
+    visibility: hidden !important;
+}
+
+/* An open select's options can overflow a dialog onto the backdrop; hide the channel behind it. */
+.modal-backdrop {
+    opacity: 1 !important;
+}
+
+/* The sticky channel header can cover the top of a tall post scrolled into view. */
+.channel-header {
+    visibility: hidden !important;
+}
