@@ -9,8 +9,10 @@ Playwright tests for the Google Calendar plugin. The same specs run against two 
   Chromium's `--host-resolver-rules`. So the plugin bundle under test is the normal production
   build. No accounts or secrets. Every request and response is checked against Google's published
   API specs (`fake-google/contract/`); a violation fails the run.
-- **Real Google** (`make e2e E2E_GOOGLE=real`): the test accounts in `.env.local`. Not in CI yet;
-  it waits for the Google Workspace test org. Specs that need the fake's control API skip.
+- **Real Google** (`make e2e-env-up E2E_GOOGLE=real && make e2e E2E_GOOGLE=real`): the test
+  accounts in `.env.local`. The stack must be started in real mode, which removes the fake and its
+  CA. Not in CI yet; it waits for the Google Workspace test org. Specs that need the fake's control
+  API skip.
 
 ## Requirements
 

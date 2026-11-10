@@ -51,13 +51,3 @@ export async function settle(pw: PlaywrightExtended, target: Locator) {
         el.style.transform = `translate(${Math.round(x) - x}px, ${Math.round(y) - y}px)`;
     });
 }
-
-/** The page area covering all the targets, rounded out to whole pixels (several posts in one shot). */
-export async function clipAround(...targets: Locator[]): Promise<{x: number; y: number; width: number; height: number}> {
-    const boxes = await Promise.all(targets.map(async (t) => (await t.boundingBox())!));
-    const x = Math.floor(Math.min(...boxes.map((b) => b.x)));
-    const y = Math.floor(Math.min(...boxes.map((b) => b.y)));
-    const right = Math.ceil(Math.max(...boxes.map((b) => b.x + b.width)));
-    const bottom = Math.ceil(Math.max(...boxes.map((b) => b.y + b.height)));
-    return {x, y, width: right - x, height: bottom - y};
-}
