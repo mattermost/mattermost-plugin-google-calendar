@@ -22,7 +22,7 @@ import path from 'path';
 
 import {GCAL_OAUTH_SCOPES} from '../lib/google/auth';
 
-// E2E_ENV_FILE (relative to e2e/) picks another file, e.g. for a second OAuth client.
+// E2E_ENV_FILE (relative to e2e/playwright/) picks another file, e.g. for a second OAuth client.
 const ENV_FILE = path.resolve(__dirname, '..', process.env.E2E_ENV_FILE ?? '.env.local');
 const PORT = 8765;
 const REDIRECT_URI = `http://localhost:${PORT}/callback`;

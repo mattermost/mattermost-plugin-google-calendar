@@ -41,7 +41,7 @@ cleanup() {
   if [ "$status" -ne 0 ]; then
     mkdir -p logs
     compose logs --no-color > logs/visual-containers.log 2>&1 || true
-    echo "Container logs: e2e/logs/visual-containers.log"
+    echo "Container logs: e2e/playwright/logs/visual-containers.log"
   fi
   compose down -v >/dev/null 2>&1 || true
   exit "$status"

@@ -8,7 +8,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 
 // Untracked local settings (real Google credentials, external server). Variables already set in
-// the shell win. E2E_ENV_FILE (relative to e2e/) picks another file, e.g. for a second OAuth client.
+// the shell win. E2E_ENV_FILE (relative to e2e/playwright/) picks another file, e.g. for a second OAuth client.
 const envFile = path.resolve(__dirname, '..', process.env.E2E_ENV_FILE ?? '.env.local');
 if (fs.existsSync(envFile)) {
     process.loadEnvFile(envFile);

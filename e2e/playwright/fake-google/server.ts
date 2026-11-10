@@ -8,14 +8,14 @@
 // Google's real hostnames and trusts its throwaway CA through SSL_CERT_FILE, so the plugin bundle
 // under test is the normal production build. The tests reach the same routes on plain HTTP 8080,
 // along with a /__control API for test setup and assertions. The browser reaches the consent pages
-// as https://accounts.google.com through Chromium's --host-resolver-rules (e2e/lib/browser.ts).
+// as https://accounts.google.com through Chromium's --host-resolver-rules (e2e/playwright/lib/browser.ts).
 //
 // Every request it receives and every response it sends is checked against the contract in
 // contract/ (Google's published Discovery documents plus the fields the plugin reads). Requests
 // to operations outside the contract, and Calendar/People calls on the wrong host, are recorded as
 // violations too. Global teardown fails the run if there are any.
 //
-// Adapted from the Google Drive plugin suite's fake (mattermost-plugin-google-drive e2e/fake-google).
+// Adapted from the Google Drive plugin suite's fake (mattermost-plugin-google-drive e2e/playwright/fake-google).
 // Google behaviour reproduced from the API reference, not yet checked against a live account (the
 // real lane does that):
 // - Inserting an event with attendees adds the organizer to attendees and puts a copy with the

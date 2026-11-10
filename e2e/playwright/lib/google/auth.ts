@@ -57,7 +57,7 @@ export function requireGoogle<R extends GoogleRole>(...roles: R[]): Record<R, Go
     if (authMode() === 'dwd') {
         throw new Error('GOOGLE_AUTH_MODE=dwd is not implemented yet (needs the Workspace test org).');
     }
-    test.skip(!process.env.GOOGLE_OAUTH_CLIENT_ID || !process.env.GOOGLE_OAUTH_CLIENT_SECRET, 'Needs GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET (see e2e/.env.example).');
+    test.skip(!process.env.GOOGLE_OAUTH_CLIENT_ID || !process.env.GOOGLE_OAUTH_CLIENT_SECRET, 'Needs GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET (see e2e/playwright/.env.example).');
 
     const accounts = {} as Record<R, GoogleAccount>;
     for (const role of roles) {

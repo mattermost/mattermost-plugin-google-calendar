@@ -41,8 +41,8 @@ func (m memoryKV) Delete(key string) error         { delete(m, key); return nil 
 func (m memoryKV) List(_, _ int) ([]string, error) { return nil, nil }
 
 // TestDecryptE2ECryptoVector pins the user-record format the Playwright e2e suite relies on to
-// seed connected users directly into the plugin KV store (e2e/lib/kv.ts). The row is produced by
-// e2e/lib/crypto.ts (CRYPTO_TEST_VECTOR) and read here through the same store composition the
+// seed connected users directly into the plugin KV store (e2e/playwright/lib/kv.ts). The row is produced by
+// e2e/playwright/lib/crypto.ts (CRYPTO_TEST_VECTOR) and read here through the same store composition the
 // engine builds for encrypted providers (store.NewPluginStore: encrypted over hashed "user_"
 // keys). Keep the two in sync.
 func TestDecryptE2ECryptoVector(t *testing.T) {

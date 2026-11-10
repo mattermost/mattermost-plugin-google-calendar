@@ -28,10 +28,10 @@ clean_mock:
 ifneq ($(HAS_SERVER),)
 endif
 
-# E2E suite (e2e/, Playwright). Layout follows mattermost-plugin-mscalendar's e2e targets.
-E2E_DIR = e2e
-# fake (default): the fake Google in e2e/fake-google answers for Google's hosts. real: the stack
-# runs without the fake and Mattermost reaches real Google (needs e2e/.env.local, see .env.example).
+# E2E suite (e2e/playwright/). Layout follows mattermost-plugin-mscalendar's e2e targets.
+E2E_DIR = e2e/playwright
+# fake (default): the fake Google in e2e/playwright/fake-google answers for Google's hosts. real: the stack
+# runs without the fake and Mattermost reaches real Google (needs e2e/playwright/.env.local, see .env.example).
 E2E_GOOGLE ?= fake
 ifeq ($(E2E_GOOGLE),real)
 E2E_COMPOSE = MM_SSL_CERT_FILE= docker compose

@@ -8,7 +8,7 @@ import zlib from 'zlib';
 import type {Client4} from '@mattermost/client';
 import {expect} from '@playwright/test';
 
-import manifest from '../../plugin.json';
+import manifest from '../../../plugin.json';
 
 import {assertServerAlive} from './server';
 
@@ -40,14 +40,14 @@ export function googleOAuthSettings(): GcalPluginSettings {
     const id = process.env.GOOGLE_OAUTH_CLIENT_ID;
     const secret = process.env.GOOGLE_OAUTH_CLIENT_SECRET;
     if (!id || !secret) {
-        throw new Error('GOOGLE_OAUTH_CLIENT_ID/SECRET are not set: global setup fills them from the fake, or set them in e2e/.env.local for E2E_GOOGLE=real.');
+        throw new Error('GOOGLE_OAUTH_CLIENT_ID/SECRET are not set: global setup fills them from the fake, or set them in e2e/playwright/.env.local for E2E_GOOGLE=real.');
     }
     return {oauth2ClientId: id, oauth2ClientSecret: secret};
 }
 
-/** Returns the single plugin bundle in ../dist, failing with a fix-it message otherwise. */
+/** Returns the single plugin bundle in the repo's dist/, failing with a fix-it message otherwise. */
 export function findPluginBundle(): string {
-    const distDir = path.join(__dirname, '..', '..', 'dist');
+    const distDir = path.join(__dirname, '..', '..', '..', 'dist');
     const bundles = fs.existsSync(distDir) ? fs.readdirSync(distDir).filter((f) => f.endsWith('.tar.gz')) : [];
     if (bundles.length !== 1) {
         throw new Error(

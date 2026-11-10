@@ -1,4 +1,4 @@
-# Playwright e2e suite against the fake Google (e2e/fake-google). Needs no Google accounts or
+# Playwright e2e suite against the fake Google (e2e/playwright/fake-google). Needs no Google accounts or
 # secrets, so it runs on every PR, forks included. The real-Google lane (`make e2e E2E_GOOGLE=real`)
 # is not in CI yet: it waits for the Google Workspace test org and its GCP project.
 # Adapted from the Google Drive suite's e2e.yml.
@@ -36,11 +36,11 @@ jobs:
           - server: master
             image: mattermostdevelopment/mattermost-enterprise-edition:master
     env:
-      # Read by e2e/docker-compose.yml (via make e2e-env-up).
+      # Read by e2e/playwright/docker-compose.yml (via make e2e-env-up).
       MM_IMAGE: ${{ matrix.image }}
     defaults:
       run:
-        working-directory: e2e
+        working-directory: e2e/playwright
     steps:
       - uses: actions/checkout@v4
         with:
@@ -56,7 +56,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             webapp/package-lock.json
-            e2e/package-lock.json
+            e2e/playwright/package-lock.json
 
       # Runs in the background so the image pulls overlap with the plugin build (as in
       # mattermost-plugin-mscalendar's e2e.yml).
@@ -95,8 +95,8 @@ jobs:
         if: failure()
         working-directory: .
         run: |
-          mkdir -p e2e/logs
-          make --no-print-directory e2e-env-logs > e2e/logs/containers.log 2>&1 || true
+          mkdir -p e2e/playwright/logs
+          make --no-print-directory e2e-env-logs > e2e/playwright/logs/containers.log 2>&1 || true
 
       # Traces and screenshots stay off in CI (playwright.config.ts), and the fake Google issues
       # throwaway tokens, so these hold no secrets.
@@ -106,8 +106,8 @@ jobs:
         with:
           name: e2e-report-${{ matrix.server }}
           path: |
-            e2e/results/reporter
-            e2e/logs
+            e2e/playwright/results/reporter
+            e2e/playwright/logs
           retention-days: 7
 
       - name: Stop the stack
@@ -115,7 +115,7 @@ jobs:
         working-directory: .
         run: make e2e-env-down
 
-  # Screenshot baselines (e2e/specs/visual.spec.ts) on a pinned server with a dockerized browser.
+  # Screenshot baselines (e2e/playwright/specs/visual.spec.ts) on a pinned server with a dockerized browser.
   # Non-blocking: when a baseline changes, a person looks at the diff and commits new PNGs
   # (npm run test:visual-update-snapshots). The committed baselines were rendered on arm64.
   visual:
@@ -124,7 +124,7 @@ jobs:
     continue-on-error: true
     defaults:
       run:
-        working-directory: e2e
+        working-directory: e2e/playwright
     steps:
       - uses: actions/checkout@v4
         with:
@@ -140,7 +140,7 @@ jobs:
           cache: npm
           cache-dependency-path: |
             webapp/package-lock.json
-            e2e/package-lock.json
+            e2e/playwright/package-lock.json
 
       - name: Build the plugin bundle
         working-directory: .
@@ -163,7 +163,7 @@ jobs:
         with:
           name: e2e-visual-report
           path: |
-            e2e/results/reporter
-            e2e/results/output
-            e2e/logs
+            e2e/playwright/results/reporter
+            e2e/playwright/results/output
+            e2e/playwright/logs
           retention-days: 7

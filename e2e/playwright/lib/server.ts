@@ -15,7 +15,7 @@ export async function assertServerAlive(siteURL: string) {
     } catch (err) {
         throw new Error(
             `Mattermost at ${siteURL} is not responding (${String(err)}). Start the stack with \`make e2e-env-up\` ` +
-                'from the repository root, or check `docker compose logs mattermost` in e2e/.',
+                'from the repository root, or check `docker compose logs mattermost` in e2e/playwright/.',
         );
     }
 }

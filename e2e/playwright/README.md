@@ -24,14 +24,14 @@ From the repo root:
 
 ```sh
 make e2e-env-up      # Mattermost, Postgres and the fake Google
-make e2e             # builds the plugin, then npm run check and npm test in e2e/
+make e2e             # builds the plugin, then npm run check and npm test in e2e/playwright/
 make e2e-env-down    # stops the stack and wipes its data
 ```
 
 The stack publishes Mattermost on `localhost:8075`, Postgres on `5434` and the fake on
 `8090`/`8453`, so it runs next to other plugin suites on the default ports.
 
-| Command (in `e2e/`) | What it does |
+| Command (in `e2e/playwright/`) | What it does |
 |---|---|
 | `npm test` | All specs against the fake Google, except `@visual` |
 | `npm run test:visual` | Screenshot baselines (`specs/visual.spec.ts`) on their own pinned stack (port 8077) with a dockerized browser |

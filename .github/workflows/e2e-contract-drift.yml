@@ -1,4 +1,4 @@
-# Compares the committed copies of Google's Discovery documents (e2e/fake-google/contract/specs)
+# Compares the committed copies of Google's Discovery documents (e2e/playwright/fake-google/contract/specs)
 # with what Google publishes today. Fails only on breaking changes (a removed method, field or enum
 # value, a changed type or path, a newly required parameter); additive changes are listed in the
 # log for the next `npm run contract:update`. Downloads public documents only, so needs no secrets.
@@ -28,5 +28,5 @@ jobs:
 
       # The checker uses Node built-ins only, so no npm install.
       - name: Check Google's published specs for drift
-        working-directory: e2e
+        working-directory: e2e/playwright
         run: npm run contract:check
