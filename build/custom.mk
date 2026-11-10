@@ -40,12 +40,16 @@ E2E_COMPOSE = docker compose --profile fake
 endif
 
 $(E2E_DIR)/node_modules: $(E2E_DIR)/package.json $(E2E_DIR)/package-lock.json
-	cd $(E2E_DIR) && npm ci && npx playwright install chromium
+	cd $(E2E_DIR) && npm ci --ignore-scripts && npx playwright install chromium
 	touch $@
 
 ## Starts the disposable Mattermost (and, unless E2E_GOOGLE=real, the fake Google) for the E2E suite.
 .PHONY: e2e-env-up
 e2e-env-up:
+ifeq ($(E2E_GOOGLE),real)
+	@# A fake-google container left by an earlier fake run would keep answering for Google's hostnames.
+	cd $(E2E_DIR) && docker compose --profile fake rm -sf fake-google
+endif
 	cd $(E2E_DIR) && $(E2E_COMPOSE) up -d --wait
 
 ## Stops the E2E stack and wipes its data.

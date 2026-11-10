@@ -1,8 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
-// Checks that e2e/playwright/lib/crypto.ts still produces the vector that the engine's user store decrypts
-// (server/e2e_crypto_vector_test.go). Run by `npm run check`.
+// Checks that e2e/playwright/lib/crypto.ts still produces the vector in lib/crypto_vector.json, which
+// server/e2e_crypto_vector_test.go decrypts through the engine's user store. Run by `npm run check`.
 
 import {CRYPTO_TEST_VECTOR, decrypt, encrypt, hashedKey} from '../lib/crypto';
 

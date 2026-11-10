@@ -47,8 +47,9 @@ containers' status and logs.
 ## CI
 
 `.github/workflows/e2e.yml` runs the fake lane on every PR against the oldest supported server
-(blocking) and Mattermost master (non-blocking), plus the visual job (non-blocking: the committed
-baselines were rendered on arm64). `.github/workflows/e2e-contract-drift.yml` runs
+(blocking) and Mattermost master (non-blocking), plus the visual job (non-blocking until it has a
+track record; a person reviews any baseline change. The committed baselines were rendered on arm64
+and match CI's amd64 run). `.github/workflows/e2e-contract-drift.yml` runs
 `contract:check` daily and fails only on breaking changes in Google's specs.
 
 ## Writing tests

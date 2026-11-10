@@ -13,9 +13,9 @@ services:
 
   browser:
     image: mcr.microsoft.com/playwright:v${PLAYWRIGHT_VERSION:?set by script/visual.sh}-noble
-    # Chromium rasterizes text slightly differently per CPU architecture, so baselines should come
-    # from amd64 (CI). But amd64 Chromium under Rosetta on Apple silicon never finishes loading the
-    # web app, so script/visual.sh defaults to the host's native platform.
+    # amd64 Chromium under Rosetta on Apple silicon never finishes loading the web app, so
+    # script/visual.sh defaults to the host's native platform. The committed baselines were rendered
+    # on arm64 and match CI's amd64 run.
     platform: ${VISUAL_BROWSER_PLATFORM:?set by script/visual.sh}
     network_mode: service:mattermost
     depends_on:

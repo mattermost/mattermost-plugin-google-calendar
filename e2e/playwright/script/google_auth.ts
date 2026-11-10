@@ -113,9 +113,11 @@ function saveToEnvFile(key: string, value: string) {
     fs.writeFileSync(ENV_FILE, lines.join('\n'), {mode: 0o600});
 }
 
+// The message can carry Google's `error` query parameter, so it is escaped.
 function page(res: http.ServerResponse, status: number, message: string) {
+    const escaped = message.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
     res.writeHead(status, {'Content-Type': 'text/html; charset=utf-8'});
-    res.end(`<!doctype html><html><body style="font-family:sans-serif;padding:2em"><p>${message}</p></body></html>`);
+    res.end(`<!doctype html><html><body style="font-family:sans-serif;padding:2em"><p>${escaped}</p></body></html>`);
 }
 
 const server = http.createServer(async (req, res) => {

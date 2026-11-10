@@ -3,6 +3,8 @@
 
 import crypto from 'crypto';
 
+import vector from './crypto_vector.json';
+
 const NONCE_BYTES = 12;
 
 function cipherFor(key: string): crypto.CipherGCMTypes {
@@ -46,17 +48,18 @@ export function hashedKey(prefix: string, key: string): string {
 }
 
 /**
- * Fixed vector shared with server/e2e_crypto_vector_test.go, which loads it through the engine's
- * own encrypted, hashed user store (kvstore.NewEncryptedKeyStore over NewHashedKeyStore, as
- * store.NewPluginStore builds it). `npm run check` verifies this file still produces it. If either
- * side changes format, one of the two checks fails before any e2e run.
+ * Fixed vector in crypto_vector.json, the single copy both checks read: `npm run check`
+ * (script/verify_crypto_vector.ts) verifies this file still encrypts the plaintext to the ciphertext
+ * and hashes the user key, and server/e2e_crypto_vector_test.go decrypts the same ciphertext through
+ * the engine's own encrypted, hashed user store (kvstore.NewEncryptedKeyStore over
+ * NewHashedKeyStore, as store.NewPluginStore builds it). If either side changes format, one of the
+ * two checks fails before any e2e run.
  */
-export const CRYPTO_TEST_VECTOR = {
-    key: 'e2e-test-encryption-key-32-chars',
-    nonceHex: '000102030405060708090a0b',
-    mattermostUserId: 'e2etestmattermostuserid000',
-    userKey: 'user_a36e0a2b6e2bef799764f069e49e0c18',
-    plaintext: '{"Remote":{"id":"people/100000000000000000001","displayName":"Calendar Owner","mail":"owner@fake-google.test"},"OAuth2Token":{"access_token":"e2e-access","token_type":"Bearer","refresh_token":"e2e-refresh","expiry":"2030-01-01T00:00:00Z"},"MattermostUserID":"e2etestmattermostuserid000"}',
-    ciphertext:
-        'AAECAwQFBgcICQoLncb5ysVJ3LIEJsedodU-x_dUlgbHCRYny_rI1XocNBl3mD7ySVeJXCdRPa7R8WzB-N2833S0X51hycpPMyE-y73wAkWB1H5_yOAGqDlMxCrROqlpp98sMN0UVPymFagFeKhh863WNhGpVX-Al9JJdA12fUIiCzdGmYCTVuLveiZwcNV7T-6wRXLM4o3xS2mM6DLVsbkTV43G1443uA63RsQsNx0fEayVExSjlSGlcdn-N9OdjSnvXQIeu8T10VPSOdZThM1YLAErWaLysphkpfd4wYwAjI1zHkC3kqzKgaS-9vhGTc2UraxTFLeHWw1KOyz8n9IOmxCvmwyWNuC1J9s2j6YmWGo2p6srWK8tHiL-GXqICZyAABeRoRueHxSrri2mrTRQcrz3yarb_ZJu',
-};
+export const CRYPTO_TEST_VECTOR: {
+    key: string;
+    nonceHex: string;
+    mattermostUserId: string;
+    userKey: string;
+    plaintext: string;
+    ciphertext: string;
+} = vector;

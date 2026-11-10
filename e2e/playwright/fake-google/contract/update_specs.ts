@@ -8,8 +8,10 @@
 //
 // Google changes these documents almost daily (revision, etag, descriptions), and most schema
 // changes are additions. So the committed copies drop descriptions, and --check fails only on
-// changes that can break the fake or the plugin: a removed method, field or enum value, a changed
-// type or path, or a newly required parameter. Additions are reported so they can be pulled in.
+// changes that can break the fake or the plugin: a removed method, field, parameter or enum value,
+// a changed type or path, a parameter's changed location or repeated flag, an object switching
+// between closed and map, or a newly required parameter. Additions are reported so they can be
+// pulled in.
 
 /* eslint-disable no-console */
 
@@ -228,8 +230,25 @@ function compare(current: ApiSpec, next: ApiSpec): {breaking: string[]; additive
             const old = method.parameters[param];
             if (!old) {
                 (spec.required ? out.breaking : out.additive).push(`${id} parameter ${param} added${spec.required ? ' (required)' : ''}`);
-            } else if (spec.required && !old.required) {
-                out.breaking.push(`${id} parameter ${param} became required`);
+            } else {
+                if (spec.required && !old.required) {
+                    out.breaking.push(`${id} parameter ${param} became required`);
+                }
+                for (const key of ['type', 'location', 'repeated'] as const) {
+                    if (old[key] !== spec[key]) {
+                        out.breaking.push(`${id} parameter ${param} ${key} ${old[key]} -> ${spec[key]}`);
+                    }
+                }
+                if (old.enum || spec.enum) {
+                    const removed = (old.enum ?? []).filter((v) => !(spec.enum ?? []).includes(v));
+                    const added = (spec.enum ?? []).filter((v) => !(old.enum ?? []).includes(v));
+                    if (removed.length) {
+                        out.breaking.push(`${id} parameter ${param} enum values removed: ${removed.join(', ')}`);
+                    }
+                    if (added.length) {
+                        out.additive.push(`${id} parameter ${param} enum values added: ${added.join(', ')}`);
+                    }
+                }
             }
         }
         for (const param of Object.keys(method.parameters)) {
@@ -289,5 +308,9 @@ function compareSchema(old: JsonSchema, next: JsonSchema, at: string, out: {brea
     }
     if (typeof old.additionalProperties === 'object' && typeof next.additionalProperties === 'object') {
         compareSchema(old.additionalProperties, next.additionalProperties, `${at}{}`, out);
+    } else if ((old.additionalProperties === false && typeof next.additionalProperties === 'object') ||
+        (typeof old.additionalProperties === 'object' && next.additionalProperties === false)) {
+        const shape = (s: JsonSchema) => (s.additionalProperties === false ? 'closed object' : 'map');
+        out.breaking.push(`${at} ${shape(old)} -> ${shape(next)}`);
     }
 }
