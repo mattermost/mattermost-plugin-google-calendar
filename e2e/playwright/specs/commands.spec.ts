@@ -5,7 +5,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {fakeGoogle} from '../lib/fake_google';
 import {googleProfile, requireGoogle, seedConnectedGoogleUser} from '../lib/google/auth';
-import {allDayEvent, createFixtureEvent, dateIn, deleteEvents, eventSummary, timedEvent} from '../lib/google/events';
+import {allDayEvent, cleanupEvents, createFixtureEvent, dateIn, eventSummary, timedEvent} from '../lib/google/events';
 import {googleMode} from '../lib/google/mode';
 import {loadStoredUser, resetConnections} from '../lib/kv';
 import {ensureGcalPlugin, googleOAuthSettings} from '../lib/plugin';
@@ -37,8 +37,7 @@ test.beforeEach(async ({pw}) => {
 });
 
 test.afterEach(async () => {
-    const {owner} = requireGoogle('owner');
-    await deleteEvents(owner, `[e2e-${runId}]`);
+    await cleanupEvents();
     if (googleMode() === 'fake') {
         await fakeGoogle.configure({timeZones: {owner: 'UTC'}});
     }

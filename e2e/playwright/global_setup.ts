@@ -7,6 +7,7 @@ import {Client4} from '@mattermost/client';
 import {baseGlobalSetup, testConfig} from '@mattermost/playwright-lib';
 
 import {fakeGoogle} from './lib/fake_google';
+import {sweepStaleEvents} from './lib/google/events';
 import {googleMode} from './lib/google/mode';
 import {findPluginBundle, uploadPlugin} from './lib/plugin';
 import {assertLocalTargets, assertTestAccounts} from './lib/safety';
@@ -28,6 +29,8 @@ export default async function globalSetup() {
 
     if (googleMode() === 'fake') {
         await useFakeGoogleAccounts();
+    } else {
+        await sweepRealGoogle();
     }
 
     // Creates the sysadmin (on a fresh server) and default team, and sets default preferences.
@@ -38,6 +41,25 @@ export default async function globalSetup() {
     await adminClient.login(testConfig.adminUsername, testConfig.adminPassword);
     await uploadPlugin(adminClient, bundle);
     console.log(`Uploaded plugin bundle ${bundle}`);
+}
+
+/**
+ * Real lane: deletes `[e2e-` events older than an hour from both test calendars, left by a run that
+ * crashed before its cleanup (which would otherwise break "no events" checks in later runs).
+ */
+async function sweepRealGoogle() {
+    for (const role of ['owner', 'collab'] as const) {
+        const prefix = role === 'owner' ? 'GOOGLE_OWNER' : 'GOOGLE_COLLAB';
+        const email = process.env[`${prefix}_EMAIL`];
+        const refreshToken = process.env[`${prefix}_REFRESH_TOKEN`];
+        if (!email || !refreshToken) {
+            continue;
+        }
+        const swept = await sweepStaleEvents({role, email: email.toLowerCase(), refreshToken});
+        if (swept > 0) {
+            console.log(`Swept ${swept} leftover e2e event(s) from the ${role} test calendar`);
+        }
+    }
 }
 
 /**

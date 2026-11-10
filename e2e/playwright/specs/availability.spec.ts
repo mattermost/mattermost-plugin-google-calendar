@@ -5,7 +5,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {fakeGoogle} from '../lib/fake_google';
 import {requireGoogle, seedConnectedGoogleUser} from '../lib/google/auth';
-import {createFixtureEvent, deleteEvents, eventSummary} from '../lib/google/events';
+import {cleanupEvents, createFixtureEvent, deleteEvent, eventSummary} from '../lib/google/events';
 import {googleMode} from '../lib/google/mode';
 import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin, googleOAuthSettings} from '../lib/plugin';
@@ -33,8 +33,7 @@ test.beforeEach(async ({pw}) => {
 });
 
 test.afterEach(async () => {
-    const {owner} = requireGoogle('owner');
-    await deleteEvents(owner, `[e2e-${runId}]`);
+    await cleanupEvents();
 });
 
 /**
@@ -58,7 +57,7 @@ test('sets Do Not Disturb during a running meeting and restores the manual statu
 
     // # Put a meeting with a guest on the calendar that started 5 minutes ago
     const meeting = eventSummary(runId, 'Running meeting');
-    await createFixtureEvent(owner, eventAround(meeting, -5, 25, {attendees: [{email: collab.email}]}));
+    const created = await createFixtureEvent(owner, eventAround(meeting, -5, 25, {attendees: [{email: collab.email}]}));
 
     // # Run the availability job
     const command = new GcalCommand(channelsPage);
@@ -69,7 +68,7 @@ test('sets Do Not Disturb during a running meeting and restores the manual statu
     await expect.poll(async () => (await adminClient.getStatus(user.id)).status).toBe('dnd');
 
     // # Remove the meeting and run the job again
-    await deleteEvents(owner, meeting);
+    await deleteEvent(owner, created.id);
     await command.run('avail');
 
     // * Verify the plugin restores the Away status the user had set before the meeting
@@ -125,7 +124,7 @@ test('sets an In a meeting custom status during a meeting and clears it afterwar
     // # Put a running meeting with a guest on the calendar and run the availability job
     const meeting = eventSummary(runId, 'Design sync');
     const fixture = eventAround(meeting, -5, 25, {attendees: [{email: collab.email}]});
-    await createFixtureEvent(owner, fixture);
+    const created = await createFixtureEvent(owner, fixture);
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
@@ -140,7 +139,7 @@ test('sets an In a meeting custom status during a meeting and clears it afterwar
     expect(Date.parse(status.expires_at)).toBe(Date.parse(fixture.end.dateTime));
 
     // # Remove the meeting and run the job again
-    await deleteEvents(owner, meeting);
+    await deleteEvent(owner, created.id);
     await command.run('avail');
 
     // * Verify the custom status is cleared
@@ -151,24 +150,26 @@ test('sets an In a meeting custom status during a meeting and clears it afterwar
 });
 
 /**
- * @objective Verify that the availability job sends a reminder DM for an event starting in about ten minutes, with its time, location and Google Meet link
+ * @objective Verify that the availability job sends a reminder DM for an event starting in about ten minutes, with its location and, on the fake, its Google Meet link
  *
  * @precondition
- * The user is a plugin admin with reminders on and no automatic status; the Google connection is seeded directly into the plugin KV store
+ * The user is a plugin admin with reminders on and no automatic status; the Google connection is seeded directly into the plugin KV store. Real Google only sets Meet links through conferenceData, which a fixture can't set without creating a real meeting, so the Meet-link checks run on the fake only
  */
-test('sends a reminder DM with the Meet link for an event starting in about ten minutes', {tag: '@google_calendar'}, async ({pw}) => {
+test('sends a reminder DM for an event starting in about ten minutes', {tag: '@google_calendar'}, async ({pw}) => {
     const {owner, collab} = requireGoogle('owner', 'collab');
-    test.skip(googleMode() === 'real', 'Fake Google only: real Google sets Meet links through conferenceData, which fixtures cannot set without creating a real meeting');
+    const fake = googleMode() === 'fake';
 
     // # Seed a connected plugin admin with reminders on
     const {adminClient, user, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, {...googleOAuthSettings(), adminUserIds: user.id});
     await seedConnectedGoogleUser(user, owner, undefined, {ReceiveReminders: true});
 
-    // # Put a meeting starting in 8 minutes with a guest, a room and a Meet link on the calendar
+    // # Put a meeting starting in 8 minutes with a guest, a room and (on the fake) a Meet link on the calendar
     const meeting = eventSummary(runId, 'Customer call');
     await createFixtureEvent(owner, eventAround(meeting, 8, 38, {attendees: [{email: collab.email}], location: 'Room 7', hangoutLink: MEET_LINK}));
-    await fakeGoogle.clearRequests();
+    if (fake) {
+        await fakeGoogle.clearRequests();
+    }
 
     // # Run the availability job
     const {channelsPage} = await pw.testBrowser.login(user);
@@ -177,20 +178,26 @@ test('sends a reminder DM with the Meet link for an event starting in about ten 
     const command = new GcalCommand(channelsPage);
     await command.run('avail');
 
-    // * Verify the job read the next 10 minutes of the calendar
-    const lists = (await fakeGoogle.requests()).filter((r) => r.methodId === 'calendar.events.list');
-    expect(lists.length).toBeGreaterThan(0);
-    const {timeMin, timeMax} = lists[0].query as Record<string, string>;
-    expect(Date.parse(timeMax) - Date.parse(timeMin)).toBe(10 * MINUTE);
+    // * Verify the job read the next 10 minutes of the calendar (the fake records the request)
+    if (fake) {
+        const lists = (await fakeGoogle.requests()).filter((r) => r.methodId === 'calendar.events.list');
+        expect(lists.length).toBeGreaterThan(0);
+        const {timeMin, timeMax} = lists[0].query as Record<string, string>;
+        expect(Date.parse(timeMax) - Date.parse(timeMin)).toBe(10 * MINUTE);
+    }
 
-    // * Verify the bot sends one reminder with the event, its location and the Google Meet link
+    // * Verify the bot sends one reminder with the event and its location
     const botDM = new GcalBotDM(channelsPage);
     await botDM.open(team.name);
     const reminder = botDM.reminder(meeting);
     await expect(reminder).toHaveCount(1);
     await expect(reminder).toContainText('Room 7');
-    await expect(reminder).toContainText('Google Meet');
-    await expect(botDM.eventTitleLink(reminder, meeting)).toHaveAttribute('href', MEET_LINK);
+
+    // * Verify the reminder links the Google Meet call (fake only)
+    if (fake) {
+        await expect(reminder).toContainText('Google Meet');
+        await expect(botDM.eventTitleLink(reminder, meeting)).toHaveAttribute('href', MEET_LINK);
+    }
 });
 
 /**

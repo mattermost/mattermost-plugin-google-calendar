@@ -5,7 +5,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 
 import {fakeGoogle} from '../lib/fake_google';
 import {googleProfile, requireGoogle, seedConnectedGoogleUser} from '../lib/google/auth';
-import {dateIn, deleteEvents, eventSummary, findEvents} from '../lib/google/events';
+import {cleanupEvents, dateIn, eventSummary, waitForEvent} from '../lib/google/events';
 import {googleMode} from '../lib/google/mode';
 import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin} from '../lib/plugin';
@@ -31,9 +31,7 @@ test.beforeEach(async ({pw}) => {
 });
 
 test.afterEach(async () => {
-    const {owner, collab} = requireGoogle('owner', 'collab');
-    await deleteEvents(owner, `[e2e-${runId}]`);
-    await deleteEvents(collab, `[e2e-${runId}]`);
+    await cleanupEvents();
     if (googleMode() === 'fake') {
         await fakeGoogle.configure({timeZones: {owner: 'UTC'}});
     }
@@ -145,11 +143,10 @@ test('creates an event linked to the channel and invites a connected teammate', 
     await expect(modal.linkedAnnouncement(summary, user.username)).toBeVisible();
 
     // * Verify the event is on the organizer's calendar and on the guest's
-    const [created] = await findEvents(owner, summary);
-    expect(created).toBeDefined();
+    const created = await waitForEvent(owner, summary);
     expect(created.start.dateTime).toMatch(new RegExp(`^${date}T10:00:00`));
     expect((created.attendees ?? []).map((a: {email: string}) => a.email)).toContain(collab.email);
-    await expect.poll(async () => (await findEvents(collab, summary)).length).toBe(1);
+    await waitForEvent(collab, summary);
 
     // * Verify the plugin asked Google to email the guests, with times in the calendar's time zone
     if (googleMode() === 'fake') {
@@ -201,6 +198,6 @@ test('creates an event without a channel and confirms it in a bot DM', {tag: '@g
     await expect(botDM.eventCreated).toContainText('Room 4');
 
     // * Verify Google has the event with its location and description
-    const [created] = await findEvents(owner, summary);
+    const created = await waitForEvent(owner, summary);
     expect(created).toMatchObject({summary, location: 'Room 4', description: 'Quarterly goals'});
 });

@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {viewEvents} from '../lib/events_api';
 import {fakeGoogle} from '../lib/fake_google';
 import {googleProfile, requireGoogle, seedConnectedGoogleUser} from '../lib/google/auth';
-import {allDayEvent, createFixtureEvent, dateIn, deleteEvents, eventSummary} from '../lib/google/events';
+import {allDayEvent, cleanupEvents, createFixtureEvent, dateIn, eventSummary} from '../lib/google/events';
 import {googleMode} from '../lib/google/mode';
 import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin, googleOAuthSettings} from '../lib/plugin';
@@ -29,8 +29,7 @@ test.beforeEach(async ({pw}) => {
 });
 
 test.afterEach(async () => {
-    const {owner} = requireGoogle('owner');
-    await deleteEvents(owner, `[e2e-${runId}]`);
+    await cleanupEvents();
 });
 
 /**

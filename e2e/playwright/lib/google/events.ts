@@ -1,6 +1,8 @@
 // Copyright (c) 2015-present Mattermost, Inc. All Rights Reserved.
 // See LICENSE.txt for license information.
 
+import {expect} from '@playwright/test';
+
 import {fakeGoogle, type FakeEventInput} from '../fake_google';
 
 import type {GoogleAccount} from './auth';
@@ -42,46 +44,108 @@ export function allDayEvent(summary: string, date: string, extra: Partial<FakeEv
     return {summary, start: {date}, end: {date: next.toISOString().slice(0, 10)}, ...extra};
 }
 
-async function calendarApi(account: GoogleAccount, method: string, path: string, body?: unknown) {
+async function calendarApi(account: GoogleAccount, method: string, path: string, body?: unknown, okStatuses: number[] = []) {
     const response = await fetch(`${googleEndpoints().calendar}${path}`, {
         method,
         headers: {authorization: `Bearer ${await googleAccessToken(account)}`, 'content-type': 'application/json'},
         body: body === undefined ? undefined : JSON.stringify(body),
     });
-    if (!response.ok) {
+    if (!response.ok && !okStatuses.includes(response.status)) {
         throw new Error(`Calendar API ${method} ${path} failed: ${response.status} ${await response.text()}`);
     }
-    return response.status === 204 ? undefined : response.json();
+    return response.status === 204 || !response.ok ? undefined : response.json();
 }
 
-/** Puts an event on the account's primary calendar without notifying anyone. */
-export async function createFixtureEvent(account: GoogleAccount, event: FakeEventInput): Promise<FixtureEvent> {
-    if (googleMode() === 'fake') {
-        const created = await fakeGoogle.createEvent(account.email, event);
-        return {id: created.id, summary: created.summary};
+// Every event a test puts on (or finds on) a calendar, so cleanup deletes by id. Lookups go through
+// Google's `q` search, which can lag right after an insert, so cleanup must not depend on it.
+const tracked: Array<{account: GoogleAccount; id: string}> = [];
+
+/** Records an event for cleanupEvents(), e.g. one the plugin created and a test looked up. */
+export function trackEvent(account: GoogleAccount, id: string) {
+    if (!tracked.some((t) => t.account.email === account.email && t.id === id)) {
+        tracked.push({account, id});
     }
-    const {hangoutLink: _ignored, ...insertable} = event;
-    const created = await calendarApi(account, 'POST', '/calendars/primary/events?sendUpdates=none', insertable);
-    return {id: created.id, summary: created.summary};
 }
 
-/** Events on the account's primary calendar whose summary contains `text`. */
+/** Puts an event on the account's primary calendar without notifying anyone, and tracks it for cleanup. */
+export async function createFixtureEvent(account: GoogleAccount, event: FakeEventInput): Promise<FixtureEvent> {
+    let created: FixtureEvent;
+    if (googleMode() === 'fake') {
+        const result = await fakeGoogle.createEvent(account.email, event);
+        created = {id: result.id, summary: result.summary};
+    } else {
+        const {hangoutLink: _ignored, ...insertable} = event;
+        const result = await calendarApi(account, 'POST', '/calendars/primary/events?sendUpdates=none', insertable);
+        created = {id: result.id, summary: result.summary};
+    }
+    trackEvent(account, created.id);
+    return created;
+}
+
+/** Deletes one event by id without notifying anyone. An event that is already gone is fine. */
+export async function deleteEvent(account: GoogleAccount, id: string) {
+    if (googleMode() === 'fake') {
+        await fakeGoogle.deleteEvent(account.email, id).catch(() => undefined);
+    } else {
+        await calendarApi(account, 'DELETE', `/calendars/primary/events/${encodeURIComponent(id)}?sendUpdates=none`, undefined, [404, 410]);
+    }
+    const i = tracked.findIndex((t) => t.account.email === account.email && t.id === id);
+    if (i >= 0) {
+        tracked.splice(i, 1);
+    }
+}
+
+/** Deletes every tracked event (call in afterEach). */
+export async function cleanupEvents() {
+    for (const {account, id} of [...tracked]) {
+        await deleteEvent(account, id);
+    }
+}
+
+/**
+ * Events on the account's primary calendar whose summary contains `text`. On real Google this uses
+ * the `q` search, which can lag behind an insert: poll it (expect.poll) rather than reading it once.
+ */
 export async function findEvents(account: GoogleAccount, text: string): Promise<Array<FixtureEvent & Record<string, any>>> {
     if (googleMode() === 'fake') {
         return (await fakeGoogle.events(account.email)).filter((e) => e.summary.includes(text));
     }
-    const params = new URLSearchParams({q: text, singleEvents: 'true', maxResults: '50'});
-    const list = await calendarApi(account, 'GET', `/calendars/primary/events?${params}`);
-    return (list.items ?? []).filter((e: any) => String(e.summary ?? '').includes(text));
+    const items: any[] = [];
+    let pageToken: string | undefined;
+    do {
+        const params = new URLSearchParams({q: text, singleEvents: 'true', maxResults: '250', ...(pageToken ? {pageToken} : {})});
+        const list = await calendarApi(account, 'GET', `/calendars/primary/events?${params}`);
+        items.push(...(list.items ?? []));
+        pageToken = list.nextPageToken;
+    } while (pageToken);
+    return items.filter((e: any) => String(e.summary ?? '').includes(text));
 }
 
-/** Deletes the account's events whose summary contains `text` (real-lane cleanup; the fake resets per run). */
-export async function deleteEvents(account: GoogleAccount, text: string) {
-    for (const event of await findEvents(account, text)) {
-        if (googleMode() === 'fake') {
-            await fakeGoogle.deleteEvent(account.email, event.id);
-        } else {
-            await calendarApi(account, 'DELETE', `/calendars/primary/events/${encodeURIComponent(event.id)}?sendUpdates=none`);
-        }
+/**
+ * Real lane, start of run: deletes `[e2e-` events created more than `olderThanMs` ago, left behind
+ * by a run that crashed before its cleanup. Newer ones may belong to a run still in progress.
+ */
+export async function sweepStaleEvents(account: GoogleAccount, olderThanMs = 60 * 60 * 1000): Promise<number> {
+    const cutoff = Date.now() - olderThanMs;
+    const stale = (await findEvents(account, '[e2e-')).filter((e) => e.summary.startsWith('[e2e-') && Date.parse(e.created) < cutoff);
+    for (const event of stale) {
+        await deleteEvent(account, event.id);
     }
+    return stale.length;
+}
+
+/**
+ * Waits until the account's calendar has an event whose summary contains `text` (Google's search
+ * can lag behind an insert), tracks it for cleanup, and returns it. For events the plugin created.
+ */
+export async function waitForEvent(account: GoogleAccount, text: string): Promise<FixtureEvent & Record<string, any>> {
+    let found: Array<FixtureEvent & Record<string, any>> = [];
+    await expect.poll(async () => {
+        found = await findEvents(account, text);
+        return found.length;
+    }, {message: `an event matching "${text}" on ${account.email}`, timeout: 30_000}).toBeGreaterThan(0);
+    for (const event of found) {
+        trackEvent(account, event.id);
+    }
+    return found[0];
 }
