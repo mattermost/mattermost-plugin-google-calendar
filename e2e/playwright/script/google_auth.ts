@@ -114,6 +114,10 @@ function saveToEnvFile(key: string, value: string) {
         }
         lines.push(`${key}=${value}`, '');
     }
+    // `mode` only applies when the file is created; a copy of .env.example is readable by everyone.
+    if (fs.existsSync(ENV_FILE)) {
+        fs.chmodSync(ENV_FILE, 0o600);
+    }
     fs.writeFileSync(ENV_FILE, lines.join('\n'), {mode: 0o600});
 }
 

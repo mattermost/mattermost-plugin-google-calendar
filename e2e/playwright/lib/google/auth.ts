@@ -120,6 +120,28 @@ export async function seedConnectedGoogleUser(mattermostUser: MattermostUser, go
 }
 
 const accessTokens = new Map<string, {token: string; expiresAt: number}>();
+const verifiedAccounts = new Set<string>();
+
+/**
+ * Real Google: throws unless the refresh token belongs to the configured email. The allowlist
+ * (lib/safety.ts) only checks the email, and the token alone decides which account the suite acts
+ * as. google:auth checks this when it saves a token, but tokens put in by hand (e.g. CI secrets)
+ * could belong to another account. Every test-side Google call, including the start-of-run sweep,
+ * gets its first access token through here, so this runs before anything touches the account.
+ */
+async function assertTokenOwner(googleAccount: GoogleAccount, accessToken: string) {
+    const response = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {headers: {authorization: `Bearer ${accessToken}`}});
+    if (!response.ok) {
+        throw new Error(`Could not check which account ${ROLE_ENV[googleAccount.role].refreshToken} belongs to: userinfo returned ${response.status}.`);
+    }
+    const email = String((await response.json()).email ?? '').toLowerCase();
+    if (email !== googleAccount.email) {
+        throw new Error(
+            `${ROLE_ENV[googleAccount.role].refreshToken} belongs to ${email || 'an account with no email'}, not ${ROLE_ENV[googleAccount.role].email} ` +
+                `(${googleAccount.email}). Run \`npm run google:auth -- ${googleAccount.role}\` to get a token for the right account.`,
+        );
+    }
+}
 
 /** An access token for test-side Google API calls (seeding, assertions, cleanup). */
 export async function googleAccessToken(googleAccount: GoogleAccount): Promise<string> {
@@ -145,6 +167,10 @@ export async function googleAccessToken(googleAccount: GoogleAccount): Promise<s
             `Could not refresh the Google token for ${googleAccount.email}: ${body.error} ${body.error_description ?? ''}. ` +
                 `Run \`npm run google:auth -- ${googleAccount.role}\` again.`,
         );
+    }
+    if (googleMode() === 'real' && !verifiedAccounts.has(googleAccount.email)) {
+        await assertTokenOwner(googleAccount, body.access_token);
+        verifiedAccounts.add(googleAccount.email);
     }
     accessTokens.set(googleAccount.email, {token: body.access_token, expiresAt: Date.now() + body.expires_in * 1000});
     return body.access_token;
