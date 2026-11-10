@@ -34,6 +34,16 @@ export class GoogleConsentPage {
         await closed;
     }
 
+    /**
+     * Grants access and returns the plugin's /oauth2/complete response, for a connect expected to
+     * fail (the popup then stays open on the plugin's error).
+     */
+    async allowExpectingCallback() {
+        const callback = this.page.waitForResponse((r) => r.url().includes('/oauth2/complete'));
+        await this.allowButton.click();
+        return callback;
+    }
+
     /** Denies access. Google sends the popup back to the plugin with error=access_denied. */
     async cancel() {
         const callback = this.page.waitForResponse((r) => r.url().includes('/oauth2/complete'));

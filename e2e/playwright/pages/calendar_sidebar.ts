@@ -43,12 +43,25 @@ export class CalendarSidebar {
     }
 
     /**
-     * Resolves once the webapp has fetched the plugin's provider configuration. The app bar button is
-     * registered only after that response (webapp/src/index.tsx setup), so wait for it before
-     * asserting the button is absent. Call before the navigation that loads the webapp.
+     * Waits until the webapp has stored the plugin's provider configuration in Redux. The plugin
+     * registers its sidebar and app bar button right after that (webapp/src/index.tsx setup), so an
+     * absence check before it proves nothing.
      */
-    static providerConfigLoaded(page: Page) {
-        return page.waitForResponse((r) => r.url().includes(`/plugins/${PLUGIN_ID}/api/v1/provider`) && r.ok());
+    async waitForProviderConfig() {
+        await this.page.waitForFunction((reducer) => Boolean((window as any).store?.getState()?.[reducer]?.providerConfiguration), `plugins-${PLUGIN_ID}`);
+    }
+
+    /**
+     * How many channel header and app bar components the plugin has registered with the webapp
+     * (Redux `plugins.components`), whether or not they are rendered.
+     */
+    registeredButtons(): Promise<number> {
+        return this.page.evaluate((pluginId) => {
+            const components = (window as any).store?.getState()?.plugins?.components ?? {};
+            return ['ChannelHeaderButton', 'AppBar', 'RightHandSidebarComponent']
+                .flatMap((kind) => components[kind] ?? [])
+                .filter((c: {pluginId?: string}) => c.pluginId === pluginId).length;
+        }, PLUGIN_ID);
     }
 
     /** Opens the sidebar from its app bar button and waits until it has loaded. */

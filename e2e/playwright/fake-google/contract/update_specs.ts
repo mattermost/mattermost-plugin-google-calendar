@@ -234,10 +234,14 @@ function compare(current: ApiSpec, next: ApiSpec): {breaking: string[]; additive
                 if (spec.required && !old.required) {
                     out.breaking.push(`${id} parameter ${param} became required`);
                 }
-                for (const key of ['type', 'location', 'repeated'] as const) {
+                for (const key of ['type', 'location'] as const) {
                     if (old[key] !== spec[key]) {
                         out.breaking.push(`${id} parameter ${param} ${key} ${old[key]} -> ${spec[key]}`);
                     }
+                }
+                // A missing `repeated` means false, so only a real flip counts.
+                if (Boolean(old.repeated) !== Boolean(spec.repeated)) {
+                    out.breaking.push(`${id} parameter ${param} repeated ${Boolean(old.repeated)} -> ${Boolean(spec.repeated)}`);
                 }
                 if (old.enum || spec.enum) {
                     const removed = (old.enum ?? []).filter((v) => !(spec.enum ?? []).includes(v));

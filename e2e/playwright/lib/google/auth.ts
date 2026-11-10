@@ -16,6 +16,8 @@ import {test} from '@playwright/test';
 import {fakeGoogle} from '../fake_google';
 import {seedConnectedUser, type OAuth2Token, type RemoteUser, type UserSettings} from '../kv';
 
+import {assertTestAccounts} from '../safety';
+
 import {googleEndpoints, googleMode} from './mode';
 
 export type GoogleRole = 'owner' | 'collab';
@@ -54,6 +56,8 @@ function account(role: GoogleRole): GoogleAccount | null {
  * Call at the top of every test that talks to Google.
  */
 export function requireGoogle<R extends GoogleRole>(...roles: R[]): Record<R, GoogleAccount> {
+    // Also checked in global setup; repeated here like the localhost check on every database access.
+    assertTestAccounts();
     if (authMode() === 'dwd') {
         throw new Error('GOOGLE_AUTH_MODE=dwd is not implemented yet (needs the Workspace test org).');
     }

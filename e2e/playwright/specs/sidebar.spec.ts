@@ -39,20 +39,24 @@ test('shows the sidebar only with the experimental UI, with a connect prompt for
     // # Enable the plugin without the experimental UI and log in
     const {adminClient, user, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient);
-    const {page, channelsPage} = await pw.testBrowser.login(user);
-    const providerConfig = CalendarSidebar.providerConfigLoaded(page);
+    const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
-    await providerConfig;
     const sidebar = new CalendarSidebar(channelsPage);
+    await sidebar.waitForProviderConfig();
 
-    // * Verify the app bar has no calendar button once the plugin has loaded its configuration
+    // * Verify that, with its configuration loaded, the plugin registered no sidebar or buttons and the app bar has none
+    expect(await sidebar.registeredButtons()).toBe(0);
     await expect(sidebar.appBarIcon).toHaveCount(0);
 
     // # Turn on the experimental UI and reload
     await ensureGcalPlugin(adminClient, withSidebar());
     await channelsPage.page.reload();
     await channelsPage.toBeVisible();
+
+    // * Verify the plugin now registers its sidebar and button
+    await sidebar.waitForProviderConfig();
+    await expect.poll(() => sidebar.registeredButtons()).toBeGreaterThan(0);
 
     // # Open the sidebar
     await sidebar.open();

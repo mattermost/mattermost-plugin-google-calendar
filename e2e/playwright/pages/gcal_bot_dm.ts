@@ -86,6 +86,18 @@ export class GcalBotDM {
     }
 
     /**
+     * Clicks the connect link for a connect that fails inside the plugin before reaching Google,
+     * and returns the error page the popup shows.
+     */
+    async startConnectExpectingError(): Promise<Locator> {
+        const popupPromise = this.channelsPage.page.waitForEvent('popup');
+        await this.connectLink.click();
+        const popup = await popupPromise;
+        await popup.waitForLoadState();
+        return popup.locator('body');
+    }
+
+    /**
      * Clicks the connect link, which the webapp opens in a new tab (Mattermost opens /plugins/ links
      * outside the app), and returns the Google sign-in page that the plugin redirects it to.
      */
