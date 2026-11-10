@@ -9,6 +9,7 @@ import {baseGlobalSetup, testConfig} from '@mattermost/playwright-lib';
 import {fakeGoogle} from './lib/fake_google';
 import {googleMode} from './lib/google/mode';
 import {findPluginBundle, uploadPlugin} from './lib/plugin';
+import {assertLocalTargets, assertTestAccounts} from './lib/safety';
 import {assertServerAlive} from './lib/server';
 
 /**
@@ -17,6 +18,10 @@ import {assertServerAlive} from './lib/server';
  * configure and enable the plugin themselves after pw.initSetup().
  */
 export default async function globalSetup() {
+    // Fail before touching anything if the targets aren't a local stack and test accounts.
+    assertLocalTargets();
+    assertTestAccounts();
+
     // Fail before touching the server if the bundle is missing or would be rejected.
     const bundle = findPluginBundle();
     await assertServerAlive(testConfig.baseURL);

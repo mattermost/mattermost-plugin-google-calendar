@@ -44,6 +44,13 @@ The stack publishes Mattermost on `localhost:8075`, Postgres on `5434` and the f
 Settings for real Google and the ports are in `.env.example`. `make e2e-env-logs` prints the
 containers' status and logs.
 
+## Safety
+
+The suite deletes the plugin's connection rows in its database, rewrites the plugin's settings on
+its server, and on real Google creates events and sends invites. `lib/safety.ts` therefore refuses
+a server, database or fake that isn't on localhost (unless `E2E_ALLOW_REMOTE_SERVER=1`), and on
+real Google refuses accounts not listed in `E2E_GOOGLE_TEST_ACCOUNTS`.
+
 ## CI
 
 `.github/workflows/e2e.yml` runs the fake lane on every PR against the oldest supported server

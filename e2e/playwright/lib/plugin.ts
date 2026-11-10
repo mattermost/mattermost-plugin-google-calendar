@@ -10,6 +10,7 @@ import {expect} from '@playwright/test';
 
 import manifest from '../../../plugin.json';
 
+import {assertLocalTargets} from './safety';
 import {assertServerAlive} from './server';
 
 export const PLUGIN_ID = manifest.id;
@@ -121,6 +122,7 @@ async function pluginState(adminClient: Client4): Promise<number | undefined> {
  * settings and plugin enable states.
  */
 export async function configureGcalPlugin(adminClient: Client4, settings: GcalPluginSettings, siteURL = process.env.PW_BASE_URL as string) {
+    assertLocalTargets();
     await assertServerAlive(process.env.PW_BASE_URL as string);
 
     // Disable first, so a settings change always goes through OnActivate (as an admin saving the

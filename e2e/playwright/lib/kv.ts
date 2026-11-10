@@ -15,8 +15,10 @@ import {Client} from 'pg';
 
 import {decrypt, encrypt, hashedKey} from './crypto';
 import {PLUGIN_ID, TEST_ENCRYPTION_KEY} from './plugin';
+import {assertLocalTargets} from './safety';
 
 async function withDb<T>(fn: (db: Client) => Promise<T>): Promise<T> {
+    assertLocalTargets();
     const db = new Client({connectionString: process.env.E2E_DATABASE_URL});
     await db.connect();
     try {

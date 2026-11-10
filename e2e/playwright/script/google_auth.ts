@@ -21,6 +21,7 @@ import http from 'http';
 import path from 'path';
 
 import {GCAL_OAUTH_SCOPES} from '../lib/google/auth';
+import {isTestAccount} from '../lib/safety';
 
 // E2E_ENV_FILE (relative to e2e/playwright/) picks another file, e.g. for a second OAuth client.
 const ENV_FILE = path.resolve(__dirname, '..', process.env.E2E_ENV_FILE ?? '.env.local');
@@ -54,6 +55,9 @@ if (!clientId || !clientSecret) {
 }
 if (!expectedEmail) {
     fail(`${emailVar} must be set in ${ENV_FILE}.`);
+}
+if (!isTestAccount(expectedEmail)) {
+    fail(`${emailVar} is not listed in E2E_GOOGLE_TEST_ACCOUNTS in ${ENV_FILE}. Only get tokens for test accounts: the real lane creates events on them and sends them invites.`);
 }
 
 const state = crypto.randomBytes(16).toString('hex');
