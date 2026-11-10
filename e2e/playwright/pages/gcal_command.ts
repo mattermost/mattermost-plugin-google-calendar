@@ -132,11 +132,6 @@ export class GcalCommand {
         return agenda.getByRole('paragraph').first();
     }
 
-    /** Agenda reply when the calendar has no events in range. */
-    get noUpcomingEvents(): Locator {
-        return this.reply('You have no upcoming events.');
-    }
-
     /** The current channel's last post, for asserting a whole agenda reply. */
     get lastPost(): Locator {
         return this.channelsPage.centerView.container.getByRole('listitem').last();

@@ -82,7 +82,7 @@ const state = {
     /** Events per calendar owner (user key), in insertion order. */
     calendars: new Map<string, Map<string, EventRecord>>(),
     channels: new Map<string, Channel>(),
-    codes: new Map<string, {user: string; scope: string; redirectUri: string; consented: boolean}>(),
+    codes: new Map<string, {user: string; scope: string; redirectUri: string; consented: boolean; offline: boolean}>(),
     accessTokens: new Map<string, {user: string; scope: string; expiresAt: number}>(),
     /** Users who granted the client access at least once (Google skips consent next time unless prompt=consent). */
     grants: new Set<string>(),
@@ -190,7 +190,7 @@ function consent(form: URLSearchParams): Result {
     } else {
         state.grants.add(account);
         const code = `4/fake-${randomId(40)}`;
-        state.codes.set(code, {user: account, scope: query.get('scope') ?? '', redirectUri: query.get('redirect_uri')!, consented: Boolean(needsConsent)});
+        state.codes.set(code, {user: account, scope: query.get('scope') ?? '', redirectUri: query.get('redirect_uri')!, consented: Boolean(needsConsent), offline: query.get('access_type') === 'offline'});
         redirect.searchParams.set('code', code);
         redirect.searchParams.set('scope', query.get('scope') ?? '');
     }
@@ -233,7 +233,8 @@ function tokenEndpoint(form: URLSearchParams, authorization: string, log: Logged
         }
         user = code.user;
         scope = code.scope;
-        if (code.consented) {
+        // Like Google: a refresh token only for offline access, and only after the consent screen.
+        if (code.consented && code.offline) {
             refreshToken = userByKey(user).refreshToken;
             state.revokedRefreshTokens.delete(refreshToken);
         }

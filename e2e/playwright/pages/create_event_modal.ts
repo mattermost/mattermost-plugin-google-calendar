@@ -18,13 +18,11 @@ export class CreateEventModal {
     readonly subjectInput: Locator;
     readonly dateInput: Locator;
     readonly startTimeInput: Locator;
-    readonly endTimeInput: Locator;
     readonly locationInput: Locator;
     readonly descriptionInput: Locator;
     readonly channelInput: Locator;
     readonly guestsInput: Locator;
     readonly createButton: Locator;
-    readonly error: Locator;
 
     constructor(private readonly channelsPage: ChannelsPage) {
         this.page = channelsPage.page;
@@ -32,13 +30,11 @@ export class CreateEventModal {
         this.subjectInput = this.container.getByRole('textbox', {name: 'Subject'});
         this.dateInput = this.container.getByRole('textbox', {name: 'Date'});
         this.startTimeInput = this.container.getByRole('combobox', {name: 'Start Time'});
-        this.endTimeInput = this.container.getByRole('combobox', {name: 'End Time'});
         this.locationInput = this.container.getByRole('textbox', {name: 'Location (optional)'});
         this.descriptionInput = this.container.getByRole('textbox', {name: 'Description (optional)'});
         this.channelInput = this.container.getByRole('combobox', {name: 'Link event to channel (optional)'});
         this.guestsInput = this.container.getByRole('combobox', {name: 'Guests'});
         this.createButton = this.container.getByRole('button', {name: 'Create', exact: true});
-        this.error = this.container.getByRole('alert');
     }
 
     /**
@@ -79,16 +75,6 @@ export class CreateEventModal {
         await this.page.keyboard.press('Enter');
     }
 
-    // The guest selector accepts plain email addresses once the user lookup has answered.
-    async addGuest(email: string) {
-        await this.guestsInput.click();
-        const lookup = this.page.waitForResponse((response) => response.url().includes('/autocomplete/users'));
-        await this.page.keyboard.type(email);
-        await lookup;
-        await this.page.keyboard.press('Enter');
-        await expect(this.guest(email)).toBeVisible();
-    }
-
     /**
      * Picks a connected Mattermost user from the guest suggestions (the plugin's
      * /autocomplete/users searches its connected-user index); the plugin invites their Google account.
@@ -100,6 +86,14 @@ export class CreateEventModal {
         await lookup;
         await this.page.getByRole('option', {name: displayName}).click();
         await expect(this.guest(displayName)).toBeVisible();
+    }
+
+    /**
+     * A labelled field of the form (components/setting.tsx renders each as a .form-group with its
+     * label), for reading what a react-select shows as selected.
+     */
+    field(label: string): Locator {
+        return this.container.locator('.form-group').filter({has: this.page.locator('label', {hasText: new RegExp(`^${label}`)})});
     }
 
     /** The channel the event will be linked to, shown in the channel selector. */

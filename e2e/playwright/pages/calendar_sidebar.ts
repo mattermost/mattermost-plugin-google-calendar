@@ -20,7 +20,6 @@ export class CalendarSidebar {
     readonly container: Locator;
     readonly connectButton: Locator;
     readonly welcome: Locator;
-    readonly refreshButton: Locator;
     readonly nextButton: Locator;
     readonly tooltip: Locator;
     readonly joinMeetingLink: Locator;
@@ -35,13 +34,21 @@ export class CalendarSidebar {
         this.container = this.page.getByRole('region', {name: PROVIDER_DISPLAY_NAME});
         this.connectButton = this.container.getByRole('link', {name: 'Connect account'});
         this.welcome = this.container.getByText(`Welcome to ${PROVIDER_DISPLAY_NAME}`);
-        this.refreshButton = this.container.getByRole('button', {name: 'Refresh'});
         this.nextButton = this.container.getByRole('button', {name: 'Next'});
 
         // The event details popover (components/event_tooltip) renders outside the region.
         this.closeTooltipButton = this.page.getByRole('button', {name: 'Close event details'});
         this.tooltip = this.page.locator('.gcal-tooltip');
         this.joinMeetingLink = this.tooltip.getByRole('link', {name: 'Join'});
+    }
+
+    /**
+     * Resolves once the webapp has fetched the plugin's provider configuration. The app bar button is
+     * registered only after that response (webapp/src/index.tsx setup), so wait for it before
+     * asserting the button is absent. Call before the navigation that loads the webapp.
+     */
+    static providerConfigLoaded(page: Page) {
+        return page.waitForResponse((r) => r.url().includes(`/plugins/${PLUGIN_ID}/api/v1/provider`) && r.ok());
     }
 
     /** Opens the sidebar from its app bar button and waits until it has loaded. */
@@ -62,7 +69,10 @@ export class CalendarSidebar {
         await expect(this.closeTooltipButton).toBeVisible();
     }
 
-    /** An empty half-hour slot of the day grid ("HH:MM", calendar time zone). FullCalendar has no accessible slots. */
+    /**
+     * An empty half-hour slot of the day grid ("HH:MM"). The sidebar renders in the Mattermost user's
+     * time zone (getCurrentTimezone), not the calendar's. FullCalendar has no accessible slots.
+     */
     slot(time: string): Locator {
         return this.container.locator(`td.fc-timegrid-slot-lane[data-time="${time}:00"]`);
     }

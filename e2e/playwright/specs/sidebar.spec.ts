@@ -10,6 +10,7 @@ import {allDayEvent, createFixtureEvent, dateIn, deleteEvents, eventSummary} fro
 import {googleMode} from '../lib/google/mode';
 import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin, googleOAuthSettings} from '../lib/plugin';
+import {setMattermostTimeZone} from '../lib/users';
 import {CalendarSidebar} from '../pages/calendar_sidebar';
 import {CreateEventModal} from '../pages/create_event_modal';
 
@@ -39,12 +40,14 @@ test('shows the sidebar only with the experimental UI, with a connect prompt for
     // # Enable the plugin without the experimental UI and log in
     const {adminClient, user, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient);
-    const {channelsPage} = await pw.testBrowser.login(user);
+    const {page, channelsPage} = await pw.testBrowser.login(user);
+    const providerConfig = CalendarSidebar.providerConfigLoaded(page);
     await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
+    await providerConfig;
     const sidebar = new CalendarSidebar(channelsPage);
 
-    // * Verify the app bar has no calendar button
+    // * Verify the app bar has no calendar button once the plugin has loaded its configuration
     await expect(sidebar.appBarIcon).toHaveCount(0);
 
     // # Turn on the experimental UI and reload
@@ -64,17 +67,18 @@ test('shows the sidebar only with the experimental UI, with a connect prompt for
  * @objective Verify that the sidebar shows today's timed and all-day events, and an event's details with its location and Google Meet link
  *
  * @precondition
- * The user's Google connection is seeded directly into the plugin KV store
+ * The user's Google connection is seeded directly into the plugin KV store, and their Mattermost time zone is set to the calendar's (the sidebar renders in the Mattermost time zone)
  */
 test('shows today\'s events and an event\'s details with the Meet link', {tag: '@google_calendar'}, async ({pw}) => {
     const {owner, collab} = requireGoogle('owner', 'collab');
     test.skip(googleMode() === 'real', 'Fake Google only: real Google sets Meet links through conferenceData, which fixtures cannot set without creating a real meeting');
 
     // # Put a meeting around now with a Meet link and an all-day event for today on the calendar
-    const {adminClient, user, team} = await pw.initSetup();
+    const {adminClient, user, userClient, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, withSidebar());
     await seedConnectedGoogleUser(user, owner);
     const {timeZone} = await googleProfile(owner);
+    await setMattermostTimeZone(userClient, timeZone);
     const meeting = eventSummary(runId, 'Sidebar meeting');
     const holiday = eventSummary(runId, 'Team day');
     const at = (min: number) => new Date(Math.floor((Date.now() + (min * MINUTE)) / 1000) * 1000).toISOString().replace('.000Z', 'Z');
@@ -111,16 +115,17 @@ test('shows today\'s events and an event\'s details with the Meet link', {tag: '
  * @objective Verify that clicking an empty time slot in the sidebar opens the create-event dialog for that date and half hour
  *
  * @precondition
- * The user's Google connection is seeded directly into the plugin KV store
+ * The user's Google connection is seeded directly into the plugin KV store, and their Mattermost time zone is set to the calendar's (the sidebar renders in the Mattermost time zone)
  */
 test('opens the create-event dialog for a clicked time slot', {tag: '@google_calendar'}, async ({pw}) => {
     const {owner} = requireGoogle('owner');
 
     // # Seed a connected user, open the sidebar and go to tomorrow
-    const {adminClient, user, team} = await pw.initSetup();
+    const {adminClient, user, userClient, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, withSidebar());
     await seedConnectedGoogleUser(user, owner);
     const {timeZone} = await googleProfile(owner);
+    await setMattermostTimeZone(userClient, timeZone);
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();

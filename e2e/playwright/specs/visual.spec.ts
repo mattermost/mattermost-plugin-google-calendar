@@ -25,8 +25,8 @@ import {GcalCommand} from '../pages/gcal_command';
 // those tests freeze it on a fixed day.
 const FIXED_NOW = new Date('2027-01-15T10:20:00Z');
 const FIXED_DAY = '2027-01-15';
-// Events created through the dialog go on another day, so they never show in the sidebar baselines.
-const CREATED_DAY = '2027-02-10';
+// The filled-in dialog's date (that test only fills the form, so any fixed day works).
+const FILLED_DAY = '2027-02-10';
 const MEET_LINK = 'https://meet.google.com/abc-defg-hij';
 const SETTINGS = ['Update Status', 'Get Confirmation', 'Set Custom Status', 'Receive Reminders', 'Daily Summary'];
 
@@ -39,11 +39,13 @@ test.describe('visual', {tag: '@visual'}, () => {
     });
 
     /**
-     * Enables the plugin (with the experimental sidebar), optionally connects a regular user to the
-     * owner account, and opens Town Square in their browser, with the clock frozen if asked.
+     * Enables the plugin (with the experimental sidebar), optionally connects a regular user to a
+     * Google account (the owner unless asked), and opens Town Square in their browser, with the clock
+     * frozen if asked.
      */
-    async function openTownSquare(pw: PlaywrightExtended, options: {connected?: boolean; settings?: Partial<UserSettings>; adminUser?: boolean; frozenAt?: Date} = {}) {
-        const {owner} = requireGoogle('owner');
+    async function openTownSquare(pw: PlaywrightExtended, options: {connected?: boolean; account?: 'owner' | 'collab'; settings?: Partial<UserSettings>; adminUser?: boolean; frozenAt?: Date} = {}) {
+        const accounts = requireGoogle('owner', 'collab');
+        const owner = accounts[options.account ?? 'owner'];
         const {adminClient, user, team} = await pw.initSetup();
         await ensureGcalPlugin(adminClient, {...googleOAuthSettings(), enableExperimentalUI: true, adminUserIds: options.adminUser ? user.id : ''});
         if (options.connected ?? true) {
@@ -78,7 +80,7 @@ test.describe('visual', {tag: '@visual'}, () => {
 
         // # Fill in an event
         await modal.subjectInput.fill('Quarterly planning');
-        await modal.dateInput.fill(CREATED_DAY);
+        await modal.dateInput.fill(FILLED_DAY);
         await modal.chooseStartTime('10:00');
         await modal.locationInput.fill('Room 4');
         await modal.descriptionInput.fill('Goals for the next quarter');
@@ -95,12 +97,14 @@ test.describe('visual', {tag: '@visual'}, () => {
      * Run through `npm run test:visual`, which provides the fake Google and the dockerized browser the baselines come from
      */
     test('matches the baseline for the event-created DM', {tag: '@google_calendar'}, async ({pw}) => {
-        // # Create an event on a fixed day without a channel
-        const {channelsPage, team} = await openTownSquare(pw);
+        // The server rejects past start times, so the date can't be fixed; the DM shows no date, and
+        // the collaborator's calendar never appears in the sidebar baselines.
+        // # Create an event 30 days out without a channel, as the collaborator
+        const {channelsPage, team} = await openTownSquare(pw, {account: 'collab'});
         const modal = new CreateEventModal(channelsPage);
         await modal.openFromCommand();
         await modal.subjectInput.fill('Quarterly planning');
-        await modal.dateInput.fill(CREATED_DAY);
+        await modal.dateInput.fill(dateIn('UTC', 30));
         await modal.chooseStartTime('10:00');
         await modal.locationInput.fill('Room 4');
         await modal.clearLinkedChannel();

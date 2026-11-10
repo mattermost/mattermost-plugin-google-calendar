@@ -149,7 +149,7 @@ test('fails commands without marking the user inactive when Google rejects a rev
     expect(refreshes.length).toBeGreaterThan(0);
     expect(refreshes.every((r) => r.status === 400)).toBe(true);
 
-    // * Verify the plugin keeps the connection: Google's "invalid_grant" matches neither error the engine treats as an expired refresh token (spike Q1)
+    // * Verify the plugin keeps the connection: Google's "invalid_grant" matches neither error the engine treats as an expired refresh token (confirmed on real Google; a product bug)
     expect((await loadStoredUser(user.id))?.OAuth2Token?.refresh_token).toBe(owner.refreshToken);
 
     // # Open the bot DM

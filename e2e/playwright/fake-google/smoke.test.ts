@@ -79,13 +79,13 @@ function listQuery(timeMin: string, timeMax: string, extra: Record<string, strin
 }
 
 describe('OAuth', () => {
-    test('issues a refresh token only when the consent screen was shown', async () => {
+    test('issues a refresh token only for offline access when the consent screen was shown', async () => {
         const {clientId, clientSecret} = await control('GET', 'accounts');
         const redirectUri = 'http://localhost:8075/plugins/com.mattermost.gcal/oauth2/complete';
-        const authorizeQuery = (prompt?: string) => new URLSearchParams({
-            client_id: clientId, redirect_uri: redirectUri, response_type: 'code', scope: 'https://www.googleapis.com/auth/calendar', state: 'st', access_type: 'offline', ...(prompt ? {prompt} : {}),
+        const authorizeQuery = (prompt?: string, accessType = 'offline') => new URLSearchParams({
+            client_id: clientId, redirect_uri: redirectUri, response_type: 'code', scope: 'https://www.googleapis.com/auth/calendar', state: 'st', access_type: accessType, ...(prompt ? {prompt} : {}),
         });
-        const sid = async (prompt?: string) => /name="sid" value="([^"]+)"/.exec(await (await fetch(`${base}/o/oauth2/auth?${authorizeQuery(prompt)}`)).text())![1];
+        const sid = async (prompt?: string, accessType?: string) => /name="sid" value="([^"]+)"/.exec(await (await fetch(`${base}/o/oauth2/auth?${authorizeQuery(prompt, accessType)}`)).text())![1];
         const post = (form: Record<string, string>) => fetch(`${base}/o/oauth2/consent`, {method: 'POST', body: new URLSearchParams(form), redirect: 'manual'});
         const exchange = async (location: string) => (await fetch(`${base}/token`, {
             method: 'POST',
@@ -101,6 +101,12 @@ describe('OAuth', () => {
         const granted = await exchange(allowed.headers.get('location')!);
         assert.equal(granted.refresh_token, 'fake-refresh-owner');
 
+        // With the consent screen but online access only, no refresh token comes back.
+        const online = await sid('consent', 'online');
+        await post({sid: online, account: 'owner'});
+        const onlineAllowed = await post({sid: online, account: 'owner', decision: 'allow'});
+        assert.equal((await exchange(onlineAllowed.headers.get('location')!)).refresh_token, undefined);
+
         // Without prompt=consent an earlier grant skips the consent screen and no refresh token comes back.
         const skipped = await post({sid: await sid(), account: 'owner'});
         assert.equal(skipped.status, 302);
@@ -114,7 +120,7 @@ describe('OAuth', () => {
         assert.equal(deniedUrl.searchParams.get('state'), 'st');
 
         const prompts = (await control('GET', 'requests')).value.filter((r: Json) => r.path === '/o/oauth2/auth').map((r: Json) => r.query.prompt);
-        assert.deepEqual(prompts, ['consent', undefined, 'consent']);
+        assert.deepEqual(prompts, ['consent', 'consent', undefined, 'consent']);
         await assertNoViolations();
     });
 

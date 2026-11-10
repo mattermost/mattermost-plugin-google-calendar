@@ -50,6 +50,21 @@ test('does not start the plugin without an encryption key', {tag: '@google_calen
 });
 
 /**
+ * @objective Verify that activation accepts an encryption key of any non-empty length: the plugin only rejects an empty key (gcal/remote.go CheckConfiguration)
+ *
+ * @precondition
+ * The plugin is enabled with a Google OAuth client and a 5-character encryption key
+ */
+test('starts with an encryption key of any non-empty length', {tag: '@google_calendar'}, async ({pw}) => {
+    // # Enable the plugin with a 5-character encryption key
+    const {adminClient} = await pw.initSetup();
+    await configureGcalPlugin(adminClient, {...googleOAuthSettings(), encryptionKey: 'short'});
+
+    // * Verify Mattermost reports that the plugin is running
+    expect(await settledPluginState(adminClient)).toBe(PLUGIN_STATE.running);
+});
+
+/**
  * @objective Verify that a configured plugin starts, `/gcal help` lists the user subcommands and `/gcal info` reports the installed version
  */
 test('starts with a Google OAuth client and encryption key and lists the subcommands in /gcal help', {tag: '@google_calendar'}, async ({pw}) => {

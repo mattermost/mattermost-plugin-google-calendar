@@ -19,3 +19,11 @@ export async function createTeammate(adminClient: Client4, team: Team, profile: 
 export function pluginDisplayName(user: {username: string; first_name?: string; last_name?: string}): string {
     return [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
 }
+
+/**
+ * Sets the Mattermost user's time zone (instead of the browser's, which Mattermost uses by default).
+ * The calendar sidebar renders in this zone.
+ */
+export async function setMattermostTimeZone(userClient: Client4, timeZone: string) {
+    await userClient.patchMe({timezone: {useAutomaticTimezone: 'false', automaticTimezone: '', manualTimezone: timeZone}} as any);
+}

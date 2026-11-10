@@ -124,7 +124,8 @@ test('sets an In a meeting custom status during a meeting and clears it afterwar
 
     // # Put a running meeting with a guest on the calendar and run the availability job
     const meeting = eventSummary(runId, 'Design sync');
-    await createFixtureEvent(owner, eventAround(meeting, -5, 25, {attendees: [{email: collab.email}]}));
+    const fixture = eventAround(meeting, -5, 25, {attendees: [{email: collab.email}]});
+    await createFixtureEvent(owner, fixture);
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
@@ -134,7 +135,9 @@ test('sets an In a meeting custom status during a meeting and clears it afterwar
     // * Verify the user's custom status is "In a meeting" with the calendar emoji, expiring when the meeting ends
     const customStatus = async () => (await adminClient.getUser(user.id)).props?.customStatus;
     await expect.poll(customStatus).toBeTruthy();
-    expect(JSON.parse((await customStatus())!)).toMatchObject({emoji: 'calendar', text: 'In a meeting', duration: 'date_and_time'});
+    const status = JSON.parse((await customStatus())!);
+    expect(status).toMatchObject({emoji: 'calendar', text: 'In a meeting', duration: 'date_and_time'});
+    expect(Date.parse(status.expires_at)).toBe(Date.parse(fixture.end.dateTime));
 
     // # Remove the meeting and run the job again
     await deleteEvents(owner, meeting);
@@ -191,20 +194,20 @@ test('sends a reminder DM with the Meet link for an event starting in about ten 
 });
 
 /**
- * @objective Verify that the availability job does not remind about an event that starts later than the reminder window
+ * @objective Verify that the availability job does not remind about an event it reads but that starts too soon for the reminder window (about ten minutes before the start)
  *
  * @precondition
- * The user is a plugin admin with reminders on; the Google connection is seeded directly into the plugin KV store
+ * The user is a plugin admin with reminders and automatic custom status on; the Google connection is seeded directly into the plugin KV store
  */
-test('does not remind about an event that starts in half an hour', {tag: '@google_calendar'}, async ({pw}) => {
+test('does not remind about a meeting that starts in two minutes', {tag: '@google_calendar'}, async ({pw}) => {
     const {owner, collab} = requireGoogle('owner', 'collab');
 
-    // # Seed a connected plugin admin with reminders on, and a meeting starting in 30 minutes
+    // # Seed a connected plugin admin with reminders and custom status on, and a meeting starting in 2 minutes
     const {adminClient, user, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, {...googleOAuthSettings(), adminUserIds: user.id});
-    await seedConnectedGoogleUser(user, owner, undefined, {ReceiveReminders: true});
-    const meeting = eventSummary(runId, 'Later meeting');
-    await createFixtureEvent(owner, eventAround(meeting, 30, 60, {attendees: [{email: collab.email}]}));
+    await seedConnectedGoogleUser(user, owner, undefined, {ReceiveReminders: true, SetCustomStatus: true});
+    const meeting = eventSummary(runId, 'Imminent meeting');
+    await createFixtureEvent(owner, eventAround(meeting, 2, 32, {attendees: [{email: collab.email}]}));
 
     // # Run the availability job
     const {channelsPage} = await pw.testBrowser.login(user);
@@ -212,9 +215,14 @@ test('does not remind about an event that starts in half an hour', {tag: '@googl
     await channelsPage.toBeVisible();
     const command = new GcalCommand(channelsPage);
     await command.run('avail');
-    await expect(command.reply('No users want their status updated')).toBeVisible();
 
-    // * Verify the bot sent no reminder
+    // * Verify the job read the meeting: it set the In a meeting custom status
+    await expect.poll(async () => {
+        const raw = (await adminClient.getUser(user.id)).props?.customStatus;
+        return raw ? JSON.parse(raw).text : '';
+    }).toBe('In a meeting');
+
+    // * Verify the bot sent no reminder for it
     const botDM = new GcalBotDM(channelsPage);
     await botDM.open(team.name);
     await expect(botDM.reminder(meeting)).toHaveCount(0);

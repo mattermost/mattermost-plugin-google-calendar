@@ -72,7 +72,7 @@ test('opens the create-event dialog from the channel menu and the slash command,
     await modal.chooseStartTime('10:00');
 
     // * Verify the end time defaults to 30 minutes later and Create is enabled
-    await expect(modal.container).toContainText('10:30');
+    await expect(modal.field('End Time')).toContainText('10:30');
     await expect(modal.createButton).toBeEnabled();
 
     // # Close the dialog and open it with the slash command
