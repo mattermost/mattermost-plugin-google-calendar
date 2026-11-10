@@ -21,7 +21,8 @@ import {CreateEventModal} from '../pages/create_event_modal';
 import {GcalBotDM} from '../pages/gcal_bot_dm';
 import {GcalCommand} from '../pages/gcal_command';
 
-// The sidebar renders "now" from the browser clock, so its tests freeze it on a fixed day.
+// The sidebar renders "now" and the create dialog prefills today's date from the browser clock, so
+// those tests freeze it on a fixed day.
 const FIXED_NOW = new Date('2027-01-15T10:20:00Z');
 const FIXED_DAY = '2027-01-15';
 // Events created through the dialog go on another day, so they never show in the sidebar baselines.
@@ -65,8 +66,8 @@ test.describe('visual', {tag: '@visual'}, () => {
      * Run through `npm run test:visual`, which provides the fake Google and the dockerized browser the baselines come from
      */
     test('matches baselines for the create-event dialog', {tag: '@google_calendar'}, async ({pw}) => {
-        // # Open the dialog
-        const {channelsPage} = await openTownSquare(pw);
+        // # Open the dialog (on a fixed day: the empty form prefills today's date)
+        const {channelsPage} = await openTownSquare(pw, {frozenAt: FIXED_NOW});
         const modal = new CreateEventModal(channelsPage);
         await modal.openFromCommand();
         await modal.clearLinkedChannel();

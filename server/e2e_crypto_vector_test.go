@@ -1,3 +1,6 @@
+// Copyright (c) 2019-present Mattermost, Inc. All Rights Reserved.
+// See LICENSE.txt for license information.
+
 package main
 
 import (
@@ -21,15 +24,19 @@ func (m memoryKV) Load(key string) ([]byte, error) {
 	}
 	return value, nil
 }
+
 func (m memoryKV) Store(key string, data []byte) error { m[key] = data; return nil }
+
 func (m memoryKV) StoreTTL(key string, data []byte, _ int64) error {
 	m[key] = data
 	return nil
 }
+
 func (m memoryKV) StoreWithOptions(key string, data []byte, _ model.PluginKVSetOptions) (bool, error) {
 	m[key] = data
 	return true, nil
 }
+
 func (m memoryKV) Delete(key string) error         { delete(m, key); return nil }
 func (m memoryKV) List(_, _ int) ([]string, error) { return nil, nil }
 

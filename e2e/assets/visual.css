@@ -12,3 +12,9 @@
 .channel-header {
     visibility: hidden !important;
 }
+
+/* Post times change between runs. Mattermost hides them with visibility, which keeps their width, so
+   text after the time (an ephemeral post's "(Only visible to you)") moves with the time of day. */
+.post__time {
+    display: none !important;
+}
