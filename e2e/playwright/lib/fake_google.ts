@@ -66,8 +66,14 @@ export const fakeGoogle = {
     violations: async () => (await control<{value: string[]}>('GET', 'violations')).value,
     requests: async () => (await control<{value: FakeRequest[]}>('GET', 'requests')).value,
     clearRequests: () => control('DELETE', 'requests'),
-    /** Revokes the refresh token (all users, or one user key or email), like removing the app's access in the Google account. */
+    /** Revokes every refresh token (all users, or one user key or email), like removing the app's access in the Google account. */
     revokeRefreshTokens: (who?: string) => control('POST', 'tokens/revoke', who ? {user: who} : {}),
+    /** Refresh tokens issued by consents and mintRefreshToken (user key, scopes, revoked), oldest first. */
+    refreshTokens: async () => (await control<{value: Array<{token: string; user: string; scope: string; revoked: boolean}>}>('GET', 'tokens')).value,
+    /** Revokes one refresh token, like Google's revoke endpoint. */
+    revokeRefreshToken: (token: string) => control('POST', 'tokens/revoke', {token}),
+    /** A new refresh token for a user key or email, as if they had just consented (default: the plugin's scopes). */
+    mintRefreshToken: async (who: string, scope?: string) => (await control<{refreshToken: string}>('POST', 'tokens/mint', {user: who, ...(scope ? {scope} : {})})).refreshToken,
     failNext: (method: string, status = 403, reason = 'rateLimitExceeded', times = 1) => control('POST', 'failures', {method, status, reason, times}),
     channels: async () => (await control<{value: unknown[]}>('GET', 'channels')).value,
 

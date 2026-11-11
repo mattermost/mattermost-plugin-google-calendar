@@ -39,6 +39,7 @@ type DiscoveryMethod = {
     request?: {$ref: string};
     response?: {$ref: string};
     mediaUpload?: {protocols?: {simple?: {path: string}}};
+    scopes?: string[];
 };
 
 type DiscoveryResource = {methods?: Record<string, DiscoveryMethod>; resources?: Record<string, DiscoveryResource>};
@@ -54,6 +55,26 @@ const dir = import.meta.dirname;
 const specsDir = path.join(dir, 'specs');
 const check = process.argv.includes('--check');
 const manifest: Record<string, {url: string; methods: string[]}> = JSON.parse(fs.readFileSync(path.join(dir, 'operations.json'), 'utf8'));
+
+// --offline (part of `npm run check`): without downloading anything, fails when operations.json and
+// the committed specs list different methods, i.e. someone edited one without running contract:update.
+if (process.argv.includes('--offline')) {
+    const problems: string[] = [];
+    for (const [name, {methods}] of Object.entries(manifest)) {
+        const specPath = path.join(specsDir, `${name}.json`);
+        const committed: ApiSpec | null = fs.existsSync(specPath) ? JSON.parse(fs.readFileSync(specPath, 'utf8')) : null;
+        const specIds = Object.keys(committed?.methods ?? {});
+        problems.push(...methods.filter((id) => !specIds.includes(id)).map((id) => `${name}: ${id} is in operations.json but not in specs/${name}.json`));
+        problems.push(...specIds.filter((id) => !methods.includes(id)).map((id) => `${name}: ${id} is in specs/${name}.json but not in operations.json`));
+        problems.push(...specIds.filter((id) => !committed!.methods[id].scopes?.length).map((id) => `${name}: ${id} has no scopes in specs/${name}.json`));
+    }
+    if (problems.length) {
+        console.error(`${problems.join('\n')}\nRun \`npm run contract:update\` and commit the specs.`);
+        process.exit(1);
+    }
+    console.log('operations.json matches the committed specs.');
+    process.exit(0);
+}
 
 let breaking = 0;
 let additive = 0;
@@ -110,7 +131,8 @@ function trim(discovery: Discovery, methodIds: string[], name: string): ApiSpec 
             throw new Error(`${name}: ${id} is not in the published Discovery document`);
         }
         const parameters: Record<string, ParameterSpec> = {};
-        for (const [param, spec] of Object.entries(method.parameters ?? {})) {
+        // Sorted: Discovery documents do not keep parameter order stable between downloads.
+        for (const [param, spec] of Object.entries(method.parameters ?? {}).sort(([a], [b]) => a.localeCompare(b))) {
             parameters[param] = {
                 type: spec.type,
                 location: spec.location,
@@ -128,6 +150,7 @@ function trim(discovery: Discovery, methodIds: string[], name: string): ApiSpec 
             parameters,
             ...(method.request ? {request: method.request.$ref} : {}),
             ...(method.response ? {response: method.response.$ref} : {}),
+            ...(method.scopes ? {scopes: [...method.scopes].sort()} : {}),
         };
         roots.push(...[method.request?.$ref, method.response?.$ref].filter((r): r is string => Boolean(r)));
     }
@@ -189,7 +212,8 @@ function convert(schema: DiscoverySchema): JsonSchema {
     }
     if (schema.type === 'object') {
         if (schema.properties) {
-            out.properties = Object.fromEntries(Object.entries(schema.properties).map(([k, v]) => [k, convert(v)]));
+            // Sorted, like parameters: Discovery documents do not keep property order stable.
+            out.properties = Object.fromEntries(Object.entries(schema.properties).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, convert(v)]));
         }
         // Closed: a field the fake invents fails. Map-typed objects keep their value schema.
         out.additionalProperties = schema.additionalProperties ? convert(schema.additionalProperties) : false;
@@ -215,11 +239,25 @@ function refs(node: unknown, found: string[] = []): string[] {
 function compare(current: ApiSpec, next: ApiSpec): {breaking: string[]; additive: string[]} {
     const out = {breaking: [] as string[], additive: [] as string[]};
 
+    // `next` is trimmed to operations.json, so a method only there was added without contract:update.
+    for (const id of Object.keys(next.methods).filter((id) => !current.methods[id])) {
+        out.breaking.push(`${id} is in operations.json but not in the committed spec`);
+    }
+
     for (const [id, method] of Object.entries(current.methods)) {
         const updated = next.methods[id];
         if (!updated) {
             out.breaking.push(`${id} removed`);
             continue;
+        }
+        // The fake accepts a token holding any listed scope, so a scope Google drops can break the plugin.
+        const removedScopes = (method.scopes ?? []).filter((s) => !(updated.scopes ?? []).includes(s));
+        const addedScopes = (updated.scopes ?? []).filter((s) => !(method.scopes ?? []).includes(s));
+        if (removedScopes.length) {
+            out.breaking.push(`${id} scopes removed: ${removedScopes.join(', ')}`);
+        }
+        if (addedScopes.length) {
+            out.additive.push(`${id} scopes added: ${addedScopes.join(', ')}`);
         }
         for (const key of ['httpMethod', 'path', 'uploadPath', 'request', 'response'] as const) {
             if (method[key] !== updated[key]) {

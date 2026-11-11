@@ -6,6 +6,16 @@
       "httpMethod": "GET",
       "path": "/v1/people/{peopleId}",
       "parameters": {
+        "personFields": {
+          "type": "string",
+          "location": "query",
+          "format": "google-fieldmask"
+        },
+        "requestMask.includeField": {
+          "type": "string",
+          "location": "query",
+          "format": "google-fieldmask"
+        },
         "resourceName": {
           "type": "string",
           "location": "path",
@@ -22,19 +32,23 @@
             "READ_SOURCE_TYPE_OTHER_CONTACT"
           ],
           "repeated": true
-        },
-        "requestMask.includeField": {
-          "type": "string",
-          "location": "query",
-          "format": "google-fieldmask"
-        },
-        "personFields": {
-          "type": "string",
-          "location": "query",
-          "format": "google-fieldmask"
         }
       },
-      "response": "Person"
+      "response": "Person",
+      "scopes": [
+        "https://www.googleapis.com/auth/contacts",
+        "https://www.googleapis.com/auth/contacts.other.readonly",
+        "https://www.googleapis.com/auth/contacts.readonly",
+        "https://www.googleapis.com/auth/directory.readonly",
+        "https://www.googleapis.com/auth/user.addresses.read",
+        "https://www.googleapis.com/auth/user.birthday.read",
+        "https://www.googleapis.com/auth/user.emails.read",
+        "https://www.googleapis.com/auth/user.gender.read",
+        "https://www.googleapis.com/auth/user.organization.read",
+        "https://www.googleapis.com/auth/user.phonenumbers.read",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile"
+      ]
     }
   },
   "schemas": {
@@ -44,34 +58,34 @@
         "city": {
           "type": "string"
         },
+        "country": {
+          "type": "string"
+        },
         "countryCode": {
-          "type": "string"
-        },
-        "streetAddress": {
-          "type": "string"
-        },
-        "region": {
-          "type": "string"
-        },
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
-        "postalCode": {
-          "type": "string"
-        },
-        "formattedValue": {
           "type": "string"
         },
         "extendedAddress": {
           "type": "string"
         },
-        "poBox": {
-          "type": "string"
-        },
         "formattedType": {
           "type": "string"
         },
-        "country": {
+        "formattedValue": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "poBox": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "streetAddress": {
           "type": "string"
         },
         "type": {
@@ -83,9 +97,6 @@
     "AgeRangeType": {
       "type": "object",
       "properties": {
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
         "ageRange": {
           "type": "string",
           "enum": [
@@ -94,6 +105,9 @@
             "EIGHTEEN_TO_TWENTY",
             "TWENTY_ONE_OR_OLDER"
           ]
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
         }
       },
       "additionalProperties": false
@@ -101,9 +115,6 @@
     "Biography": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
-        },
         "contentType": {
           "type": "string",
           "enum": [
@@ -114,6 +125,9 @@
         },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -124,11 +138,11 @@
         "date": {
           "$ref": "Date"
         },
-        "text": {
-          "type": "string"
-        },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "text": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -148,11 +162,11 @@
     "CalendarUrl": {
       "type": "object",
       "properties": {
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
         "formattedType": {
           "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
         },
         "type": {
           "type": "string"
@@ -169,11 +183,11 @@
         "key": {
           "type": "string"
         },
-        "value": {
-          "type": "string"
-        },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -193,14 +207,14 @@
     "CoverPhoto": {
       "type": "object",
       "properties": {
-        "url": {
-          "type": "string"
+        "default": {
+          "type": "boolean"
         },
         "metadata": {
           "$ref": "FieldMetadata"
         },
-        "default": {
-          "type": "boolean"
+        "url": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -211,10 +225,10 @@
         "day": {
           "type": "integer"
         },
-        "year": {
+        "month": {
           "type": "integer"
         },
-        "month": {
+        "year": {
           "type": "integer"
         }
       },
@@ -232,19 +246,19 @@
     "EmailAddress": {
       "type": "object",
       "properties": {
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
-        "value": {
-          "type": "string"
-        },
-        "type": {
+        "displayName": {
           "type": "string"
         },
         "formattedType": {
           "type": "string"
         },
-        "displayName": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
           "type": "string"
         }
       },
@@ -253,14 +267,14 @@
     "Event": {
       "type": "object",
       "properties": {
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
         "date": {
           "$ref": "Date"
         },
         "formattedType": {
           "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
         },
         "type": {
           "type": "string"
@@ -274,14 +288,14 @@
         "formattedType": {
           "type": "string"
         },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
         "type": {
           "type": "string"
         },
         "value": {
           "type": "string"
-        },
-        "metadata": {
-          "$ref": "FieldMetadata"
         }
       },
       "additionalProperties": false
@@ -289,17 +303,17 @@
     "FieldMetadata": {
       "type": "object",
       "properties": {
-        "sourcePrimary": {
-          "type": "boolean"
-        },
-        "verified": {
-          "type": "boolean"
-        },
         "primary": {
           "type": "boolean"
         },
         "source": {
           "$ref": "Source"
+        },
+        "sourcePrimary": {
+          "type": "boolean"
+        },
+        "verified": {
+          "type": "boolean"
         }
       },
       "additionalProperties": false
@@ -307,11 +321,11 @@
     "FileAs": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
-        },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -322,13 +336,13 @@
         "addressMeAs": {
           "type": "string"
         },
+        "formattedValue": {
+          "type": "string"
+        },
         "metadata": {
           "$ref": "FieldMetadata"
         },
         "value": {
-          "type": "string"
-        },
-        "formattedValue": {
           "type": "string"
         }
       },
@@ -337,22 +351,22 @@
     "ImClient": {
       "type": "object",
       "properties": {
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
         "formattedProtocol": {
           "type": "string"
         },
         "formattedType": {
           "type": "string"
         },
-        "username": {
-          "type": "string"
+        "metadata": {
+          "$ref": "FieldMetadata"
         },
         "protocol": {
           "type": "string"
         },
         "type": {
+          "type": "string"
+        },
+        "username": {
           "type": "string"
         }
       },
@@ -373,11 +387,11 @@
     "Locale": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
-        },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -385,28 +399,28 @@
     "Location": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
-        },
         "buildingId": {
           "type": "string"
         },
         "current": {
           "type": "boolean"
         },
-        "floorSection": {
+        "deskCode": {
           "type": "string"
         },
         "floor": {
           "type": "string"
         },
-        "type": {
+        "floorSection": {
           "type": "string"
         },
         "metadata": {
           "$ref": "FieldMetadata"
         },
-        "deskCode": {
+        "type": {
+          "type": "string"
+        },
+        "value": {
           "type": "string"
         }
       },
@@ -415,14 +429,14 @@
     "Membership": {
       "type": "object",
       "properties": {
-        "metadata": {
-          "$ref": "FieldMetadata"
+        "contactGroupMembership": {
+          "$ref": "ContactGroupMembership"
         },
         "domainMembership": {
           "$ref": "DomainMembership"
         },
-        "contactGroupMembership": {
-          "$ref": "ContactGroupMembership"
+        "metadata": {
+          "$ref": "FieldMetadata"
         }
       },
       "additionalProperties": false
@@ -430,6 +444,12 @@
     "MiscKeyword": {
       "type": "object",
       "properties": {
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
         "type": {
           "type": "string",
           "enum": [
@@ -447,12 +467,6 @@
             "OTHER"
           ]
         },
-        "formattedType": {
-          "type": "string"
-        },
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
         "value": {
           "type": "string"
         }
@@ -462,49 +476,49 @@
     "Name": {
       "type": "object",
       "properties": {
-        "middleName": {
+        "displayName": {
           "type": "string"
         },
-        "phoneticHonorificPrefix": {
+        "displayNameLastFirst": {
           "type": "string"
         },
-        "phoneticFamilyName": {
+        "familyName": {
           "type": "string"
         },
-        "phoneticHonorificSuffix": {
+        "givenName": {
           "type": "string"
         },
-        "phoneticFullName": {
+        "honorificPrefix": {
           "type": "string"
         },
         "honorificSuffix": {
           "type": "string"
         },
-        "honorificPrefix": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "phoneticFamilyName": {
+          "type": "string"
+        },
+        "phoneticFullName": {
+          "type": "string"
+        },
+        "phoneticGivenName": {
+          "type": "string"
+        },
+        "phoneticHonorificPrefix": {
+          "type": "string"
+        },
+        "phoneticHonorificSuffix": {
           "type": "string"
         },
         "phoneticMiddleName": {
           "type": "string"
         },
         "unstructuredName": {
-          "type": "string"
-        },
-        "displayName": {
-          "type": "string"
-        },
-        "phoneticGivenName": {
-          "type": "string"
-        },
-        "familyName": {
-          "type": "string"
-        },
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
-        "displayNameLastFirst": {
-          "type": "string"
-        },
-        "givenName": {
           "type": "string"
         }
       },
@@ -513,8 +527,8 @@
     "Nickname": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
+        "metadata": {
+          "$ref": "FieldMetadata"
         },
         "type": {
           "type": "string",
@@ -528,8 +542,8 @@
             "SHORT_NAME"
           ]
         },
-        "metadata": {
-          "$ref": "FieldMetadata"
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -537,11 +551,11 @@
     "Occupation": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
-        },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -549,52 +563,52 @@
     "Organization": {
       "type": "object",
       "properties": {
-        "symbol": {
-          "type": "string"
-        },
-        "location": {
-          "type": "string"
-        },
-        "endDate": {
-          "$ref": "Date"
-        },
-        "domain": {
-          "type": "string"
-        },
-        "formattedType": {
-          "type": "string"
-        },
-        "title": {
-          "type": "string"
-        },
         "costCenter": {
-          "type": "string"
-        },
-        "department": {
-          "type": "string"
-        },
-        "jobDescription": {
-          "type": "string"
-        },
-        "fullTimeEquivalentMillipercent": {
-          "type": "integer"
-        },
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
-        "startDate": {
-          "$ref": "Date"
-        },
-        "name": {
-          "type": "string"
-        },
-        "type": {
           "type": "string"
         },
         "current": {
           "type": "boolean"
         },
+        "department": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "endDate": {
+          "$ref": "Date"
+        },
+        "formattedType": {
+          "type": "string"
+        },
+        "fullTimeEquivalentMillipercent": {
+          "type": "integer"
+        },
+        "jobDescription": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "name": {
+          "type": "string"
+        },
         "phoneticName": {
+          "type": "string"
+        },
+        "startDate": {
+          "$ref": "Date"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
           "type": "string"
         }
       },
@@ -603,25 +617,49 @@
     "Person": {
       "type": "object",
       "properties": {
-        "imClients": {
+        "addresses": {
           "type": "array",
           "items": {
-            "$ref": "ImClient"
+            "$ref": "Address"
           }
         },
-        "taglines": {
+        "ageRange": {
+          "type": "string",
+          "enum": [
+            "AGE_RANGE_UNSPECIFIED",
+            "LESS_THAN_EIGHTEEN",
+            "EIGHTEEN_TO_TWENTY",
+            "TWENTY_ONE_OR_OLDER"
+          ]
+        },
+        "ageRanges": {
           "type": "array",
           "items": {
-            "$ref": "Tagline"
+            "$ref": "AgeRangeType"
           }
         },
-        "resourceName": {
-          "type": "string"
-        },
-        "emailAddresses": {
+        "biographies": {
           "type": "array",
           "items": {
-            "$ref": "EmailAddress"
+            "$ref": "Biography"
+          }
+        },
+        "birthdays": {
+          "type": "array",
+          "items": {
+            "$ref": "Birthday"
+          }
+        },
+        "braggingRights": {
+          "type": "array",
+          "items": {
+            "$ref": "BraggingRights"
+          }
+        },
+        "calendarUrls": {
+          "type": "array",
+          "items": {
+            "$ref": "CalendarUrl"
           }
         },
         "clientData": {
@@ -630,22 +668,82 @@
             "$ref": "ClientData"
           }
         },
-        "phoneNumbers": {
+        "coverPhotos": {
           "type": "array",
           "items": {
-            "$ref": "PhoneNumber"
+            "$ref": "CoverPhoto"
           }
         },
-        "organizations": {
+        "emailAddresses": {
           "type": "array",
           "items": {
-            "$ref": "Organization"
+            "$ref": "EmailAddress"
+          }
+        },
+        "etag": {
+          "type": "string"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "Event"
+          }
+        },
+        "externalIds": {
+          "type": "array",
+          "items": {
+            "$ref": "ExternalId"
+          }
+        },
+        "fileAses": {
+          "type": "array",
+          "items": {
+            "$ref": "FileAs"
+          }
+        },
+        "genders": {
+          "type": "array",
+          "items": {
+            "$ref": "Gender"
+          }
+        },
+        "imClients": {
+          "type": "array",
+          "items": {
+            "$ref": "ImClient"
+          }
+        },
+        "interests": {
+          "type": "array",
+          "items": {
+            "$ref": "Interest"
+          }
+        },
+        "locales": {
+          "type": "array",
+          "items": {
+            "$ref": "Locale"
+          }
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "$ref": "Location"
           }
         },
         "memberships": {
           "type": "array",
           "items": {
             "$ref": "Membership"
+          }
+        },
+        "metadata": {
+          "$ref": "PersonMetadata"
+        },
+        "miscKeywords": {
+          "type": "array",
+          "items": {
+            "$ref": "MiscKeyword"
           }
         },
         "names": {
@@ -660,127 +758,22 @@
             "$ref": "Nickname"
           }
         },
-        "relations": {
+        "occupations": {
           "type": "array",
           "items": {
-            "$ref": "Relation"
+            "$ref": "Occupation"
           }
         },
-        "etag": {
-          "type": "string"
-        },
-        "locales": {
+        "organizations": {
           "type": "array",
           "items": {
-            "$ref": "Locale"
+            "$ref": "Organization"
           }
         },
-        "userDefined": {
+        "phoneNumbers": {
           "type": "array",
           "items": {
-            "$ref": "UserDefined"
-          }
-        },
-        "calendarUrls": {
-          "type": "array",
-          "items": {
-            "$ref": "CalendarUrl"
-          }
-        },
-        "fileAses": {
-          "type": "array",
-          "items": {
-            "$ref": "FileAs"
-          }
-        },
-        "sipAddresses": {
-          "type": "array",
-          "items": {
-            "$ref": "SipAddress"
-          }
-        },
-        "externalIds": {
-          "type": "array",
-          "items": {
-            "$ref": "ExternalId"
-          }
-        },
-        "locations": {
-          "type": "array",
-          "items": {
-            "$ref": "Location"
-          }
-        },
-        "biographies": {
-          "type": "array",
-          "items": {
-            "$ref": "Biography"
-          }
-        },
-        "addresses": {
-          "type": "array",
-          "items": {
-            "$ref": "Address"
-          }
-        },
-        "interests": {
-          "type": "array",
-          "items": {
-            "$ref": "Interest"
-          }
-        },
-        "relationshipInterests": {
-          "type": "array",
-          "items": {
-            "$ref": "RelationshipInterest"
-          }
-        },
-        "urls": {
-          "type": "array",
-          "items": {
-            "$ref": "Url"
-          }
-        },
-        "birthdays": {
-          "type": "array",
-          "items": {
-            "$ref": "Birthday"
-          }
-        },
-        "residences": {
-          "type": "array",
-          "items": {
-            "$ref": "Residence"
-          }
-        },
-        "relationshipStatuses": {
-          "type": "array",
-          "items": {
-            "$ref": "RelationshipStatus"
-          }
-        },
-        "events": {
-          "type": "array",
-          "items": {
-            "$ref": "Event"
-          }
-        },
-        "genders": {
-          "type": "array",
-          "items": {
-            "$ref": "Gender"
-          }
-        },
-        "braggingRights": {
-          "type": "array",
-          "items": {
-            "$ref": "BraggingRights"
-          }
-        },
-        "miscKeywords": {
-          "type": "array",
-          "items": {
-            "$ref": "MiscKeyword"
+            "$ref": "PhoneNumber"
           }
         },
         "photos": {
@@ -789,41 +782,62 @@
             "$ref": "Photo"
           }
         },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "Relation"
+          }
+        },
+        "relationshipInterests": {
+          "type": "array",
+          "items": {
+            "$ref": "RelationshipInterest"
+          }
+        },
+        "relationshipStatuses": {
+          "type": "array",
+          "items": {
+            "$ref": "RelationshipStatus"
+          }
+        },
+        "residences": {
+          "type": "array",
+          "items": {
+            "$ref": "Residence"
+          }
+        },
+        "resourceName": {
+          "type": "string"
+        },
+        "sipAddresses": {
+          "type": "array",
+          "items": {
+            "$ref": "SipAddress"
+          }
+        },
         "skills": {
           "type": "array",
           "items": {
             "$ref": "Skill"
           }
         },
-        "ageRanges": {
+        "taglines": {
           "type": "array",
           "items": {
-            "$ref": "AgeRangeType"
+            "$ref": "Tagline"
           }
         },
-        "metadata": {
-          "$ref": "PersonMetadata"
-        },
-        "occupations": {
+        "urls": {
           "type": "array",
           "items": {
-            "$ref": "Occupation"
+            "$ref": "Url"
           }
         },
-        "coverPhotos": {
+        "userDefined": {
           "type": "array",
           "items": {
-            "$ref": "CoverPhoto"
+            "$ref": "UserDefined"
           }
-        },
-        "ageRange": {
-          "type": "string",
-          "enum": [
-            "AGE_RANGE_UNSPECIFIED",
-            "LESS_THAN_EIGHTEEN",
-            "EIGHTEEN_TO_TWENTY",
-            "TWENTY_ONE_OR_OLDER"
-          ]
         }
       },
       "additionalProperties": false
@@ -831,6 +845,15 @@
     "PersonMetadata": {
       "type": "object",
       "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "linkedPeopleResourceNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
         "objectType": {
           "type": "string",
           "enum": [
@@ -839,16 +862,7 @@
             "PAGE"
           ]
         },
-        "deleted": {
-          "type": "boolean"
-        },
         "previousResourceNames": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        },
-        "linkedPeopleResourceNames": {
           "type": "array",
           "items": {
             "type": "string"
@@ -869,16 +883,16 @@
         "canonicalForm": {
           "type": "string"
         },
-        "type": {
+        "formattedType": {
           "type": "string"
         },
         "metadata": {
           "$ref": "FieldMetadata"
         },
-        "value": {
+        "type": {
           "type": "string"
         },
-        "formattedType": {
+        "value": {
           "type": "string"
         }
       },
@@ -887,11 +901,11 @@
     "Photo": {
       "type": "object",
       "properties": {
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
         "default": {
           "type": "boolean"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
         },
         "url": {
           "type": "string"
@@ -902,6 +916,14 @@
     "ProfileMetadata": {
       "type": "object",
       "properties": {
+        "objectType": {
+          "type": "string",
+          "enum": [
+            "OBJECT_TYPE_UNSPECIFIED",
+            "PERSON",
+            "PAGE"
+          ]
+        },
         "userTypes": {
           "type": "array",
           "items": {
@@ -913,14 +935,6 @@
               "GOOGLE_APPS_USER"
             ]
           }
-        },
-        "objectType": {
-          "type": "string",
-          "enum": [
-            "OBJECT_TYPE_UNSPECIFIED",
-            "PERSON",
-            "PAGE"
-          ]
         }
       },
       "additionalProperties": false
@@ -928,7 +942,7 @@
     "Relation": {
       "type": "object",
       "properties": {
-        "type": {
+        "formattedType": {
           "type": "string"
         },
         "metadata": {
@@ -937,7 +951,7 @@
         "person": {
           "type": "string"
         },
-        "formattedType": {
+        "type": {
           "type": "string"
         }
       },
@@ -946,13 +960,13 @@
     "RelationshipInterest": {
       "type": "object",
       "properties": {
-        "value": {
+        "formattedValue": {
           "type": "string"
         },
         "metadata": {
           "$ref": "FieldMetadata"
         },
-        "formattedValue": {
+        "value": {
           "type": "string"
         }
       },
@@ -964,11 +978,11 @@
         "formattedValue": {
           "type": "string"
         },
-        "value": {
-          "type": "string"
-        },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -976,11 +990,11 @@
     "Residence": {
       "type": "object",
       "properties": {
-        "metadata": {
-          "$ref": "FieldMetadata"
-        },
         "current": {
           "type": "boolean"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
         },
         "value": {
           "type": "string"
@@ -991,17 +1005,17 @@
     "SipAddress": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
-        },
         "formattedType": {
-          "type": "string"
-        },
-        "type": {
           "type": "string"
         },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -1009,11 +1023,11 @@
     "Skill": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
-        },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false
@@ -1024,11 +1038,11 @@
         "etag": {
           "type": "string"
         },
-        "profileMetadata": {
-          "$ref": "ProfileMetadata"
-        },
         "id": {
           "type": "string"
+        },
+        "profileMetadata": {
+          "$ref": "ProfileMetadata"
         },
         "type": {
           "type": "string",
@@ -1064,16 +1078,16 @@
     "Url": {
       "type": "object",
       "properties": {
-        "value": {
-          "type": "string"
-        },
-        "type": {
+        "formattedType": {
           "type": "string"
         },
         "metadata": {
           "$ref": "FieldMetadata"
         },
-        "formattedType": {
+        "type": {
+          "type": "string"
+        },
+        "value": {
           "type": "string"
         }
       },
@@ -1085,11 +1099,11 @@
         "key": {
           "type": "string"
         },
-        "value": {
-          "type": "string"
-        },
         "metadata": {
           "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
         }
       },
       "additionalProperties": false

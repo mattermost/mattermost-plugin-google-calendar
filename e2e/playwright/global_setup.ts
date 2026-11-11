@@ -53,6 +53,10 @@ async function sweepRealGoogle() {
         const email = process.env[`${prefix}_EMAIL`];
         const refreshToken = process.env[`${prefix}_REFRESH_TOKEN`];
         if (!email || !refreshToken) {
+            // In CI the real lane must not pass by skipping everything (lib/google/auth.ts requireGoogle).
+            if (process.env.CI) {
+                throw new Error(`E2E_GOOGLE=real in CI needs ${prefix}_EMAIL and ${prefix}_REFRESH_TOKEN.`);
+            }
             continue;
         }
         const swept = await sweepStaleEvents({role, email: email.toLowerCase(), refreshToken});

@@ -83,7 +83,10 @@ const state = {
     calendars: new Map<string, Map<string, EventRecord>>(),
     channels: new Map<string, Channel>(),
     codes: new Map<string, {user: string; scope: string; redirectUri: string; consented: boolean; offline: boolean}>(),
-    accessTokens: new Map<string, {user: string; scope: string; expiresAt: number}>(),
+    /** Access tokens with the scopes they carry and the refresh token they came from (if any). */
+    accessTokens: new Map<string, {user: string; scope: string; expiresAt: number; refreshToken?: string}>(),
+    /** Refresh tokens issued by a consent (or mintRefreshToken), with the scopes granted. Each user's fixed token is valid too. */
+    refreshTokens: new Map<string, {user: string; scope: string}>(),
     /** Users who granted the client access at least once (Google skips consent next time unless prompt=consent). */
     grants: new Set<string>(),
     revokedRefreshTokens: new Set<string>(),
@@ -100,6 +103,7 @@ function reset() {
     state.channels.clear();
     state.codes.clear();
     state.accessTokens.clear();
+    state.refreshTokens.clear();
     state.grants.clear();
     state.revokedRefreshTokens.clear();
     state.pendingConsent.clear();
@@ -225,6 +229,7 @@ function tokenEndpoint(form: URLSearchParams, authorization: string, log: Logged
     let user: string;
     let scope: string;
     let refreshToken: string | undefined;
+    let issuedFrom: string | undefined;
     if (grantType === 'authorization_code') {
         const code = state.codes.get(form.get('code') ?? '');
         state.codes.delete(form.get('code') ?? '');
@@ -233,25 +238,29 @@ function tokenEndpoint(form: URLSearchParams, authorization: string, log: Logged
         }
         user = code.user;
         scope = code.scope;
-        // Like Google: a refresh token only for offline access, and only after the consent screen.
+        // Like Google: a refresh token only for offline access, and only after the consent screen. Each
+        // consent issues a new one, so a client that kept an older (maybe revoked) token is caught.
         if (code.consented && code.offline) {
-            refreshToken = userByKey(user).refreshToken;
-            state.revokedRefreshTokens.delete(refreshToken);
+            refreshToken = mintRefreshToken(user, scope);
         }
     } else if (grantType === 'refresh_token') {
-        const found = USERS.find((u) => u.refreshToken === form.get('refresh_token'));
-        if (!found || state.revokedRefreshTokens.has(found.refreshToken)) {
+        const presented = form.get('refresh_token') ?? '';
+        // The fixed per-user tokens stand for an earlier consent to all of the plugin's scopes (seeding).
+        const fixed = USERS.find((u) => u.refreshToken === presented);
+        const found = state.refreshTokens.get(presented) ?? (fixed ? {user: fixed.key, scope: GRANTED_SCOPES} : undefined);
+        if (!found || state.revokedRefreshTokens.has(presented)) {
             return {status: 400, body: {error: 'invalid_grant', error_description: 'Token has been expired or revoked.'}};
         }
-        user = found.key;
-        scope = GRANTED_SCOPES;
+        user = found.user;
+        scope = found.scope;
+        issuedFrom = presented;
     } else {
         return {status: 400, body: {error: 'unsupported_grant_type', error_description: `Invalid grant_type: ${grantType}`}};
     }
 
     const ttl = state.config.accessTokenTtlSeconds;
     const accessToken = `ya29.fake-${randomId(60)}`;
-    state.accessTokens.set(accessToken, {user, scope, expiresAt: Date.now() + ttl * 1000});
+    state.accessTokens.set(accessToken, {user, scope, expiresAt: Date.now() + ttl * 1000, refreshToken: issuedFrom ?? refreshToken});
     const body = {
         access_token: accessToken,
         expires_in: ttl,
@@ -273,9 +282,15 @@ const GRANTED_SCOPES = [
     'https://www.googleapis.com/auth/userinfo.profile',
 ].join(' ');
 
-function authenticate(authorization: string): User | null {
+function mintRefreshToken(user: string, scope: string): string {
+    const token = `1//fake-${user}-${randomId(32)}`;
+    state.refreshTokens.set(token, {user, scope});
+    return token;
+}
+
+function authenticate(authorization: string): {user: User; scopes: string[]} | null {
     const token = state.accessTokens.get(authorization.replace(/^Bearer /, ''));
-    return token && token.expiresAt > Date.now() ? userByKey(token.user) : null;
+    return token && token.expiresAt > Date.now() ? {user: userByKey(token.user), scopes: token.scope.split(' ')} : null;
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -767,17 +782,45 @@ function control(method: string, segments: string[], body: Json): Result {
     if (section === 'violations') {
         return {status: 200, body: {value: state.violations}};
     }
+    if (section === 'tokens' && !id && method === 'GET') {
+        // Refresh tokens issued by consents and mintRefreshToken, oldest first.
+        return {status: 200, body: {value: [...state.refreshTokens].map(([token, info]) => ({token, ...info, revoked: state.revokedRefreshTokens.has(token)}))}};
+    }
+    if (section === 'tokens' && id === 'mint' && method === 'POST') {
+        // A refresh token as if body.user had just consented (to body.scope, default the plugin's scopes),
+        // for seeding a connection whose token a test can revoke without touching the fixed one.
+        const user = userByKeyOrEmail(String(body.user ?? ''));
+        if (!user) {
+            return {status: 400, body: {error: `unknown user ${body.user}`}};
+        }
+        return {status: 200, body: {refreshToken: mintRefreshToken(user.key, String(body.scope ?? GRANTED_SCOPES))}};
+    }
     if (section === 'tokens' && id === 'revoke' && method === 'POST') {
-        // Revokes refresh tokens (all users, or body.user) and invalidates their access tokens,
-        // like a user removing the app at myaccount.google.com/permissions.
-        const users = body.user ? [userByKeyOrEmail(body.user)].filter((u): u is User => Boolean(u)) : [...USERS];
-        for (const user of users) {
-            state.revokedRefreshTokens.add(user.refreshToken);
-            state.grants.delete(user.key);
-            for (const [token, info] of state.accessTokens) {
-                if (info.user === user.key) {
-                    state.accessTokens.delete(token);
+        // body.token: revokes that refresh token, like Google's revoke endpoint. Otherwise revokes every
+        // refresh token of all users (or body.user), like removing the app at myaccount.google.com/permissions.
+        // Either way, access tokens issued from a revoked refresh token stop working.
+        if (body.token) {
+            state.revokedRefreshTokens.add(String(body.token));
+        } else {
+            const users = body.user ? [userByKeyOrEmail(body.user)].filter((u): u is User => Boolean(u)) : [...USERS];
+            for (const user of users) {
+                state.revokedRefreshTokens.add(user.refreshToken);
+                for (const [token, info] of state.refreshTokens) {
+                    if (info.user === user.key) {
+                        state.revokedRefreshTokens.add(token);
+                    }
                 }
+                state.grants.delete(user.key);
+                for (const [token, info] of state.accessTokens) {
+                    if (info.user === user.key) {
+                        state.accessTokens.delete(token);
+                    }
+                }
+            }
+        }
+        for (const [token, info] of state.accessTokens) {
+            if (info.refreshToken && state.revokedRefreshTokens.has(info.refreshToken)) {
+                state.accessTokens.delete(token);
             }
         }
         return {status: 204};
@@ -935,11 +978,20 @@ function api(method: string, url: URL, raw: Buffer, contentType: string, authori
         violation(problem);
     }
 
-    const user = authenticate(authorization);
-    if (!user) {
+    const auth = authenticate(authorization);
+    if (!auth) {
         return unauthenticated();
     }
+    const {user} = auth;
     log.user = user.key;
+
+    // Like Google: the token must carry one of the scopes the method's Discovery entry lists.
+    if (match.spec.scopes?.length && !match.spec.scopes.some((s) => auth.scopes.includes(s))) {
+        const message = 'Request had insufficient authentication scopes.';
+        return match.api === 'people_v1'
+            ? peopleError(403, 'PERMISSION_DENIED', message)
+            : calendarError(403, 'insufficientPermissions', message);
+    }
 
     const failure = state.failures.find((f) => f.method === match.id && f.remaining > 0);
     if (failure) {

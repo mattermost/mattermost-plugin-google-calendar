@@ -32,6 +32,8 @@ export type MethodSpec = {
     parameters: Record<string, ParameterSpec>;
     request?: string;
     response?: string;
+    /** OAuth scopes that authorize the method; Google accepts a token holding any one of them. */
+    scopes?: string[];
 };
 
 export type ApiSpec = {

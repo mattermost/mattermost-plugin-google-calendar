@@ -9,6 +9,7 @@ import {cleanupEvents, createFixtureEvent, deleteEvent, eventSummary} from '../l
 import {googleMode} from '../lib/google/mode';
 import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin, googleOAuthSettings} from '../lib/plugin';
+import {avoidScheduledStatusJob} from '../lib/status_job';
 import {GcalBotDM} from '../pages/gcal_bot_dm';
 import {GcalCommand} from '../pages/gcal_command';
 
@@ -30,6 +31,7 @@ let runId: string;
 test.beforeEach(async ({pw}) => {
     runId = await pw.random.id();
     await resetConnections();
+    await avoidScheduledStatusJob();
 });
 
 test.afterEach(async () => {

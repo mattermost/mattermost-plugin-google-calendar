@@ -4,7 +4,8 @@
 import {expect, test} from '@mattermost/playwright-lib';
 
 import {fakeGoogle, tokenRequests} from '../lib/fake_google';
-import {requireGoogle, seedConnectedGoogleUser} from '../lib/google/auth';
+import {googleProfile, requireGoogle, seedConnectedGoogleUser} from '../lib/google/auth';
+import {cleanupEvents, createFixtureEvent, dateIn, eventSummary, timedEvent} from '../lib/google/events';
 import {googleMode, requireFakeGoogle} from '../lib/google/mode';
 import {loadStoredUser, resetConnections} from '../lib/kv';
 import {ensureGcalPlugin} from '../lib/plugin';
@@ -18,12 +19,16 @@ const DEFAULT_TOKEN_TTL_SECONDS = 3599;
 
 const inOneMinute = () => new Date(Date.now() + 60_000).toISOString();
 
-test.beforeEach(async () => {
+let runId: string;
+
+test.beforeEach(async ({pw}) => {
     requireFakeGoogle('sets token lifetimes and revokes tokens through the fake\'s control API');
+    runId = await pw.random.id();
     await resetConnections();
 });
 
 test.afterEach(async () => {
+    await cleanupEvents();
     if (googleMode() === 'fake') {
         await fakeGoogle.configure({accessTokenTtlSeconds: DEFAULT_TOKEN_TTL_SECONDS});
     }
@@ -44,9 +49,9 @@ test('refreshes an access token that expires within five minutes before each com
     await fakeGoogle.configure({accessTokenTtlSeconds: SHORT_TOKEN_TTL_SECONDS});
     const staleAccessToken = `e2e-stale-${await pw.random.id()}`;
     await seedConnectedGoogleUser(user, owner, {access_token: staleAccessToken, token_type: 'Bearer', refresh_token: owner.refreshToken, expiry: inOneMinute()});
-    const today = new Date().toISOString().slice(0, 10);
-    const summary = `[e2e-${await pw.random.id()}] Token refresh check`;
-    await fakeGoogle.createEvent(owner.email, {summary, start: {dateTime: `${today}T12:00:00Z`}, end: {dateTime: `${today}T13:00:00Z`}});
+    const {timeZone} = await googleProfile(owner);
+    const summary = eventSummary(runId, 'Token refresh check');
+    await createFixtureEvent(owner, timedEvent(summary, dateIn(timeZone), '12:00', '13:00', timeZone));
     await fakeGoogle.clearRequests();
 
     // # Ask for today's agenda
@@ -124,7 +129,7 @@ test('marks a user without a refresh token inactive and sends one reconnect DM',
  * @objective Verify what happens when Google rejects a revoked refresh token: the command fails, and the user is not marked inactive or told to reconnect
  *
  * @precondition
- * The user's Google connection is seeded with an expired access token and a refresh token that the fake has revoked
+ * The user's Google connection is seeded with an expired access token and a refresh token of its own that the fake has revoked (the account's other tokens keep working)
  */
 test('fails commands without marking the user inactive when Google rejects a revoked refresh token', {tag: '@google_calendar'}, async ({pw}) => {
     const {owner} = requireGoogle('owner');
@@ -132,8 +137,9 @@ test('fails commands without marking the user inactive when Google rejects a rev
     // # Seed a connection with an expired access token and revoke its refresh token at Google
     const {adminClient, user, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient);
-    await seedConnectedGoogleUser(user, owner, {access_token: `e2e-expired-${await pw.random.id()}`, token_type: 'Bearer', refresh_token: owner.refreshToken, expiry: new Date(Date.now() - 60_000).toISOString()});
-    await fakeGoogle.revokeRefreshTokens(owner.email);
+    const refreshToken = await fakeGoogle.mintRefreshToken(owner.email);
+    await seedConnectedGoogleUser(user, owner, {access_token: `e2e-expired-${await pw.random.id()}`, token_type: 'Bearer', refresh_token: refreshToken, expiry: new Date(Date.now() - 60_000).toISOString()});
+    await fakeGoogle.revokeRefreshToken(refreshToken);
     await fakeGoogle.clearRequests();
 
     // # Ask for today's agenda
@@ -150,7 +156,7 @@ test('fails commands without marking the user inactive when Google rejects a rev
     expect(refreshes.every((r) => r.status === 400)).toBe(true);
 
     // * Verify the plugin keeps the connection: Google's "invalid_grant" matches neither error the engine treats as an expired refresh token (confirmed on real Google; a product bug)
-    expect((await loadStoredUser(user.id))?.OAuth2Token?.refresh_token).toBe(owner.refreshToken);
+    expect((await loadStoredUser(user.id))?.OAuth2Token?.refresh_token).toBe(refreshToken);
 
     // # Open the bot DM
     const botDM = new GcalBotDM(channelsPage);

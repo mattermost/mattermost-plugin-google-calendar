@@ -16,10 +16,15 @@ import {googleMode} from './google/mode';
 
 const LOCAL_HOSTS = new Set(['localhost', '127.0.0.1', '[::1]', '::1']);
 
+// A path is a Unix socket directory, which is always local.
+const isLocalHost = (host: string) => LOCAL_HOSTS.has(host) || host.endsWith('.localhost') || host.startsWith('/');
+
 function isLocal(url: string): boolean {
     try {
-        const {hostname} = new URL(url);
-        return LOCAL_HOSTS.has(hostname) || hostname.endsWith('.localhost');
+        const {hostname, searchParams} = new URL(url);
+        // node-postgres lets a ?host= query parameter override the URL's host.
+        const hostParam = searchParams.get('host');
+        return isLocalHost(hostname) && (hostParam === null || isLocalHost(hostParam));
     } catch {
         return false;
     }

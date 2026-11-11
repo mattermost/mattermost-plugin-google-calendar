@@ -8,7 +8,8 @@ Playwright tests for the Google Calendar plugin. The same specs run against two 
   `SSL_CERT_FILE`. The browser reaches its consent pages as `https://accounts.google.com` through
   Chromium's `--host-resolver-rules`. So the plugin bundle under test is the normal production
   build. No accounts or secrets. Every request and response is checked against Google's published
-  API specs (`fake-google/contract/`); a violation fails the run.
+  API specs (`fake-google/contract/`); a violation fails the run. Like Google, each consent issues
+  a new refresh token, and a call needs one of the scopes its method lists.
 - **Real Google** (`make e2e-env-up E2E_GOOGLE=real && make e2e E2E_GOOGLE=real`): the test
   accounts in `.env.local`. The stack must be started in real mode, which removes the fake and its
   CA. Not in CI yet; it waits for the Google Workspace test org. Specs that need the fake's control
@@ -38,7 +39,7 @@ The stack publishes Mattermost on `localhost:8075`, Postgres on `5434` and the f
 | `npm test` | All specs against the fake Google, except `@visual` |
 | `npm run test:visual` | Screenshot baselines (`specs/visual.spec.ts`) on their own pinned stack (port 8077) with a dockerized browser |
 | `npm run test:visual-update-snapshots` | Regenerates the baselines; look at every PNG before committing |
-| `npm run check` | Type check, test-doc lint, the token encryption check and the fake's smoke tests |
+| `npm run check` | Type check, test-doc lint, the token encryption check, that `operations.json` matches the committed specs, and the fake's smoke tests |
 | `npm run contract:check` | Reports changes in Google's published specs since `fake-google/contract/specs/` was updated (also runs daily in CI) |
 | `npm run contract:update` | Regenerates `fake-google/contract/specs/` from Google |
 | `npm run google:auth -- owner` | Real lane only: gets a refresh token for a test account into `.env.local` |

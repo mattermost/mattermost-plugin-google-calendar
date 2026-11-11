@@ -99,7 +99,7 @@ describe('OAuth', () => {
         const allowed = await post({sid: first, account: 'owner', decision: 'allow'});
         assert.equal(allowed.status, 302);
         const granted = await exchange(allowed.headers.get('location')!);
-        assert.equal(granted.refresh_token, 'fake-refresh-owner');
+        assert.match(granted.refresh_token, /^1\/\/fake-owner-/);
 
         // With the consent screen but online access only, no refresh token comes back.
         const online = await sid('consent', 'online');
@@ -112,6 +112,13 @@ describe('OAuth', () => {
         assert.equal(skipped.status, 302);
         assert.equal((await exchange(skipped.headers.get('location')!)).refresh_token, undefined);
 
+        // Each consent issues a new refresh token; the earlier one keeps working.
+        const again = await sid('consent');
+        await post({sid: again, account: 'owner'});
+        const regranted = await exchange((await post({sid: again, account: 'owner', decision: 'allow'})).headers.get('location')!);
+        assert.match(regranted.refresh_token, /^1\/\/fake-owner-/);
+        assert.notEqual(regranted.refresh_token, granted.refresh_token);
+
         // Cancelling the consent screen redirects with access_denied and keeps the state.
         const second = await sid('consent');
         const denied = await post({sid: second, account: 'owner', decision: 'deny'});
@@ -120,7 +127,7 @@ describe('OAuth', () => {
         assert.equal(deniedUrl.searchParams.get('state'), 'st');
 
         const prompts = (await control('GET', 'requests')).value.filter((r: Json) => r.path === '/o/oauth2/auth').map((r: Json) => r.query.prompt);
-        assert.deepEqual(prompts, ['consent', 'consent', undefined, 'consent']);
+        assert.deepEqual(prompts, ['consent', 'consent', undefined, 'consent', 'consent']);
         await assertNoViolations();
     });
 
@@ -135,6 +142,31 @@ describe('OAuth', () => {
         const revoked = await refresh();
         assert.equal(revoked.status, 400);
         assert.deepEqual(await revoked.json(), {error: 'invalid_grant', error_description: 'Token has been expired or revoked.'});
+    });
+
+    test('revokes one refresh token without touching the account\'s other tokens', async () => {
+        const {clientId, clientSecret} = await control('GET', 'accounts');
+        const refresh = (refreshToken: string) => fetch(`${base}/token`, {method: 'POST', body: new URLSearchParams({grant_type: 'refresh_token', refresh_token: refreshToken, client_id: clientId, client_secret: clientSecret})});
+        const {refreshToken} = await control('POST', 'tokens/mint', {user: 'owner'});
+        const issued = await (await refresh(refreshToken)).json();
+        await control('POST', 'tokens/revoke', {token: refreshToken});
+        assert.equal((await refresh(refreshToken)).status, 400);
+        assert.equal((await call(issued.access_token, 'GET', '/calendar/v3/users/me/settings/timezone?alt=json&prettyPrint=false')).status, 401);
+        assert.equal((await refresh('fake-refresh-owner')).status, 200);
+        assert.deepEqual((await control('GET', 'tokens')).value.map((t: Json) => [t.user, t.revoked]), [['owner', true]]);
+    });
+
+    test('refuses a call whose token lacks every scope the method accepts', async () => {
+        const {clientId, clientSecret} = await control('GET', 'accounts');
+        const {refreshToken} = await control('POST', 'tokens/mint', {user: 'owner', scope: 'https://www.googleapis.com/auth/userinfo.email'});
+        const {access_token: accessToken, scope} = await (await fetch(`${base}/token`, {method: 'POST', body: new URLSearchParams({grant_type: 'refresh_token', refresh_token: refreshToken, client_id: clientId, client_secret: clientSecret})})).json();
+        assert.equal(scope, 'https://www.googleapis.com/auth/userinfo.email');
+        const settings = await call(accessToken, 'GET', '/calendar/v3/users/me/settings/timezone?alt=json&prettyPrint=false');
+        assert.equal(settings.status, 403);
+        assert.equal(settings.body.error.errors[0].reason, 'insufficientPermissions');
+        const profile = await call(accessToken, 'GET', '/v1/people/me?alt=json&personFields=names%2CemailAddresses&prettyPrint=false');
+        assert.equal(profile.status, 200);
+        await assertNoViolations();
     });
 });
 

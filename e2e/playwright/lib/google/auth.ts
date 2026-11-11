@@ -45,6 +45,17 @@ function authMode(): 'refresh_token' | 'dwd' {
     return mode;
 }
 
+/**
+ * Skips the test for missing Google setup, except on the real lane in CI, where it throws: otherwise
+ * missing or misnamed secrets would skip every Google test and the run would pass having run nothing.
+ */
+export function skipOrFailForMissingSetup(missing: boolean, message: string) {
+    if (missing && googleMode() === 'real' && process.env.CI) {
+        throw new Error(`${message} (E2E_GOOGLE=real in CI fails instead of skipping)`);
+    }
+    test.skip(missing, message);
+}
+
 function account(role: GoogleRole): GoogleAccount | null {
     const email = process.env[ROLE_ENV[role].email];
     const refreshToken = process.env[ROLE_ENV[role].refreshToken];
@@ -61,12 +72,12 @@ export function requireGoogle<R extends GoogleRole>(...roles: R[]): Record<R, Go
     if (authMode() === 'dwd') {
         throw new Error('GOOGLE_AUTH_MODE=dwd is not implemented yet (needs the Workspace test org).');
     }
-    test.skip(!process.env.GOOGLE_OAUTH_CLIENT_ID || !process.env.GOOGLE_OAUTH_CLIENT_SECRET, 'Needs GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET (see e2e/playwright/.env.example).');
+    skipOrFailForMissingSetup(!process.env.GOOGLE_OAUTH_CLIENT_ID || !process.env.GOOGLE_OAUTH_CLIENT_SECRET, 'Needs GOOGLE_OAUTH_CLIENT_ID and GOOGLE_OAUTH_CLIENT_SECRET (see e2e/playwright/.env.example).');
 
     const accounts = {} as Record<R, GoogleAccount>;
     for (const role of roles) {
         const found = account(role);
-        test.skip(!found, `Needs ${ROLE_ENV[role].email} and ${ROLE_ENV[role].refreshToken}; run \`npm run google:auth -- ${role}\`.`);
+        skipOrFailForMissingSetup(!found, `Needs ${ROLE_ENV[role].email} and ${ROLE_ENV[role].refreshToken}; run \`npm run google:auth -- ${role}\`.`);
         accounts[role] = found!;
     }
     return accounts;

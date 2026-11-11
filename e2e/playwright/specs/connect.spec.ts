@@ -11,6 +11,9 @@ import {ensureGcalPlugin, googleOAuthSettings, PLUGIN_ID} from '../lib/plugin';
 import {connectThroughGoogle, GcalBotDM} from '../pages/gcal_bot_dm';
 import {GcalCommand} from '../pages/gcal_command';
 
+/** The refresh token the fake issued most recently: each consent with offline access issues a new one. */
+const issuedRefreshToken = async () => (await fakeGoogle.refreshTokens()).at(-1)?.token;
+
 test.beforeEach(async () => {
     requireFakeGoogle('drives Google\'s consent pages, which real Google does not allow to be automated');
     await resetConnections();
@@ -41,10 +44,10 @@ test('connects a Google account through the consent pages and confirms it in a b
     expect(requests.find((r) => r.methodId === 'people.people.get')?.status).toBe(200);
     expect(requests.find((r) => r.methodId === 'calendar.settings.get')?.status).toBe(200);
 
-    // * Verify the account is stored for this user with Google's refresh token
+    // * Verify the account is stored for this user with the refresh token Google issued for this consent
     const stored = await loadStoredUser(user.id);
     expect(stored?.Remote.mail).toBe(owner.email);
-    expect(stored?.OAuth2Token?.refresh_token).toBe(owner.refreshToken);
+    expect(stored?.OAuth2Token?.refresh_token).toBe(await issuedRefreshToken());
     expect(await mattermostUserIdFor(stored!.Remote.id)).toBe(user.id);
 
     // # Run the connect command again
@@ -69,6 +72,7 @@ test('requests offline access and forces the Google consent screen on every conn
     await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
     await connectThroughGoogle(channelsPage, team.name, owner.email);
+    const firstRefreshToken = (await loadStoredUser(user.id))?.OAuth2Token?.refresh_token;
 
     // # Disconnect and connect the same account again
     const command = new GcalCommand(channelsPage);
@@ -88,8 +92,10 @@ test('requests offline access and forces the Google consent screen on every conn
         expect(query.state).toMatch(new RegExp(`^[a-z0-9]{15}_${user.id}$`));
     }
 
-    // * Verify the reconnect stored a refresh token again (Google only returns one after consent)
-    expect((await loadStoredUser(user.id))?.OAuth2Token?.refresh_token).toBe(owner.refreshToken);
+    // * Verify the reconnect stored the new refresh token from the second consent, not the first one
+    const secondRefreshToken = (await loadStoredUser(user.id))?.OAuth2Token?.refresh_token;
+    expect(secondRefreshToken).toBe(await issuedRefreshToken());
+    expect(secondRefreshToken).not.toBe(firstRefreshToken);
 });
 
 /**
