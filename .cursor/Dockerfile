@@ -62,7 +62,7 @@ RUN (id ubuntu >/dev/null 2>&1 || useradd -m -s /bin/bash ubuntu) \
     && echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ubuntu \
     && chmod 0440 /etc/sudoers.d/ubuntu \
     && echo 'E2E_FAKE_HTTPS_PORT=443' >> /etc/environment \
-    && printf '\nexport GOPATH=/home/ubuntu/go\nexport PATH=/usr/local/go/bin:/usr/local/node/bin:/home/ubuntu/go/bin:$PATH\nexport E2E_FAKE_HTTPS_PORT=443\n' >> /home/ubuntu/.bashrc
+    && printf '\nexport GOPATH=/home/ubuntu/go\nexport PATH=/usr/local/go/bin:/usr/local/node/bin:/home/ubuntu/go/bin:$PATH\nexport E2E_FAKE_HTTPS_PORT=${E2E_FAKE_HTTPS_PORT:-443}\n' >> /home/ubuntu/.bashrc
 
 USER ubuntu
 ENV GOPATH=/home/ubuntu/go
