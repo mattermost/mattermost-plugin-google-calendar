@@ -119,9 +119,11 @@ export async function seedConnectedGoogleUser(mattermostUser: MattermostUser, go
     return profile;
 }
 
-// Keyed by refresh token, not email: two roles misconfigured with the same email must each be checked.
+// Keyed by email and refresh token together: a role whose email or token is a copy of another role's
+// must still get its own ownership check, and never another role's cached access token.
 const accessTokens = new Map<string, {token: string; expiresAt: number}>();
 const verifiedTokens = new Set<string>();
+const cacheKey = (googleAccount: GoogleAccount) => `${googleAccount.email}\n${googleAccount.refreshToken}`;
 
 /**
  * Real Google: throws unless the refresh token belongs to the configured email. The allowlist
@@ -146,7 +148,8 @@ async function assertTokenOwner(googleAccount: GoogleAccount, accessToken: strin
 
 /** An access token for test-side Google API calls (seeding, assertions, cleanup). */
 export async function googleAccessToken(googleAccount: GoogleAccount): Promise<string> {
-    const cached = accessTokens.get(googleAccount.refreshToken);
+    const key = cacheKey(googleAccount);
+    const cached = accessTokens.get(key);
     if (cached && cached.expiresAt > Date.now() + 60_000) {
         return cached.token;
     }
@@ -169,10 +172,10 @@ export async function googleAccessToken(googleAccount: GoogleAccount): Promise<s
                 `Run \`npm run google:auth -- ${googleAccount.role}\` again.`,
         );
     }
-    if (googleMode() === 'real' && !verifiedTokens.has(googleAccount.refreshToken)) {
+    if (googleMode() === 'real' && !verifiedTokens.has(key)) {
         await assertTokenOwner(googleAccount, body.access_token);
-        verifiedTokens.add(googleAccount.refreshToken);
+        verifiedTokens.add(key);
     }
-    accessTokens.set(googleAccount.refreshToken, {token: body.access_token, expiresAt: Date.now() + body.expires_in * 1000});
+    accessTokens.set(key, {token: body.access_token, expiresAt: Date.now() + body.expires_in * 1000});
     return body.access_token;
 }
