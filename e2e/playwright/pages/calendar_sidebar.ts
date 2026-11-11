@@ -76,10 +76,18 @@ export class CalendarSidebar {
         return this.container.getByText(subject, {exact: true});
     }
 
-    /** Opens an event's details popover. */
+    /**
+     * Opens an event's details popover. The popover closes on any scroll, and the scroll event from
+     * bringing an off-screen event into view can land after the click (an event near midnight sits
+     * below the initial scroll position), so scroll first and retry the click.
+     */
     async openEvent(subject: string) {
-        await this.event(subject).click();
-        await expect(this.closeTooltipButton).toBeVisible();
+        const event = this.event(subject);
+        await event.scrollIntoViewIfNeeded();
+        await expect(async () => {
+            await event.click();
+            await expect(this.closeTooltipButton).toBeVisible({timeout: 2_000});
+        }).toPass();
     }
 
     /**
