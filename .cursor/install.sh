@@ -30,7 +30,7 @@ make dist
     touch node_modules
 )
 
-if make e2e-env-up; then
+if make e2e-env-up && .cursor/trust-fake-google.sh; then
     (cd e2e/playwright && docker compose --profile fake stop)
 else
     echo "WARNING: the E2E stack did not become healthy during the build; agents will boot it from scratch." >&2

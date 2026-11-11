@@ -1,6 +1,6 @@
-# Cloud agent image for building the plugin and running the Playwright E2E suite against the stack
-# in e2e/playwright/docker-compose.yml (Mattermost, Postgres and the fake Google). Adapted from
-# mattermost-plugin-gitlab's .cursor environment.
+# Cloud agent image for building the plugin and running it against the stack in
+# e2e/playwright/docker-compose.yml (Mattermost, Postgres and the fake Google), from the agent's
+# browser or the Playwright suite. Adapted from mattermost-plugin-gitlab's .cursor environment.
 FROM ubuntu:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive
@@ -19,6 +19,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
         gnupg \
         iptables \
         jq \
+        libnss3-tools \
+        locales \
         make \
         procps \
         python3 \
@@ -59,4 +61,7 @@ RUN (id ubuntu >/dev/null 2>&1 || useradd -m -s /bin/bash ubuntu) \
 USER ubuntu
 ENV GOPATH=/home/ubuntu/go
 ENV PATH=/usr/local/go/bin:/usr/local/node/bin:/home/ubuntu/go/bin:${PATH}
+# The browser reaches the fake's consent pages as https://accounts.google.com (start.sh maps it to
+# 127.0.0.1), so the fake publishes its HTTPS listener on 443 instead of 8453.
+ENV E2E_FAKE_HTTPS_PORT=443
 WORKDIR /home/ubuntu

@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
-# Starts Docker for the E2E stack. Unlike the GitLab plugin, no /etc/hosts entries are needed: the
-# suite's Chromium reaches the fake Google through --host-resolver-rules (e2e/playwright/lib/browser.ts)
-# and the test code through 127.0.0.1.
+# Starts Docker for the E2E stack and, like the GitLab plugin's start hook, maps the hostname the
+# agent's browser needs: accounts.google.com goes to the fake Google's consent pages on 127.0.0.1:443
+# (E2E_FAKE_HTTPS_PORT in .cursor/Dockerfile). trust-fake-google.sh makes the browser trust the
+# fake's certificate once the stack is up. The Playwright suite's Chromium does not rely on either:
+# it maps the host with --host-resolver-rules (e2e/playwright/lib/browser.ts).
 #
 # Hardened like the Playbooks and core repos' start hooks: falls back to starting dockerd directly
 # when the service script fails, fixes socket access for the current session, prints Docker's logs
@@ -15,6 +17,10 @@ if ! command -v docker >/dev/null 2>&1; then
     log "Docker is not installed, so this agent did not boot from .cursor/Dockerfile." >&2
     log "Check the agent's environment: a saved or default environment may have been used instead." >&2
     exit 1
+fi
+
+if ! grep -qE '^127\.0\.0\.1[[:space:]]+accounts\.google\.com$' /etc/hosts; then
+    echo "127.0.0.1 accounts.google.com" | sudo tee -a /etc/hosts >/dev/null
 fi
 
 ensure_socket_access() {

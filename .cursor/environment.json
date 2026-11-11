@@ -1,5 +1,5 @@
 {
-  "name": "mattermost-plugin-google-calendar E2E",
+  "name": "mattermost-plugin-google-calendar",
   "build": {
     "dockerfile": "Dockerfile"
   },
@@ -9,8 +9,8 @@
   "terminals": [
     {
       "name": "e2e-stack",
-      "command": "make e2e-env-up && echo 'E2E stack is healthy' && cd e2e/playwright && docker compose --profile fake logs -f --tail 0",
-      "description": "Boots the E2E stack from e2e/playwright/docker-compose.yml: Mattermost at http://localhost:8075, Postgres on 5434, and a fake Google (e2e/playwright/fake-google, control API at http://127.0.0.1:8090) that answers for Google's hostnames inside the stack. Wait for 'E2E stack is healthy' before running tests. Run the suite with `make e2e` from the repo root (rebuilds the plugin), or `cd e2e/playwright && npm test` after `make dist`. Filter with `npx playwright test specs/<spec>.spec.ts`. Reset all data with `make e2e-env-down && make e2e-env-up`. The Mattermost admin is sysadmin / Sys@dmin-sample1. Only the fake-Google lane works here: there are no real Google credentials, so do not run `E2E_GOOGLE=real` or `npm run test:real`, and do not try to connect an account by hand in a browser (only the suite's Chromium routes accounts.google.com to the fake; seed connected users with lib/google/auth.ts seedConnectedGoogleUser instead). The visual specs (@visual, script/visual.sh) need a second stack and are not set up here."
+      "command": "make e2e-env-up && .cursor/trust-fake-google.sh && echo 'E2E stack is healthy' && cd e2e/playwright && docker compose --profile fake logs -f --tail 0",
+      "description": "Boots the stack from e2e/playwright/docker-compose.yml and then tails its logs: Mattermost at http://localhost:8075, Postgres on 5434, and a fake Google (e2e/playwright/fake-google/server.ts) standing in for Google's OAuth, Calendar and People APIs. Wait for 'E2E stack is healthy'. There is no real Google here. Build and install the plugin with `MM_SERVICESETTINGS_SITEURL=http://localhost:8075 MM_ADMIN_USERNAME=<admin> MM_ADMIN_PASSWORD=<password> make deploy`, then in System Console > Plugins > Google Calendar set OAuth client ID fake-gcal-client-id.apps.googleusercontent.com and secret fake-gcal-client-secret and generate an encryption key. accounts.google.com is mapped to the fake in /etc/hosts, so connecting from the browser opens the fake's consent page, which signs in as owner@fake-google.test or collab@fake-google.test. The server starts with no users (the first account created becomes the system admin); the Playwright suite (`make e2e`) creates sysadmin / Sys@dmin-sample1. Reset all data with `make e2e-env-down && make e2e-env-up && .cursor/trust-fake-google.sh`."
     }
   ],
   "ports": [
