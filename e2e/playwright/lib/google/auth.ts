@@ -119,8 +119,9 @@ export async function seedConnectedGoogleUser(mattermostUser: MattermostUser, go
     return profile;
 }
 
+// Keyed by refresh token, not email: two roles misconfigured with the same email must each be checked.
 const accessTokens = new Map<string, {token: string; expiresAt: number}>();
-const verifiedAccounts = new Set<string>();
+const verifiedTokens = new Set<string>();
 
 /**
  * Real Google: throws unless the refresh token belongs to the configured email. The allowlist
@@ -145,7 +146,7 @@ async function assertTokenOwner(googleAccount: GoogleAccount, accessToken: strin
 
 /** An access token for test-side Google API calls (seeding, assertions, cleanup). */
 export async function googleAccessToken(googleAccount: GoogleAccount): Promise<string> {
-    const cached = accessTokens.get(googleAccount.email);
+    const cached = accessTokens.get(googleAccount.refreshToken);
     if (cached && cached.expiresAt > Date.now() + 60_000) {
         return cached.token;
     }
@@ -168,10 +169,10 @@ export async function googleAccessToken(googleAccount: GoogleAccount): Promise<s
                 `Run \`npm run google:auth -- ${googleAccount.role}\` again.`,
         );
     }
-    if (googleMode() === 'real' && !verifiedAccounts.has(googleAccount.email)) {
+    if (googleMode() === 'real' && !verifiedTokens.has(googleAccount.refreshToken)) {
         await assertTokenOwner(googleAccount, body.access_token);
-        verifiedAccounts.add(googleAccount.email);
+        verifiedTokens.add(googleAccount.refreshToken);
     }
-    accessTokens.set(googleAccount.email, {token: body.access_token, expiresAt: Date.now() + body.expires_in * 1000});
+    accessTokens.set(googleAccount.refreshToken, {token: body.access_token, expiresAt: Date.now() + body.expires_in * 1000});
     return body.access_token;
 }
