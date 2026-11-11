@@ -6,6 +6,8 @@
 # `make e2e-env-up` (install.sh and the e2e-stack terminal) and replaces the previous one.
 set -euo pipefail
 
+export E2E_FAKE_HTTPS_PORT="${E2E_FAKE_HTTPS_PORT:-443}"
+
 cd "$(dirname "$0")/../e2e/playwright"
 
 ca="$(mktemp)"

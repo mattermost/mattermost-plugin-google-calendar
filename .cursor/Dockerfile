@@ -51,17 +51,24 @@ RUN arch="$(dpkg --print-architecture)" \
     && node_arch="$([ "$arch" = amd64 ] && echo x64 || echo "$arch")" \
     && mkdir -p /usr/local/node \
     && curl -fsSL "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${node_arch}.tar.xz" \
-        | tar -C /usr/local/node -xJ --strip-components=1
+        | tar -C /usr/local/node -xJ --strip-components=1 \
+    # Cursor can run the hooks and terminals without the ENV lines below (like the Playbooks, core
+    # and Wrangler images, which do the same), so the tools are also on the default PATH.
+    && for bin in go gofmt; do ln -sf /usr/local/go/bin/$bin /usr/local/bin/$bin; done \
+    && for bin in node npm npx; do ln -sf /usr/local/node/bin/$bin /usr/local/bin/$bin; done
 
 RUN (id ubuntu >/dev/null 2>&1 || useradd -m -s /bin/bash ubuntu) \
     && usermod -aG docker,sudo ubuntu \
     && echo 'ubuntu ALL=(ALL) NOPASSWD:ALL' > /etc/sudoers.d/ubuntu \
-    && chmod 0440 /etc/sudoers.d/ubuntu
+    && chmod 0440 /etc/sudoers.d/ubuntu \
+    && echo 'E2E_FAKE_HTTPS_PORT=443' >> /etc/environment \
+    && printf '\nexport GOPATH=/home/ubuntu/go\nexport PATH=/usr/local/go/bin:/usr/local/node/bin:/home/ubuntu/go/bin:$PATH\nexport E2E_FAKE_HTTPS_PORT=443\n' >> /home/ubuntu/.bashrc
 
 USER ubuntu
 ENV GOPATH=/home/ubuntu/go
 ENV PATH=/usr/local/go/bin:/usr/local/node/bin:/home/ubuntu/go/bin:${PATH}
 # The browser reaches the fake's consent pages as https://accounts.google.com (start.sh maps it to
-# 127.0.0.1), so the fake publishes its HTTPS listener on 443 instead of 8453.
+# 127.0.0.1), so the fake publishes its HTTPS listener on 443 instead of 8453. Also set in
+# /etc/environment, ~/.bashrc and the hook scripts, in case Cursor does not pass ENV through.
 ENV E2E_FAKE_HTTPS_PORT=443
 WORKDIR /home/ubuntu
