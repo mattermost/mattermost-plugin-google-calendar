@@ -31,7 +31,6 @@ let runId: string;
 test.beforeEach(async ({pw}) => {
     runId = await pw.random.id();
     await resetConnections();
-    await avoidScheduledStatusJob();
 });
 
 test.afterEach(async () => {
@@ -51,6 +50,7 @@ test('sets Do Not Disturb during a running meeting and restores the manual statu
     // (after the page loads, which otherwise asks whether to switch back to Online)
     const {adminClient, user, userClient, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, {...googleOAuthSettings(), adminUserIds: user.id});
+    await avoidScheduledStatusJob();
     await seedConnectedGoogleUser(user, owner, undefined, {UpdateStatusFromOptions: 'Do Not Disturb'});
     const {channelsPage} = await pw.testBrowser.login(user);
     await channelsPage.goto(team.name);
@@ -90,6 +90,7 @@ test('leaves the status alone for events marked free and events without guests',
     // # Seed a connected plugin admin who wants Do Not Disturb during meetings, and set them online
     const {adminClient, user, userClient, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, {...googleOAuthSettings(), adminUserIds: user.id});
+    await avoidScheduledStatusJob();
     await seedConnectedGoogleUser(user, owner, undefined, {UpdateStatusFromOptions: 'Do Not Disturb'});
     await userClient.updateStatus({user_id: user.id, status: 'online'} as any);
 
@@ -121,6 +122,7 @@ test('sets an In a meeting custom status during a meeting and clears it afterwar
     // # Seed a connected plugin admin who wants a custom status during meetings
     const {adminClient, user, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, {...googleOAuthSettings(), adminUserIds: user.id});
+    await avoidScheduledStatusJob();
     await seedConnectedGoogleUser(user, owner, undefined, {SetCustomStatus: true});
 
     // # Put a running meeting with a guest on the calendar and run the availability job
@@ -164,6 +166,7 @@ test('sends a reminder DM for an event starting in about ten minutes', {tag: '@g
     // # Seed a connected plugin admin with reminders on
     const {adminClient, user, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, {...googleOAuthSettings(), adminUserIds: user.id});
+    await avoidScheduledStatusJob();
     await seedConnectedGoogleUser(user, owner, undefined, {ReceiveReminders: true});
 
     // # Put a meeting starting in 8 minutes with a guest, a room and (on the fake) a Meet link on the calendar
@@ -214,6 +217,7 @@ test('does not remind about a meeting that starts in two minutes', {tag: '@googl
     // # Seed a connected plugin admin with reminders and custom status on, and a meeting starting in 2 minutes
     const {adminClient, user, team} = await pw.initSetup();
     await ensureGcalPlugin(adminClient, {...googleOAuthSettings(), adminUserIds: user.id});
+    await avoidScheduledStatusJob();
     await seedConnectedGoogleUser(user, owner, undefined, {ReceiveReminders: true, SetCustomStatus: true});
     const meeting = eventSummary(runId, 'Imminent meeting');
     await createFixtureEvent(owner, eventAround(meeting, 2, 32, {attendees: [{email: collab.email}]}));
