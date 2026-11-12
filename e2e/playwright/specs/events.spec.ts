@@ -61,7 +61,7 @@ test('opens the create-event dialog from the channel menu and the slash command,
 
     // # Fill in the subject and date only
     await modal.subjectInput.fill(eventSummary(runId, 'Incomplete'));
-    await modal.dateInput.fill(dateIn(calendarTimeZone, 1));
+    await modal.chooseDate(dateIn(calendarTimeZone, 1));
 
     // * Verify Create is still disabled without a start time
     await expect(modal.createButton).toBeDisabled();
@@ -70,7 +70,7 @@ test('opens the create-event dialog from the channel menu and the slash command,
     await modal.chooseStartTime('10:00');
 
     // * Verify the end time defaults to 30 minutes later and Create is enabled
-    await expect(modal.field('End Time')).toContainText('10:30');
+    await expect(modal.endTimeInput).toHaveText('10:30');
     await expect(modal.createButton).toBeEnabled();
 
     // # Close the dialog and open it with the slash command
@@ -126,12 +126,12 @@ test('creates an event linked to the channel and invites a connected teammate', 
     const summary = eventSummary(runId, 'Kickoff');
     const date = dateIn(calendarTimeZone, 1);
     await modal.subjectInput.fill(summary);
-    await modal.dateInput.fill(date);
+    await modal.chooseDate(date);
     await modal.chooseStartTime('10:00');
     await modal.addConnectedGuest(teammate.username, pluginDisplayName(teammate));
 
     // * Verify the dialog links the event to the current channel
-    await expect(modal.linkedChannel('Town Square')).toBeVisible();
+    await expect(modal.channelInput).toHaveValue('Town Square');
 
     // # Create the event
     await modal.createButton.click();
@@ -180,7 +180,7 @@ test('creates an event without a channel and confirms it in a bot DM', {tag: '@g
     await modal.openFromCommand();
     const summary = eventSummary(runId, '1:1');
     await modal.subjectInput.fill(summary);
-    await modal.dateInput.fill(dateIn(calendarTimeZone, 2));
+    await modal.chooseDate(dateIn(calendarTimeZone, 2));
     await modal.chooseStartTime('14:00');
     await modal.locationInput.fill('Room 4');
     await modal.descriptionInput.fill('Quarterly goals');

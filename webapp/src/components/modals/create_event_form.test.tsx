@@ -104,6 +104,21 @@ describe('CreateEventForm', () => {
         expect(close).not.toHaveBeenCalled();
     });
 
+    it('closes on Escape', async () => {
+        renderForm();
+        await userEvent.click(screen.getByLabelText(/Subject/));
+        await userEvent.keyboard('{Escape}');
+        expect(close).toHaveBeenCalledTimes(1);
+    });
+
+    it('stays open when a field has already handled Escape', () => {
+        renderForm();
+        const escape = new KeyboardEvent('keydown', {key: 'Escape', bubbles: true, cancelable: true});
+        escape.preventDefault();
+        screen.getByLabelText(/Subject/).dispatchEvent(escape);
+        expect(close).not.toHaveBeenCalled();
+    });
+
     it('closes when Cancel is clicked', () => {
         renderForm();
         fireEvent.click(screen.getByRole('button', {name: 'Cancel'}));

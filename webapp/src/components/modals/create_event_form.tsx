@@ -71,6 +71,16 @@ export default function CreateEventForm(props: Props) {
         props.close();
     };
 
+    // Mattermost's global search prevents default on every Escape at the document level, which
+    // makes the Modal's own closeOnEscape ignore it. Popups inside the form prevent default when
+    // Escape closes them, so only an unhandled Escape closes the dialog.
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if (e.key === 'Escape' && !e.defaultPrevented) {
+            e.preventDefault();
+            handleClose();
+        }
+    };
+
     const handleError = (error: string) => {
         setStoredError(capitalizeFirstCharacter(error));
     };
@@ -132,6 +142,8 @@ export default function CreateEventForm(props: Props) {
         <Modal
             open={props.open}
             onClose={handleClose}
+            closeOnEscape={false}
+            onKeyDown={handleKeyDown}
             title='Create Calendar Event'
             size='medium'
             footer={footer}
