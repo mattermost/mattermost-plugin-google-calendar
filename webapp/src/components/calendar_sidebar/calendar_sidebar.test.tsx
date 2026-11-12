@@ -74,6 +74,15 @@ describe('CalendarSidebar', () => {
         expect(screen.getByTestId('fullcalendar')).toBeInTheDocument();
     });
 
+    it.each([
+        ['loading', null],
+        ['not connected', false],
+        ['connected', true],
+    ])('is a region named Google Calendar when %s', (_state, connected) => {
+        render(<CalendarSidebar {...makeProps({connected})}/>);
+        expect(screen.getByRole('region', {name: 'Google Calendar'})).toBeInTheDocument();
+    });
+
     it('calls getConnected on mount', () => {
         const actions = makeProps().actions;
         render(<CalendarSidebar {...makeProps({actions})}/>);

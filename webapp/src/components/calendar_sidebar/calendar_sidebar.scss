@@ -67,6 +67,10 @@
         border-color: var(--fc-border-color);
     }
 
+    .fc-media-screen .fc-timegrid-cols > table {
+        height: 100%;
+    }
+
     .fc .fc-timegrid-now-indicator-line {
         border-color: var(--fc-now-indicator-color);
         border-width: 2px 0 0;

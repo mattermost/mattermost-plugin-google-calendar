@@ -1,0 +1,20 @@
+/* Core UI that overlaps plugin posts and changes between runs (from mattermost-plugin-jira). */
+.post .status {
+    visibility: hidden !important;
+}
+
+/* An open select's options can overflow a dialog onto the backdrop; hide the channel behind it. */
+.modal-backdrop {
+    opacity: 1 !important;
+}
+
+/* The sticky channel header can cover the top of a tall post scrolled into view. */
+.channel-header {
+    visibility: hidden !important;
+}
+
+/* Post times change between runs. Mattermost hides them with visibility, which keeps their width, so
+   text after the time (an ephemeral post's "(Only visible to you)") moves with the time of day. */
+.post__time {
+    display: none !important;
+}

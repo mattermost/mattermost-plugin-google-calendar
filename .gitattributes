@@ -1,2 +1,3 @@
 server/manifest.go linguist-generated=true
 webapp/src/manifest.js linguist-generated=true
+e2e/playwright/fake-google/contract/specs/** linguist-generated=true
