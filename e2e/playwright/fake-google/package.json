@@ -1,0 +1,6 @@
+{
+  "name": "fake-google",
+  "private": true,
+  "type": "module",
+  "description": "Fake Google Calendar v3, People v1 and OAuth for the e2e PR lane. No dependencies: it runs in a plain node:24 container."
+}

@@ -1,0 +1,114 @@
+# Disposable Mattermost plus a fake Google (Calendar v3, People v1, OAuth) for the plugin e2e suite.
+#   make e2e-env-up     # start and wait until healthy (E2E_GOOGLE=real leaves the fake out)
+#   make e2e-env-down   # stop and wipe all data
+#
+# Mattermost reaches the fake through network aliases for Google's real API hostnames, over TLS
+# with a throwaway CA that Go trusts through SSL_CERT_FILE (system roots plus that CA), so the
+# plugin bundle under test is the normal production build. The tests reach the fake's control API
+# on http://127.0.0.1:8090, and the browser reaches its consent pages as https://accounts.google.com
+# through Chromium's --host-resolver-rules, which map that host to 127.0.0.1:8453.
+# Host ports (Mattermost 8075, Postgres 5434, fake 8090/8453) differ from the other plugin suites'
+# defaults (8065/5433/8080/8443), so this stack can run next to them. Ports and the server image are
+# variables so script/visual.sh can run a second project (gcal-plugin-e2e-visual) next to this one.
+# Layout follows mattermost-plugin-mscalendar's e2e/playwright/docker-compose.yml.
+name: gcal-plugin-e2e
+
+services:
+  certs:
+    image: alpine:3.20
+    command: sh -c "apk add --no-cache openssl ca-certificates >/dev/null && sh /gen-certs.sh"
+    volumes:
+      - certs:/certs
+      - ./fake-google/gen-certs.sh:/gen-certs.sh:ro
+
+  fake-google:
+    profiles: [fake]
+    image: node:24-alpine
+    working_dir: /app
+    command: node server.ts
+    depends_on:
+      certs:
+        condition: service_completed_successfully
+    environment:
+      FAKE_CERT_DIR: /certs
+    ports:
+      - "127.0.0.1:${E2E_FAKE_PORT:-8090}:8080"
+      - "127.0.0.1:${E2E_FAKE_HTTPS_PORT:-8453}:443"
+    volumes:
+      - ./fake-google:/app:ro
+      - certs:/certs:ro
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8080/__control/health').then((r)=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 3s
+      timeout: 5s
+      retries: 20
+    networks:
+      default:
+        aliases:
+          - www.googleapis.com
+          - people.googleapis.com
+          - oauth2.googleapis.com
+
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mmuser
+      POSTGRES_PASSWORD: mostest
+      POSTGRES_DB: mattermost_test
+    # Published for the tests' KV seeding (lib/kv.ts); Mattermost has no API to write a plugin's KV.
+    ports:
+      - "127.0.0.1:${E2E_DB_PORT:-5434}:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U mmuser -d mattermost_test"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  mattermost:
+    # Must satisfy plugin.json's min_server_version (12.0.0). Only amd64 images are published; on
+    # Apple silicon Docker Desktop runs them under Rosetta.
+    image: ${MM_IMAGE:-mattermost/mattermost-enterprise-edition:12.0}
+    platform: linux/amd64
+    depends_on:
+      postgres:
+        condition: service_healthy
+      certs:
+        condition: service_completed_successfully
+      fake-google:
+        condition: service_healthy
+        # Absent with E2E_GOOGLE=real (the fake's profile is off).
+        required: false
+    ports:
+      - "127.0.0.1:${MM_PORT:-8075}:${MM_PORT:-8075}"
+    volumes:
+      - certs:/certs:ro
+    environment:
+      MM_SQLSETTINGS_DRIVERNAME: postgres
+      MM_SQLSETTINGS_DATASOURCE: postgres://mmuser:mostest@postgres:5432/mattermost_test?sslmode=disable&connect_timeout=10
+      # Listens on the published port, so SiteURL works from the browser and inside the container.
+      MM_SERVICESETTINGS_LISTENADDRESS: :${MM_PORT:-8075}
+      MM_SERVICESETTINGS_SITEURL: http://localhost:${MM_PORT:-8075}
+      MM_SERVICESETTINGS_ENABLEONBOARDINGFLOW: "false"
+      MM_SERVICESETTINGS_ENABLETUTORIAL: "false"
+      MM_SERVICESETTINGS_ENABLESECURITYFIXALERT: "false"
+      MM_PLUGINSETTINGS_ENABLE: "true"
+      MM_PLUGINSETTINGS_ENABLEUPLOADS: "true"
+      MM_PLUGINSETTINGS_AUTOMATICPREPACKAGEDPLUGINS: "false"
+      MM_RATELIMITSETTINGS_ENABLE: "false"
+      MM_ANNOUNCEMENTSETTINGS_ADMINNOTICESENABLED: "false"
+      MM_ANNOUNCEMENTSETTINGS_USERNOTICESENABLED: "false"
+      MM_LOGSETTINGS_CONSOLELEVEL: INFO
+      # Go reads this on Linux: system roots plus the fake's CA. `make e2e-env-up E2E_GOOGLE=real`
+      # sets it empty, and Go falls back to the system roots.
+      SSL_CERT_FILE: ${MM_SSL_CERT_FILE-/certs/ca-bundle.crt}
+      # The image has no shell or curl, so the healthcheck uses mmctl over the local-mode socket.
+      MM_SERVICESETTINGS_ENABLELOCALMODE: "true"
+    healthcheck:
+      test: ["CMD", "/mattermost/bin/mmctl", "--local", "system", "status"]
+      interval: 5s
+      timeout: 10s
+      retries: 60
+      start_period: 20s
+
+volumes:
+  certs: {}

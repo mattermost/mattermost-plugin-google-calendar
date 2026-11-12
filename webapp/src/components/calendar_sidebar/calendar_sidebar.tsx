@@ -218,6 +218,8 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
     if (connected === null) {
         return (
             <div
+                role='region'
+                aria-label='Google Calendar'
                 className='gcal-sidebar'
                 style={containerStyle}
             >
@@ -231,6 +233,8 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
     if (!connected) {
         return (
             <div
+                role='region'
+                aria-label='Google Calendar'
                 className='gcal-sidebar'
                 style={containerStyle}
             >
@@ -246,6 +250,8 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
     return (
         <div
             ref={containerRef}
+            role='region'
+            aria-label='Google Calendar'
             className='gcal-sidebar'
             style={containerStyle}
         >

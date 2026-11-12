@@ -1,0 +1,39 @@
+{
+  "name": "mattermost-plugin-google-calendar-e2e",
+  "private": true,
+  "description": "Playwright e2e tests for the Google Calendar plugin",
+  "scripts": {
+    "test": "playwright test --grep-invert @visual",
+    "test:real": "E2E_GOOGLE=real playwright test --grep-invert @visual",
+    "test:visual": "./script/visual.sh",
+    "test:visual-update-snapshots": "./script/visual.sh --update-snapshots",
+    "test:headed": "playwright test --headed",
+    "test:ui": "playwright test --ui",
+    "show-report": "playwright show-report results/reporter",
+    "tsc": "tsc --noEmit && tsc -p fake-google",
+    "lint:test-docs": "node script/lint-test-docs.js",
+    "check": "npm run tsc && npm run lint:test-docs && npm run verify:crypto && npm run contract:offline && npm run fake:smoke",
+    "verify:crypto": "tsx script/verify_crypto_vector.ts",
+    "google:auth": "tsx script/google_auth.ts",
+    "fake": "node fake-google/server.ts",
+    "fake:smoke": "node --test fake-google/smoke.test.ts",
+    "contract:update": "node fake-google/contract/update_specs.ts",
+    "contract:check": "node fake-google/contract/update_specs.ts --check",
+    "contract:offline": "node fake-google/contract/update_specs.ts --offline"
+  },
+  "devDependencies": {
+    "@mattermost/client": "11.3.0",
+    "@mattermost/playwright-lib": "11.4.0",
+    "@mattermost/types": "11.3.0",
+    "@playwright/test": "1.62.1",
+    "@types/node": "25.5.0",
+    "@types/pg": "8.15.6",
+    "glob": "13.0.6",
+    "pg": "8.20.0",
+    "tsx": "4.20.6",
+    "typescript": "5.9.3"
+  },
+  "overrides": {
+    "playwright-core": "1.62.1"
+  }
+}

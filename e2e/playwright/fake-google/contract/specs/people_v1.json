@@ -1,0 +1,1112 @@
+{
+  "api": "people",
+  "version": "v1",
+  "methods": {
+    "people.people.get": {
+      "httpMethod": "GET",
+      "path": "/v1/people/{peopleId}",
+      "parameters": {
+        "personFields": {
+          "type": "string",
+          "location": "query",
+          "format": "google-fieldmask"
+        },
+        "requestMask.includeField": {
+          "type": "string",
+          "location": "query",
+          "format": "google-fieldmask"
+        },
+        "resourceName": {
+          "type": "string",
+          "location": "path",
+          "required": true
+        },
+        "sources": {
+          "type": "string",
+          "location": "query",
+          "enum": [
+            "READ_SOURCE_TYPE_UNSPECIFIED",
+            "READ_SOURCE_TYPE_PROFILE",
+            "READ_SOURCE_TYPE_CONTACT",
+            "READ_SOURCE_TYPE_DOMAIN_CONTACT",
+            "READ_SOURCE_TYPE_OTHER_CONTACT"
+          ],
+          "repeated": true
+        }
+      },
+      "response": "Person",
+      "scopes": [
+        "https://www.googleapis.com/auth/contacts",
+        "https://www.googleapis.com/auth/contacts.other.readonly",
+        "https://www.googleapis.com/auth/contacts.readonly",
+        "https://www.googleapis.com/auth/directory.readonly",
+        "https://www.googleapis.com/auth/user.addresses.read",
+        "https://www.googleapis.com/auth/user.birthday.read",
+        "https://www.googleapis.com/auth/user.emails.read",
+        "https://www.googleapis.com/auth/user.gender.read",
+        "https://www.googleapis.com/auth/user.organization.read",
+        "https://www.googleapis.com/auth/user.phonenumbers.read",
+        "https://www.googleapis.com/auth/userinfo.email",
+        "https://www.googleapis.com/auth/userinfo.profile"
+      ]
+    }
+  },
+  "schemas": {
+    "Address": {
+      "type": "object",
+      "properties": {
+        "city": {
+          "type": "string"
+        },
+        "country": {
+          "type": "string"
+        },
+        "countryCode": {
+          "type": "string"
+        },
+        "extendedAddress": {
+          "type": "string"
+        },
+        "formattedType": {
+          "type": "string"
+        },
+        "formattedValue": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "poBox": {
+          "type": "string"
+        },
+        "postalCode": {
+          "type": "string"
+        },
+        "region": {
+          "type": "string"
+        },
+        "streetAddress": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "AgeRangeType": {
+      "type": "object",
+      "properties": {
+        "ageRange": {
+          "type": "string",
+          "enum": [
+            "AGE_RANGE_UNSPECIFIED",
+            "LESS_THAN_EIGHTEEN",
+            "EIGHTEEN_TO_TWENTY",
+            "TWENTY_ONE_OR_OLDER"
+          ]
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Biography": {
+      "type": "object",
+      "properties": {
+        "contentType": {
+          "type": "string",
+          "enum": [
+            "CONTENT_TYPE_UNSPECIFIED",
+            "TEXT_PLAIN",
+            "TEXT_HTML"
+          ]
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Birthday": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "$ref": "Date"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "text": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "BraggingRights": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CalendarUrl": {
+      "type": "object",
+      "properties": {
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ClientData": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ContactGroupMembership": {
+      "type": "object",
+      "properties": {
+        "contactGroupId": {
+          "type": "string"
+        },
+        "contactGroupResourceName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "CoverPhoto": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "type": "boolean"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Date": {
+      "type": "object",
+      "properties": {
+        "day": {
+          "type": "integer"
+        },
+        "month": {
+          "type": "integer"
+        },
+        "year": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "DomainMembership": {
+      "type": "object",
+      "properties": {
+        "inViewerDomain": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "EmailAddress": {
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string"
+        },
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Event": {
+      "type": "object",
+      "properties": {
+        "date": {
+          "$ref": "Date"
+        },
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ExternalId": {
+      "type": "object",
+      "properties": {
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FieldMetadata": {
+      "type": "object",
+      "properties": {
+        "primary": {
+          "type": "boolean"
+        },
+        "source": {
+          "$ref": "Source"
+        },
+        "sourcePrimary": {
+          "type": "boolean"
+        },
+        "verified": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    },
+    "FileAs": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Gender": {
+      "type": "object",
+      "properties": {
+        "addressMeAs": {
+          "type": "string"
+        },
+        "formattedValue": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ImClient": {
+      "type": "object",
+      "properties": {
+        "formattedProtocol": {
+          "type": "string"
+        },
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "protocol": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        },
+        "username": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Interest": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Locale": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Location": {
+      "type": "object",
+      "properties": {
+        "buildingId": {
+          "type": "string"
+        },
+        "current": {
+          "type": "boolean"
+        },
+        "deskCode": {
+          "type": "string"
+        },
+        "floor": {
+          "type": "string"
+        },
+        "floorSection": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Membership": {
+      "type": "object",
+      "properties": {
+        "contactGroupMembership": {
+          "$ref": "ContactGroupMembership"
+        },
+        "domainMembership": {
+          "$ref": "DomainMembership"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        }
+      },
+      "additionalProperties": false
+    },
+    "MiscKeyword": {
+      "type": "object",
+      "properties": {
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "TYPE_UNSPECIFIED",
+            "OUTLOOK_BILLING_INFORMATION",
+            "OUTLOOK_DIRECTORY_SERVER",
+            "OUTLOOK_KEYWORD",
+            "OUTLOOK_MILEAGE",
+            "OUTLOOK_PRIORITY",
+            "OUTLOOK_SENSITIVITY",
+            "OUTLOOK_SUBJECT",
+            "OUTLOOK_USER",
+            "HOME",
+            "WORK",
+            "OTHER"
+          ]
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Name": {
+      "type": "object",
+      "properties": {
+        "displayName": {
+          "type": "string"
+        },
+        "displayNameLastFirst": {
+          "type": "string"
+        },
+        "familyName": {
+          "type": "string"
+        },
+        "givenName": {
+          "type": "string"
+        },
+        "honorificPrefix": {
+          "type": "string"
+        },
+        "honorificSuffix": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "middleName": {
+          "type": "string"
+        },
+        "phoneticFamilyName": {
+          "type": "string"
+        },
+        "phoneticFullName": {
+          "type": "string"
+        },
+        "phoneticGivenName": {
+          "type": "string"
+        },
+        "phoneticHonorificPrefix": {
+          "type": "string"
+        },
+        "phoneticHonorificSuffix": {
+          "type": "string"
+        },
+        "phoneticMiddleName": {
+          "type": "string"
+        },
+        "unstructuredName": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Nickname": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "DEFAULT",
+            "MAIDEN_NAME",
+            "INITIALS",
+            "GPLUS",
+            "OTHER_NAME",
+            "ALTERNATE_NAME",
+            "SHORT_NAME"
+          ]
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Occupation": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Organization": {
+      "type": "object",
+      "properties": {
+        "costCenter": {
+          "type": "string"
+        },
+        "current": {
+          "type": "boolean"
+        },
+        "department": {
+          "type": "string"
+        },
+        "domain": {
+          "type": "string"
+        },
+        "endDate": {
+          "$ref": "Date"
+        },
+        "formattedType": {
+          "type": "string"
+        },
+        "fullTimeEquivalentMillipercent": {
+          "type": "integer"
+        },
+        "jobDescription": {
+          "type": "string"
+        },
+        "location": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "name": {
+          "type": "string"
+        },
+        "phoneticName": {
+          "type": "string"
+        },
+        "startDate": {
+          "$ref": "Date"
+        },
+        "symbol": {
+          "type": "string"
+        },
+        "title": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Person": {
+      "type": "object",
+      "properties": {
+        "addresses": {
+          "type": "array",
+          "items": {
+            "$ref": "Address"
+          }
+        },
+        "ageRange": {
+          "type": "string",
+          "enum": [
+            "AGE_RANGE_UNSPECIFIED",
+            "LESS_THAN_EIGHTEEN",
+            "EIGHTEEN_TO_TWENTY",
+            "TWENTY_ONE_OR_OLDER"
+          ]
+        },
+        "ageRanges": {
+          "type": "array",
+          "items": {
+            "$ref": "AgeRangeType"
+          }
+        },
+        "biographies": {
+          "type": "array",
+          "items": {
+            "$ref": "Biography"
+          }
+        },
+        "birthdays": {
+          "type": "array",
+          "items": {
+            "$ref": "Birthday"
+          }
+        },
+        "braggingRights": {
+          "type": "array",
+          "items": {
+            "$ref": "BraggingRights"
+          }
+        },
+        "calendarUrls": {
+          "type": "array",
+          "items": {
+            "$ref": "CalendarUrl"
+          }
+        },
+        "clientData": {
+          "type": "array",
+          "items": {
+            "$ref": "ClientData"
+          }
+        },
+        "coverPhotos": {
+          "type": "array",
+          "items": {
+            "$ref": "CoverPhoto"
+          }
+        },
+        "emailAddresses": {
+          "type": "array",
+          "items": {
+            "$ref": "EmailAddress"
+          }
+        },
+        "etag": {
+          "type": "string"
+        },
+        "events": {
+          "type": "array",
+          "items": {
+            "$ref": "Event"
+          }
+        },
+        "externalIds": {
+          "type": "array",
+          "items": {
+            "$ref": "ExternalId"
+          }
+        },
+        "fileAses": {
+          "type": "array",
+          "items": {
+            "$ref": "FileAs"
+          }
+        },
+        "genders": {
+          "type": "array",
+          "items": {
+            "$ref": "Gender"
+          }
+        },
+        "imClients": {
+          "type": "array",
+          "items": {
+            "$ref": "ImClient"
+          }
+        },
+        "interests": {
+          "type": "array",
+          "items": {
+            "$ref": "Interest"
+          }
+        },
+        "locales": {
+          "type": "array",
+          "items": {
+            "$ref": "Locale"
+          }
+        },
+        "locations": {
+          "type": "array",
+          "items": {
+            "$ref": "Location"
+          }
+        },
+        "memberships": {
+          "type": "array",
+          "items": {
+            "$ref": "Membership"
+          }
+        },
+        "metadata": {
+          "$ref": "PersonMetadata"
+        },
+        "miscKeywords": {
+          "type": "array",
+          "items": {
+            "$ref": "MiscKeyword"
+          }
+        },
+        "names": {
+          "type": "array",
+          "items": {
+            "$ref": "Name"
+          }
+        },
+        "nicknames": {
+          "type": "array",
+          "items": {
+            "$ref": "Nickname"
+          }
+        },
+        "occupations": {
+          "type": "array",
+          "items": {
+            "$ref": "Occupation"
+          }
+        },
+        "organizations": {
+          "type": "array",
+          "items": {
+            "$ref": "Organization"
+          }
+        },
+        "phoneNumbers": {
+          "type": "array",
+          "items": {
+            "$ref": "PhoneNumber"
+          }
+        },
+        "photos": {
+          "type": "array",
+          "items": {
+            "$ref": "Photo"
+          }
+        },
+        "relations": {
+          "type": "array",
+          "items": {
+            "$ref": "Relation"
+          }
+        },
+        "relationshipInterests": {
+          "type": "array",
+          "items": {
+            "$ref": "RelationshipInterest"
+          }
+        },
+        "relationshipStatuses": {
+          "type": "array",
+          "items": {
+            "$ref": "RelationshipStatus"
+          }
+        },
+        "residences": {
+          "type": "array",
+          "items": {
+            "$ref": "Residence"
+          }
+        },
+        "resourceName": {
+          "type": "string"
+        },
+        "sipAddresses": {
+          "type": "array",
+          "items": {
+            "$ref": "SipAddress"
+          }
+        },
+        "skills": {
+          "type": "array",
+          "items": {
+            "$ref": "Skill"
+          }
+        },
+        "taglines": {
+          "type": "array",
+          "items": {
+            "$ref": "Tagline"
+          }
+        },
+        "urls": {
+          "type": "array",
+          "items": {
+            "$ref": "Url"
+          }
+        },
+        "userDefined": {
+          "type": "array",
+          "items": {
+            "$ref": "UserDefined"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PersonMetadata": {
+      "type": "object",
+      "properties": {
+        "deleted": {
+          "type": "boolean"
+        },
+        "linkedPeopleResourceNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "objectType": {
+          "type": "string",
+          "enum": [
+            "OBJECT_TYPE_UNSPECIFIED",
+            "PERSON",
+            "PAGE"
+          ]
+        },
+        "previousResourceNames": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "sources": {
+          "type": "array",
+          "items": {
+            "$ref": "Source"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PhoneNumber": {
+      "type": "object",
+      "properties": {
+        "canonicalForm": {
+          "type": "string"
+        },
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Photo": {
+      "type": "object",
+      "properties": {
+        "default": {
+          "type": "boolean"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "url": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ProfileMetadata": {
+      "type": "object",
+      "properties": {
+        "objectType": {
+          "type": "string",
+          "enum": [
+            "OBJECT_TYPE_UNSPECIFIED",
+            "PERSON",
+            "PAGE"
+          ]
+        },
+        "userTypes": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "USER_TYPE_UNKNOWN",
+              "GOOGLE_USER",
+              "GPLUS_USER",
+              "GOOGLE_APPS_USER"
+            ]
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Relation": {
+      "type": "object",
+      "properties": {
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "person": {
+          "type": "string"
+        },
+        "type": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RelationshipInterest": {
+      "type": "object",
+      "properties": {
+        "formattedValue": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "RelationshipStatus": {
+      "type": "object",
+      "properties": {
+        "formattedValue": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Residence": {
+      "type": "object",
+      "properties": {
+        "current": {
+          "type": "boolean"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "SipAddress": {
+      "type": "object",
+      "properties": {
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Skill": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Source": {
+      "type": "object",
+      "properties": {
+        "etag": {
+          "type": "string"
+        },
+        "id": {
+          "type": "string"
+        },
+        "profileMetadata": {
+          "$ref": "ProfileMetadata"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "SOURCE_TYPE_UNSPECIFIED",
+            "ACCOUNT",
+            "PROFILE",
+            "DOMAIN_PROFILE",
+            "CONTACT",
+            "OTHER_CONTACT",
+            "DOMAIN_CONTACT"
+          ]
+        },
+        "updateTime": {
+          "type": "string",
+          "format": "date-time"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Tagline": {
+      "type": "object",
+      "properties": {
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "Url": {
+      "type": "object",
+      "properties": {
+        "formattedType": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "type": {
+          "type": "string"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    },
+    "UserDefined": {
+      "type": "object",
+      "properties": {
+        "key": {
+          "type": "string"
+        },
+        "metadata": {
+          "$ref": "FieldMetadata"
+        },
+        "value": {
+          "type": "string"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
