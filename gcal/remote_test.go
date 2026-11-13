@@ -10,6 +10,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/pkg/errors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/oauth2"
@@ -35,21 +36,25 @@ func (h *tokenHelpers) DisconnectUserFromStoreIfNecessary(err error, _ string) {
 func (h *tokenHelpers) RefreshAndStoreToken(token *oauth2.Token, oconf *oauth2.Config, _ string) (*oauth2.Token, error) {
 	conf := *oconf
 	conf.Endpoint = oauth2.Endpoint{TokenURL: h.tokenURL, AuthStyle: oauth2.AuthStyleInParams}
-	return conf.TokenSource(context.Background(), token).Token()
+	newToken, err := conf.TokenSource(context.Background(), token).Token()
+	if err != nil {
+		return nil, errors.Wrap(err, "unable to get the new refreshed token")
+	}
+	return newToken, nil
 }
 
 func TestMakeUserClientRefreshFailure(t *testing.T) {
 	for _, tc := range []struct {
-		name              string
-		status            int
-		body              string
-		expectUserInvalid bool
+		name           string
+		status         int
+		body           string
+		expectInactive bool
 	}{
 		{
-			name:              "revoked or expired refresh token marks the user inactive",
-			status:            http.StatusBadRequest,
-			body:              `{"error": "invalid_grant", "error_description": "Token has been expired or revoked."}`,
-			expectUserInvalid: true,
+			name:           "revoked or expired refresh token marks the user inactive",
+			status:         http.StatusBadRequest,
+			body:           `{"error": "invalid_grant", "error_description": "Token has been expired or revoked."}`,
+			expectInactive: true,
 		},
 		{
 			name:   "invalid client keeps the user connected",
@@ -82,7 +87,7 @@ func TestMakeUserClientRefreshFailure(t *testing.T) {
 
 			// The engine's store and slash commands match these messages (calendar/store/user_store.go
 			// DisconnectUserFromStoreIfNecessary, calendar/command/daily_summary.go).
-			if tc.expectUserInvalid {
+			if tc.expectInactive {
 				assert.ErrorContains(t, helpers.disconnectErr, store.ErrorRefreshTokenExpired)
 				assert.ErrorContains(t, err, store.ErrorUserInactive)
 			} else {
