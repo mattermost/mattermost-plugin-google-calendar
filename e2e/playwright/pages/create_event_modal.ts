@@ -26,6 +26,7 @@ export class CreateEventModal {
     readonly channelInput: Locator;
     readonly guestsInput: Locator;
     readonly createButton: Locator;
+    readonly datePicker: Locator;
 
     constructor(private readonly channelsPage: ChannelsPage) {
         this.page = channelsPage.page;
@@ -42,6 +43,9 @@ export class CreateEventModal {
         this.channelInput = this.container.getByRole('combobox', {name: 'Link event to channel (optional)'});
         this.guestsInput = this.container.getByRole('combobox', {name: 'Guests'});
         this.createButton = this.container.getByRole('button', {name: 'Create', exact: true});
+
+        // The fields' popups render in portals outside the dialog.
+        this.datePicker = this.page.getByRole('dialog', {name: 'Date picker'});
     }
 
     /**
@@ -82,7 +86,7 @@ export class CreateEventModal {
      */
     async chooseDate(date: string) {
         await this.dateInput.click();
-        const picker = this.page.getByRole('dialog', {name: 'Date picker'});
+        const picker = this.datePicker;
         const shown = new Date(`${await picker.getByRole('grid').getAttribute('aria-label')} 1`);
         const [year, month] = date.split('-').map(Number);
         const offset = ((year - shown.getFullYear()) * 12) + (month - 1 - shown.getMonth());

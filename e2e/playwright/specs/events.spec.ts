@@ -84,6 +84,55 @@ test('opens the create-event dialog from the channel menu and the slash command,
 });
 
 /**
+ * @objective Verify that Escape closes an open time list, guest or channel suggestions, or the date picker without closing the create-event dialog, and closes the dialog once nothing is open
+ *
+ * @precondition
+ * The user's Google connection is seeded directly into the plugin KV store
+ */
+test('closes open field popups with Escape before closing the create-event dialog', {tag: '@google_calendar'}, async ({pw}) => {
+    const {owner} = requireGoogle('owner');
+
+    // # Seed a connected user, open the dialog and fill in the subject
+    const {adminClient, user, team} = await pw.initSetup();
+    await ensureGcalPlugin(adminClient);
+    await seedConnectedGoogleUser(user, owner);
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name);
+    await channelsPage.toBeVisible();
+    const modal = new CreateEventModal(channelsPage);
+    await modal.openFromChannelMenu();
+    const summary = eventSummary(runId, 'Escape');
+    await modal.subjectInput.fill(summary);
+
+    for (const field of [modal.startTimeInput, modal.guestsInput, modal.channelInput]) {
+        // # Open the field's list and press Escape
+        await field.click();
+        await expect(field).toHaveAttribute('aria-expanded', 'true');
+        await channelsPage.page.keyboard.press('Escape');
+
+        // * Verify only the list closed and the form kept its subject
+        await expect(field).toHaveAttribute('aria-expanded', 'false');
+        await expect(modal.container).toBeVisible();
+        await expect(modal.subjectInput).toHaveValue(summary);
+    }
+
+    // # Open the date picker and press Escape
+    await modal.dateInput.click();
+    await expect(modal.datePicker).toBeVisible();
+    await channelsPage.page.keyboard.press('Escape');
+
+    // * Verify only the date picker closed
+    await expect(modal.datePicker).toBeHidden();
+    await expect(modal.container).toBeVisible();
+
+    // # Press Escape with nothing open
+    await channelsPage.page.keyboard.press('Escape');
+
+    // * Verify the dialog closes
+    await expect(modal.container).toBeHidden();
+});
+
+/**
  * @objective Verify that a user who is not connected is asked to connect instead of getting the create-event dialog
  */
 test('asks a user who is not connected to connect instead of opening the create-event dialog', {tag: '@google_calendar'}, async ({pw}) => {
