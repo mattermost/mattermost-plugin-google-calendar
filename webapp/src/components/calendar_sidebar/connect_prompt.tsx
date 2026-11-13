@@ -1,5 +1,8 @@
 import {useCallback} from 'react';
 
+import type {ButtonAsChildProps, ButtonProps} from '@mattermost/compass-ui/components/button';
+import {EmptyState} from '@mattermost/compass-ui/components/empty-state';
+
 import manifest from '@/manifest';
 import {MattermostTheme} from '@/utils/calendar_theme';
 
@@ -34,31 +37,28 @@ const ConnectPrompt = ({theme, pluginServerRoute, sendEphemeralPost}: ConnectPro
         );
     }, [pluginServerRoute, sendEphemeralPost, pluginName]);
 
-    return (
-        <div className='gcal-sidebar__connect'>
-            <div className='gcal-sidebar__connect-welcome'>
-                {`Welcome to ${pluginName}`}
-            </div>
-            <div className='gcal-sidebar__connect-icon'>
-                <CalendarIconSVG theme={theme}/>
-            </div>
-            <div className='gcal-sidebar__connect-prompt'>
-                {'Connect your account'}
-                <br/>
-                {'to get started'}
-            </div>
+    const connectUrl = `${pluginServerRoute}/oauth2/connect`;
+
+    // EmptyState spreads `action` onto Button, which supports asChild, but its type only accepts plain button props.
+    const action: ButtonAsChildProps = {
+        asChild: true,
+        children: (
             <a
-                className='gcal-sidebar__connect-btn'
-                href={`${pluginServerRoute}/oauth2/connect`}
+                href={connectUrl}
                 onClick={handleConnect}
-                style={{
-                    backgroundColor: theme.buttonBg,
-                    color: theme.buttonColor,
-                }}
             >
                 {'Connect account'}
             </a>
-        </div>
+        ),
+    };
+
+    return (
+        <EmptyState
+            illustration={{children: <CalendarIconSVG theme={theme}/>}}
+            title={`Welcome to ${pluginName}`}
+            description={'Connect your account to get started'}
+            action={action as unknown as ButtonProps}
+        />
     );
 };
 

@@ -29,26 +29,14 @@ describe('ConnectPrompt', () => {
         expect(screen.getByText(/to get started/)).toBeInTheDocument();
     });
 
-    it('renders Connect account button', () => {
+    it('renders Connect account as a link', () => {
         render(<ConnectPrompt {...baseProps}/>);
-        const btn = screen.getByText('Connect account');
-        expect(btn).toBeInTheDocument();
-        expect(btn.tagName).toBe('A');
+        expect(screen.getByRole('link', {name: 'Connect account'})).toBeInTheDocument();
     });
 
     it('sets the correct OAuth href', () => {
         render(<ConnectPrompt {...baseProps}/>);
-        const link = screen.getByText('Connect account');
-        expect(link).toHaveAttribute('href', '/plugins/com.mattermost.gcal/oauth2/connect');
-    });
-
-    it('applies theme colors to the connect button', () => {
-        render(<ConnectPrompt {...baseProps}/>);
-        const btn = screen.getByText('Connect account');
-        expect(btn).toHaveStyle({
-            backgroundColor: mockTheme.buttonBg,
-            color: mockTheme.buttonColor,
-        });
+        expect(screen.getByRole('link', {name: 'Connect account'})).toHaveAttribute('href', '/plugins/com.mattermost.gcal/oauth2/connect');
     });
 
     it('opens a popup window on click (non-desktop)', () => {
@@ -86,5 +74,11 @@ describe('ConnectPrompt', () => {
                 configurable: true,
             });
         }
+    });
+
+    it('renders the illustration in the theme button color', () => {
+        const {container} = render(<ConnectPrompt {...baseProps}/>);
+        const filled = container.querySelector(`svg [fill="${mockTheme.buttonBg}"]`);
+        expect(filled).toBeInTheDocument();
     });
 });

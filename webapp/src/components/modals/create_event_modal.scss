@@ -1,0 +1,22 @@
+.gcal-create-event-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-l);
+}
+
+.gcal-create-event-form__times {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--spacing-l);
+}
+
+.gcal-required-star {
+    color: var(--error-text);
+}
+
+.gcal-date-label {
+    display: block;
+    margin: 0 0 var(--spacing-xxxs) var(--spacing-m);
+    font-size: var(--font-size-75);
+    color: rgba(var(--center-channel-color-rgb), 0.72);
+}

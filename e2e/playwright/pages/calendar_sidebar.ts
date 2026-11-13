@@ -68,7 +68,7 @@ export class CalendarSidebar {
     async open() {
         await this.appBarIcon.click();
         await expect(this.container).toBeVisible();
-        await expect(this.container.getByText('Loading...')).toBeHidden();
+        await expect(this.container.getByRole('status', {name: 'Loading'})).toBeHidden();
     }
 
     /** An event block in the calendar grid (FullCalendar renders the title as text). */

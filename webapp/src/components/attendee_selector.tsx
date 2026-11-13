@@ -1,25 +1,19 @@
-import React, {useCallback, useRef, useState} from 'react';
-import {useSelector} from 'react-redux';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 
-import {GroupBase} from 'react-select';
-import AsyncCreatableSelect from 'react-select/async-creatable';
-
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
+import {Combobox, type ComboboxOption} from '@mattermost/compass-ui/components/combobox';
+import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
 
 import {useAppDispatch} from '@/hooks';
-import {getStyleForReactSelect} from '@/utils/styles';
+import {Z_INDEX_MENU_PORTAL} from '@/utils/styles';
 import {autocompleteConnectedUsers} from '@/actions';
-
-type SelectOption = {
-    label: string;
-    value: string;
-}
 
 type Props = {
     inputId?: string;
     onChange: (selected: string[]) => void;
     value: string[];
 };
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 /**
  * Multi-select input for event attendees: autocompletes connected Mattermost
@@ -28,96 +22,100 @@ type Props = {
 export default function AttendeeSelector(props: Props) {
     const [storedError, setStoredError] = useState('');
     const [labelMap, setLabelMap] = useState<Record<string, string>>({});
+    const [options, setOptions] = useState<ComboboxOption[]>([]);
+    const [loading, setLoading] = useState(false);
     const requestIdRef = useRef(0);
-
-    const theme = useSelector(getTheme);
 
     const dispatch = useAppDispatch();
 
-    const loadOptions = useCallback(async (input: string): Promise<SelectOption[]> => {
+    const loadOptions = useCallback(async (input: string) => {
         const requestId = ++requestIdRef.current;
-        const response = await dispatch(autocompleteConnectedUsers(input));
+        setLoading(true);
 
-        if (requestId !== requestIdRef.current) {
-            return [];
-        }
+        try {
+            const response = await dispatch(autocompleteConnectedUsers(input));
 
-        if (response.error) {
-            setStoredError(response.error);
-            return [];
-        }
-
-        setStoredError('');
-
-        const options = (response.data ?? []).map((u) => ({
-            label: u.mm_display_name,
-            value: u.mm_id,
-        }));
-
-        setLabelMap((prev) => {
-            const next = {...prev};
-            for (const opt of options) {
-                next[opt.value] = opt.label;
+            if (requestId !== requestIdRef.current) {
+                return;
             }
-            return next;
-        });
 
-        return options;
-    }, [dispatch]);
+            if (response.error) {
+                setStoredError(response.error);
+                setOptions([]);
+                return;
+            }
 
-    const isValidNewOption = (
-        input: string,
-        _selectValue: readonly SelectOption[],
-        selectOptions: readonly (SelectOption | GroupBase<SelectOption>)[],
-    ): boolean => {
-        const trimmed = input.trim().toLowerCase();
-        if (!(/^[^\s@]+@[^\s@]+\.[^\s@]+$/).test(trimmed)) {
-            return false;
-        }
-        const inSelected = props.value.some((v) => v.trim().toLowerCase() === trimmed);
-        const inOptions = selectOptions.some((opt) =>
-            'value' in opt && opt.value.trim().toLowerCase() === trimmed,
-        );
-        return !inSelected && !inOptions;
-    };
+            setStoredError('');
 
-    const handleChange = (selected: readonly SelectOption[] | null) => {
-        if (selected) {
+            const loaded = (response.data ?? []).map((u) => ({
+                label: u.mm_display_name,
+                value: u.mm_id,
+            }));
+
             setLabelMap((prev) => {
                 const next = {...prev};
-                for (const opt of selected) {
-                    next[opt.value.trim()] = opt.label.trim();
+                for (const opt of loaded) {
+                    next[opt.value] = opt.label;
                 }
                 return next;
             });
+            setOptions(loaded);
+        } catch (err) {
+            if (requestId === requestIdRef.current) {
+                setStoredError(String(err));
+            }
+        } finally {
+            if (requestId === requestIdRef.current) {
+                setLoading(false);
+            }
         }
-        props.onChange(selected ? selected.map((option) => option.value.trim()) : []);
-    };
+    }, [dispatch]);
 
-    const selectedValues = props.value.map((v) => ({
+    useEffect(() => {
+        loadOptions('');
+    }, [loadOptions]);
+
+    const selectedOptions: ComboboxOption[] = props.value.map((v) => ({
         label: labelMap[v] || v,
         value: v,
     }));
 
+    // Re-selecting a committed value toggles it off in Combobox, so hide them from the list.
+    const selectable = options.filter((o) => !props.value.includes(o.value));
+
+    const handleCreate = (input: string) => {
+        const trimmed = input.trim();
+        const lower = trimmed.toLowerCase();
+        if (!EMAIL_PATTERN.test(lower) || props.value.some((v) => v.trim().toLowerCase() === lower)) {
+            return;
+        }
+        props.onChange([...props.value, trimmed]);
+    };
+
+    const handleChange = (selected: string | string[] | null) => {
+        const values = Array.isArray(selected) ? selected : [];
+        props.onChange(values.map((v) => v.trim()));
+    };
+
     return (
         <>
-            <AsyncCreatableSelect<SelectOption, true>
-                inputId={props.inputId}
-                value={selectedValues}
-                loadOptions={loadOptions}
-                defaultOptions={true}
-                menuPortalTarget={document.body}
-                menuPlacement='auto'
+            <Combobox
+                id={props.inputId}
+                label='Guests (optional)'
+                multiple={true}
+                creatable={true}
+                filter={false}
+                loading={loading}
+                value={props.value}
+                options={selectable}
+                selectedOptions={selectedOptions}
                 onChange={handleChange}
-                isValidNewOption={isValidNewOption}
-                styles={getStyleForReactSelect(theme)}
-                isMulti={true}
+                onInputChange={loadOptions}
+                onCreateOption={handleCreate}
+                invalid={Boolean(storedError)}
+                zIndex={Z_INDEX_MENU_PORTAL}
             />
-            {storedError && (
-                <div role='alert'>
-                    <span className='error-text'>{storedError}</span>
-                </div>
-            )}
+            {storedError && <ErrorMessage message={storedError}/>}
         </>
     );
 }

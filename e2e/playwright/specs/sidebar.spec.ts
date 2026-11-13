@@ -12,7 +12,7 @@ import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin, googleOAuthSettings} from '../lib/plugin';
 import {setMattermostTimeZone} from '../lib/users';
 import {CalendarSidebar} from '../pages/calendar_sidebar';
-import {CreateEventModal} from '../pages/create_event_modal';
+import {CreateEventModal, pickerDate} from '../pages/create_event_modal';
 
 const MINUTE = 60_000;
 const DAY = 24 * 60 * MINUTE;
@@ -142,9 +142,9 @@ test('opens the create-event dialog for a clicked time slot', {tag: '@google_cal
     // * Verify the dialog opens for tomorrow from 15:00 to 15:30
     const modal = new CreateEventModal(channelsPage);
     await expect(modal.container).toBeVisible();
-    await expect(modal.dateInput).toHaveValue(dateIn(timeZone, 1));
-    await expect(modal.container).toContainText('15:00');
-    await expect(modal.container).toContainText('15:30');
+    await expect(modal.dateInput).toHaveText(pickerDate(dateIn(timeZone, 1)));
+    await expect(modal.startTimeInput).toHaveText('15:00');
+    await expect(modal.endTimeInput).toHaveText('15:30');
 });
 
 /**
