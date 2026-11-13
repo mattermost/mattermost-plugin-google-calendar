@@ -126,12 +126,12 @@ test('marks a user without a refresh token inactive and sends one reconnect DM',
 });
 
 /**
- * @objective Verify what happens when Google rejects a revoked refresh token: the command fails, and the user is not marked inactive or told to reconnect
+ * @objective Verify that a user whose refresh token Google rejects as revoked or expired (invalid_grant) is marked inactive and told once to reconnect
  *
  * @precondition
  * The user's Google connection is seeded with an expired access token and a refresh token of its own that the fake has revoked (the account's other tokens keep working)
  */
-test('fails commands without marking the user inactive when Google rejects a revoked refresh token', {tag: '@google_calendar'}, async ({pw}) => {
+test('marks a user inactive and sends one reconnect DM when Google rejects a revoked refresh token', {tag: '@google_calendar'}, async ({pw}) => {
     const {owner} = requireGoogle('owner');
 
     // # Seed a connection with an expired access token and revoke its refresh token at Google
@@ -147,21 +147,30 @@ test('fails commands without marking the user inactive when Google rejects a rev
     await channelsPage.goto(team.name);
     await channelsPage.toBeVisible();
     const command = new GcalCommand(channelsPage);
+    const botDM = new GcalBotDM(channelsPage);
     await command.run('today');
 
-    // * Verify the command fails after Google refuses the refresh with invalid_grant
-    await expect(command.commandFailed).toBeVisible();
+    // * Verify the command answers that the user was marked inactive after Google refuses the refresh with invalid_grant
+    await expect(command.markedInactiveReplies).toHaveCount(1);
+    await expect(command.commandFailed).toHaveCount(0);
     const refreshes = await tokenRequests('refresh_token');
     expect(refreshes.length).toBeGreaterThan(0);
     expect(refreshes.every((r) => r.status === 400)).toBe(true);
 
-    // * Verify the plugin keeps the connection: Google's "invalid_grant" matches neither error the engine treats as an expired refresh token (confirmed on real Google; a product bug)
-    expect((await loadStoredUser(user.id))?.OAuth2Token?.refresh_token).toBe(refreshToken);
+    // * Verify the plugin cleared the stored token
+    expect((await loadStoredUser(user.id))?.OAuth2Token).toBeNull();
+
+    // # Ask for today's agenda again
+    await fakeGoogle.clearRequests();
+    await command.run('today');
+
+    // * Verify the second command also answers that the user was marked inactive, without asking Google again
+    await expect(command.markedInactiveReplies).toHaveCount(2);
+    expect(await tokenRequests()).toHaveLength(0);
 
     // # Open the bot DM
-    const botDM = new GcalBotDM(channelsPage);
     await botDM.open(team.name);
 
-    // * Verify the bot did not tell the user to reconnect
-    await expect(botDM.inactiveNotices).toHaveCount(0);
+    // * Verify the bot sent the reconnect notice once
+    await expect(botDM.inactiveNotices).toHaveCount(1);
 });
