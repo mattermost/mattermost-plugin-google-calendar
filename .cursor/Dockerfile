@@ -5,7 +5,7 @@ FROM ubuntu:24.04
 
 ARG DEBIAN_FRONTEND=noninteractive
 # install.sh warns when these drift from go.mod and .nvmrc.
-ARG GO_VERSION=1.25.8
+ARG GO_VERSION=1.26.0
 ARG NODE_VERSION=24.13.1
 ARG DOCKER_VERSION=5:28.5.2-1~ubuntu.24.04~noble
 
