@@ -1,14 +1,13 @@
 import {render, screen, fireEvent} from '@testing-library/react';
 import '@testing-library/jest-dom';
 
+import {GOOGLE_CALENDAR_ICON_DATA_URI} from '@/components/channel_header_icon/google_calendar_icon_data';
 import manifest from '@/manifest';
-import {mockTheme} from '@/testutils/theme';
 
 import ConnectPrompt from './connect_prompt';
 
 describe('ConnectPrompt', () => {
     const baseProps = {
-        theme: mockTheme,
         pluginServerRoute: '/plugins/com.mattermost.gcal',
         sendEphemeralPost: jest.fn(),
     };
@@ -76,9 +75,8 @@ describe('ConnectPrompt', () => {
         }
     });
 
-    it('renders the illustration in the theme button color', () => {
+    it('renders the Google Calendar icon as the illustration', () => {
         const {container} = render(<ConnectPrompt {...baseProps}/>);
-        const filled = container.querySelector(`svg [fill="${mockTheme.buttonBg}"]`);
-        expect(filled).toBeInTheDocument();
+        expect(container.querySelector('img')).toHaveAttribute('src', GOOGLE_CALENDAR_ICON_DATA_URI);
     });
 });

@@ -27,7 +27,7 @@
     }
 
     .gcal-sidebar__header-label {
-        font-size: 13px;
+        font-size: var(--font-size-75);
         font-weight: var(--font-weight-semibold);
         padding: 0 var(--spacing-xxxs);
         white-space: nowrap;

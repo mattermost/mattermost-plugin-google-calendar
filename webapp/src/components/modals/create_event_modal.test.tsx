@@ -11,7 +11,7 @@ jest.mock('./create_event_form', () => {
         __esModule: true,
         default: (props: {close: () => void}) => (
             <div data-testid='create-event-form'>
-                <h2>{'Create Calendar Event'}</h2>
+                <h2>{'New calendar event'}</h2>
                 <button onClick={props.close}>{'mock-close'}</button>
             </div>
         ),
@@ -38,7 +38,7 @@ describe('CreateEventModal', () => {
     it('renders modal with title when visible', () => {
         mockUseSelector.mockReturnValue(true);
         render(<CreateEventModal/>);
-        expect(screen.getByText('Create Calendar Event')).toBeInTheDocument();
+        expect(screen.getByText('New calendar event')).toBeInTheDocument();
     });
 
     it('renders CreateEventForm inside the modal', () => {

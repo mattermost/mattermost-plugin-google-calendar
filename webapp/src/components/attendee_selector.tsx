@@ -1,9 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {useSelector} from 'react-redux';
 
+import {AccountOutlineIcon} from '@mattermost/compass-icons/components';
 import {Combobox, type ComboboxOption} from '@mattermost/compass-ui/components/combobox';
-import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {useAppDispatch} from '@/hooks';
+import {getSiteURL} from '@/selectors';
 import {Z_INDEX_MENU_PORTAL} from '@/utils/styles';
 import {autocompleteConnectedUsers} from '@/actions';
 
@@ -21,12 +24,13 @@ const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
  */
 export default function AttendeeSelector(props: Props) {
     const [storedError, setStoredError] = useState('');
-    const [labelMap, setLabelMap] = useState<Record<string, string>>({});
+    const [knownUsers, setKnownUsers] = useState<Record<string, ComboboxOption>>({});
     const [options, setOptions] = useState<ComboboxOption[]>([]);
     const [loading, setLoading] = useState(false);
     const requestIdRef = useRef(0);
 
     const dispatch = useAppDispatch();
+    const siteURL = useSelector(getSiteURL);
 
     const loadOptions = useCallback(async (input: string) => {
         const requestId = ++requestIdRef.current;
@@ -50,12 +54,13 @@ export default function AttendeeSelector(props: Props) {
             const loaded = (response.data ?? []).map((u) => ({
                 label: u.mm_display_name,
                 value: u.mm_id,
+                leadingAvatar: {src: `${siteURL}/api/v4/users/${u.mm_id}/image`, alt: ''},
             }));
 
-            setLabelMap((prev) => {
+            setKnownUsers((prev) => {
                 const next = {...prev};
                 for (const opt of loaded) {
-                    next[opt.value] = opt.label;
+                    next[opt.value] = opt;
                 }
                 return next;
             });
@@ -69,16 +74,17 @@ export default function AttendeeSelector(props: Props) {
                 setLoading(false);
             }
         }
-    }, [dispatch]);
+    }, [dispatch, siteURL]);
 
     useEffect(() => {
         loadOptions('');
     }, [loadOptions]);
 
-    const selectedOptions: ComboboxOption[] = props.value.map((v) => ({
-        label: labelMap[v] || v,
+    const selectedOptions: ComboboxOption[] = props.value.map((v) => knownUsers[v] ?? {
+        label: v,
         value: v,
-    }));
+        leadingVisual: <Icon glyph={<AccountOutlineIcon/>}/>,
+    });
 
     // Re-selecting a committed value toggles it off in Combobox, so hide them from the list.
     const selectable = options.filter((o) => !props.value.includes(o.value));
@@ -98,24 +104,21 @@ export default function AttendeeSelector(props: Props) {
     };
 
     return (
-        <>
-            <Combobox
-                id={props.inputId}
-                label='Guests (optional)'
-                multiple={true}
-                creatable={true}
-                filter={false}
-                loading={loading}
-                value={props.value}
-                options={selectable}
-                selectedOptions={selectedOptions}
-                onChange={handleChange}
-                onInputChange={loadOptions}
-                onCreateOption={handleCreate}
-                invalid={Boolean(storedError)}
-                zIndex={Z_INDEX_MENU_PORTAL}
-            />
-            {storedError && <ErrorMessage message={storedError}/>}
-        </>
+        <Combobox
+            id={props.inputId}
+            label='Guests (optional)'
+            multiple={true}
+            creatable={true}
+            filter={false}
+            loading={loading}
+            value={props.value}
+            options={selectable}
+            selectedOptions={selectedOptions}
+            onChange={handleChange}
+            onInputChange={loadOptions}
+            onCreateOption={handleCreate}
+            message={storedError}
+            zIndex={Z_INDEX_MENU_PORTAL}
+        />
     );
 }

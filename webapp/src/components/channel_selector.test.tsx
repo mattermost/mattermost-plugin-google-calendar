@@ -2,6 +2,8 @@ import {act, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
 
+import {GlobeIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
+
 import ChannelSelector from './channel_selector';
 
 const mockDispatch = jest.fn();
@@ -36,14 +38,32 @@ describe('ChannelSelector', () => {
     beforeEach(() => {
         mockDispatch.mockReset();
         mockDispatch.mockResolvedValue({data: [
-            {id: 'c1', display_name: 'Town Square'},
-            {id: 'c2', display_name: 'Off-Topic'},
+            {id: 'c1', display_name: 'Town Square', type: 'O'},
+            {id: 'c2', display_name: 'Off-Topic', type: 'O'},
+            {id: 'c3', display_name: 'Leads', type: 'P'},
         ]});
     });
+
+    const iconPath = (icon: React.ReactElement) => render(icon, {container: document.createElement('div')}).container.querySelector('path')?.getAttribute('d');
 
     it('loads channels once on mount', async () => {
         await renderSelector(null);
         expect(mockDispatch).toHaveBeenCalledTimes(1);
+    });
+
+    it('marks public channels with a globe and private channels with a lock', async () => {
+        await renderSelector(null);
+        await userEvent.click(screen.getByRole('combobox', {name: LABEL}));
+        const pathOf = (name: string) => screen.getByRole('option', {name}).querySelector('path')?.getAttribute('d');
+        expect(pathOf('Town Square')).toBe(iconPath(<GlobeIcon/>));
+        expect(pathOf('Leads')).toBe(iconPath(<LockOutlineIcon/>));
+    });
+
+    it('shows the selected channel type icon in the field', async () => {
+        await renderSelector('c3');
+        const paths = Array.from(document.querySelectorAll('path'), (p) => p.getAttribute('d'));
+        expect(paths).toContain(iconPath(<LockOutlineIcon/>));
+        expect(paths).not.toContain(iconPath(<GlobeIcon/>));
     });
 
     it('resolves a pre-filled channel id to its label', async () => {

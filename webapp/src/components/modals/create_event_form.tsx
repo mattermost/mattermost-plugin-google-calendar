@@ -144,7 +144,7 @@ export default function CreateEventForm(props: Props) {
             onClose={handleClose}
             closeOnEscape={false}
             onKeyDown={handleKeyDown}
-            title='Create Calendar Event'
+            title='New calendar event'
             size='medium'
             footer={footer}
         >
@@ -181,6 +181,7 @@ export default function CreateEventForm(props: Props) {
                 />
                 <DateInput
                     id='date'
+                    label={requiredLabel('Date')}
                     value={formValues.date}
                     invalid={dateInPast}
                     onChange={(value) => {
@@ -201,7 +202,7 @@ export default function CreateEventForm(props: Props) {
                     <TimeSelector
                         inputId='start_time'
                         name='start_time'
-                        label={requiredLabel('Start Time')}
+                        label={requiredLabel('Start time')}
                         value={formValues.start_time}
                         endTime={formValues.end_time}
                         date={formValues.date}
@@ -210,7 +211,7 @@ export default function CreateEventForm(props: Props) {
                     <TimeSelector
                         inputId='end_time'
                         name='end_time'
-                        label={requiredLabel('End Time')}
+                        label={requiredLabel('End time')}
                         value={formValues.end_time}
                         startTime={formValues.start_time}
                         date={formValues.date}

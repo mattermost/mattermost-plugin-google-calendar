@@ -1,14 +1,19 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {useSelector} from 'react-redux';
 
+import {GlobeIcon, LockOutlineIcon} from '@mattermost/compass-icons/components';
 import {Combobox, type ComboboxOption} from '@mattermost/compass-ui/components/combobox';
-import {ErrorMessage} from '@mattermost/compass-ui/components/error-message';
+import {Icon} from '@mattermost/compass-ui/components/icon';
 
 import {getCurrentTeamId} from 'mattermost-redux/selectors/entities/teams';
 
 import {useAppDispatch} from '@/hooks';
 import {Z_INDEX_MENU_PORTAL} from '@/utils/styles';
 import {autocompleteUserChannels} from '@/actions';
+
+const channelIcon = (type: string) => (
+    <Icon glyph={type === 'P' ? <LockOutlineIcon/> : <GlobeIcon/>}/>
+);
 
 type Props = {
     inputId?: string;
@@ -52,6 +57,7 @@ export default function ChannelSelector(props: Props) {
             const loaded = (response.data ?? []).map((c) => ({
                 label: c.display_name,
                 value: c.id,
+                leadingVisual: channelIcon(c.type),
             }));
             setOptions(loaded);
 
@@ -90,22 +96,20 @@ export default function ChannelSelector(props: Props) {
     const resolved = props.value && selectedOption?.value === props.value ? selectedOption : null;
 
     return (
-        <>
-            <Combobox
-                id={props.inputId}
-                label='Link event to channel (optional)'
-                filter={false}
-                clearable={true}
-                loading={loading}
-                value={props.value || null}
-                options={options}
-                selectedOptions={resolved ? [resolved] : []}
-                onChange={handleChange}
-                onInputChange={loadOptions}
-                invalid={Boolean(storedError)}
-                zIndex={Z_INDEX_MENU_PORTAL}
-            />
-            {storedError && <ErrorMessage message={storedError}/>}
-        </>
+        <Combobox
+            id={props.inputId}
+            label='Link event to channel (optional)'
+            filter={false}
+            clearable={true}
+            loading={loading}
+            value={props.value || null}
+            options={options}
+            selectedOptions={resolved ? [resolved] : []}
+            onChange={handleChange}
+            onInputChange={loadOptions}
+            leadingIcon={resolved?.leadingVisual}
+            message={storedError}
+            zIndex={Z_INDEX_MENU_PORTAL}
+        />
     );
 }

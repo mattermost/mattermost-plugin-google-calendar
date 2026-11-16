@@ -171,11 +171,6 @@ describe('CalendarSidebar', () => {
         expect(sidebar).toHaveStyle({backgroundColor: altTheme.centerChannelBg});
     });
 
-    it('theme: passes to ConnectPrompt illustration when disconnected', () => {
-        const {container} = render(<CalendarSidebar {...makeProps({theme: altTheme, connected: false})}/>);
-        expect(container.querySelector(`svg [fill="${altTheme.buttonBg}"]`)).toBeInTheDocument();
-    });
-
     it('renders the load error as an announced danger notice', () => {
         render(<CalendarSidebar {...makeProps({error: 'fail'})}/>);
         const notice = screen.getByRole('alert');

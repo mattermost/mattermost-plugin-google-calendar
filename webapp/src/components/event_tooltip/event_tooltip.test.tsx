@@ -1,5 +1,7 @@
 import {render, screen, fireEvent} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import {IntlProvider} from 'react-intl';
 
 import {RemoteEvent} from '@/types/calendar';
 
@@ -193,5 +195,11 @@ describe('EventTooltip', () => {
         render(<EventTooltip {...baseProps}/>);
         fireEvent.click(screen.getByRole('button', {name: 'Close event details'}));
         expect(baseProps.onClose).toHaveBeenCalledTimes(1);
+    });
+
+    it('shows a tooltip on the close control on hover', async () => {
+        render(<EventTooltip {...baseProps}/>, {wrapper: ({children}) => <IntlProvider locale='en'>{children}</IntlProvider>});
+        await userEvent.hover(screen.getByRole('button', {name: 'Close event details'}));
+        expect(await screen.findByRole('tooltip')).toHaveTextContent('Close event details');
     });
 });

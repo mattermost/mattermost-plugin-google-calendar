@@ -27,14 +27,14 @@ describe('TimeSelector', () => {
         render(
             <TimeSelector
                 name='start_time'
-                label={nodeLabel('Start Time')}
+                label={nodeLabel('Start time')}
                 value=''
                 date={FUTURE_DATE}
                 onChange={onChange}
             />,
         );
 
-        await userEvent.click(screen.getByRole('combobox', {name: 'Start Time'}));
+        await userEvent.click(screen.getByRole('combobox', {name: 'Start time'}));
         await userEvent.click(screen.getByRole('option', {name: '10:00'}));
 
         expect(onChange).toHaveBeenCalledWith('start_time', '10:00');
@@ -45,7 +45,7 @@ describe('TimeSelector', () => {
         render(
             <TimeSelector
                 name='end_time'
-                label={nodeLabel('End Time')}
+                label={nodeLabel('End time')}
                 value=''
                 startTime='10:00'
                 date={FUTURE_DATE}
@@ -53,7 +53,7 @@ describe('TimeSelector', () => {
             />,
         );
 
-        await userEvent.click(screen.getByRole('combobox', {name: 'End Time'}));
+        await userEvent.click(screen.getByRole('combobox', {name: 'End time'}));
         const options = screen.getAllByRole('option');
 
         expect(screen.getByRole('listbox', {name: 'End time'})).toBeInTheDocument();
@@ -65,7 +65,7 @@ describe('TimeSelector', () => {
         render(
             <TimeSelector
                 name='end_time'
-                label={nodeLabel('End Time')}
+                label={nodeLabel('End time')}
                 value='09:00'
                 startTime='10:00'
                 date={FUTURE_DATE}
@@ -73,6 +73,6 @@ describe('TimeSelector', () => {
             />,
         );
 
-        expect(screen.getByRole('combobox', {name: 'End Time'})).not.toHaveTextContent('09:00');
+        expect(screen.getByRole('combobox', {name: 'End time'})).not.toHaveTextContent('09:00');
     });
 });

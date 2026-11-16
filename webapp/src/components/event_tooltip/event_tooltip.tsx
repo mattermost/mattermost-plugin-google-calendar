@@ -14,6 +14,7 @@ import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
 import {Tag, type TagProps} from '@mattermost/compass-ui/components/tag';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 import {RemoteEvent} from '@/types/calendar';
 
@@ -178,12 +179,16 @@ const EventTooltip = ({event, anchorRect, timezone, onClose}: EventTooltipProps)
                             {event.subject || '(No title)'}
                         </span>
                     )}
-                    <IconButton
-                        size='small'
-                        onClick={onClose}
-                        aria-label='Close event details'
-                        icon={<Icon glyph={<CloseIcon/>}/>}
-                    />
+                    <WithTooltip title='Close event details'>
+                        <IconButton
+                            className='gcal-tooltip__close'
+                            size='small'
+                            padding='compact'
+                            onClick={onClose}
+                            aria-label='Close event details'
+                            icon={<Icon glyph={<CloseIcon/>}/>}
+                        />
+                    </WithTooltip>
                 </div>
 
                 <div className='gcal-tooltip__time'>

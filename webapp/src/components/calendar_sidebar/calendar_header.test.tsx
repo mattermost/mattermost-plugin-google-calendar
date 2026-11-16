@@ -1,5 +1,7 @@
 import {render, screen, fireEvent} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
+import {IntlProvider} from 'react-intl';
 
 import CalendarHeader from './calendar_header';
 
@@ -65,13 +67,13 @@ describe('CalendarHeader', () => {
 
     it('calls onPrev when previous button is clicked', () => {
         render(<CalendarHeader {...baseProps}/>);
-        fireEvent.click(screen.getByTitle('Previous'));
+        fireEvent.click(screen.getByRole('button', {name: 'Previous'}));
         expect(baseProps.onPrev).toHaveBeenCalledTimes(1);
     });
 
     it('calls onNext when next button is clicked', () => {
         render(<CalendarHeader {...baseProps}/>);
-        fireEvent.click(screen.getByTitle('Next'));
+        fireEvent.click(screen.getByRole('button', {name: 'Next'}));
         expect(baseProps.onNext).toHaveBeenCalledTimes(1);
     });
 
@@ -83,14 +85,20 @@ describe('CalendarHeader', () => {
 
     it('calls onRefresh when refresh button is clicked', () => {
         render(<CalendarHeader {...baseProps}/>);
-        fireEvent.click(screen.getByTitle('Refresh'));
+        fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
         expect(baseProps.onRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['Previous', 'Next', 'Refresh'])('shows a %s tooltip on hover', async (name) => {
+        render(<CalendarHeader {...baseProps}/>, {wrapper: ({children}) => <IntlProvider locale='en'>{children}</IntlProvider>});
+        await userEvent.hover(screen.getByRole('button', {name}));
+        expect(await screen.findByRole('tooltip')).toHaveTextContent(name);
     });
 
     it('disables refresh button when loading', () => {
         const props = {...baseProps, loading: true};
         render(<CalendarHeader {...props}/>);
-        expect(screen.getByTitle('Refresh')).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Refresh'})).toBeDisabled();
     });
 
     it('exposes navigation controls as named buttons', () => {

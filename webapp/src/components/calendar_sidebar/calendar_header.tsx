@@ -2,6 +2,7 @@ import {ChevronLeftIcon, ChevronRightIcon, RefreshIcon} from '@mattermost/compas
 import {Button} from '@mattermost/compass-ui/components/button';
 import {Icon} from '@mattermost/compass-ui/components/icon';
 import {IconButton} from '@mattermost/compass-ui/components/icon-button';
+import {WithTooltip} from '@mattermost/shared/components/tooltip';
 
 interface CalendarHeaderProps {
     onPrev: () => void;
@@ -47,33 +48,36 @@ const CalendarHeader = ({onPrev, onNext, onToday, onRefresh, loading, currentSta
     return (
         <div className='gcal-sidebar__header'>
             <div className='gcal-sidebar__header-nav'>
-                <IconButton
-                    size='small'
-                    onClick={onPrev}
-                    title='Previous'
-                    aria-label='Previous'
-                    icon={<Icon glyph={<ChevronLeftIcon/>}/>}
-                />
+                <WithTooltip title='Previous'>
+                    <IconButton
+                        size='small'
+                        onClick={onPrev}
+                        aria-label='Previous'
+                        icon={<Icon glyph={<ChevronLeftIcon/>}/>}
+                    />
+                </WithTooltip>
                 <span className='gcal-sidebar__header-label'>{label}</span>
-                <IconButton
-                    size='small'
-                    onClick={onNext}
-                    title='Next'
-                    aria-label='Next'
-                    icon={<Icon glyph={<ChevronRightIcon/>}/>}
-                />
+                <WithTooltip title='Next'>
+                    <IconButton
+                        size='small'
+                        onClick={onNext}
+                        aria-label='Next'
+                        icon={<Icon glyph={<ChevronRightIcon/>}/>}
+                    />
+                </WithTooltip>
             </div>
             <div className='gcal-sidebar__header-actions'>
-                <IconButton
-                    size='small'
-                    onClick={onRefresh}
-                    loading={loading}
-                    title='Refresh'
-                    aria-label='Refresh'
-                    icon={<Icon glyph={<RefreshIcon/>}/>}
-                />
+                <WithTooltip title='Refresh'>
+                    <IconButton
+                        size='small'
+                        onClick={onRefresh}
+                        loading={loading}
+                        aria-label='Refresh'
+                        icon={<Icon glyph={<RefreshIcon/>}/>}
+                    />
+                </WithTooltip>
                 <Button
-                    emphasis='secondary'
+                    emphasis='tertiary'
                     size='small'
                     onClick={onToday}
                 >

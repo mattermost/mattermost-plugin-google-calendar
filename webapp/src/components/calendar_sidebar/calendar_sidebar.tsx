@@ -242,7 +242,6 @@ const CalendarSidebar = ({theme, events, loading, error, timezone, connected, pl
                 style={containerStyle}
             >
                 <ConnectPrompt
-                    theme={theme}
                     pluginServerRoute={pluginServerRoute}
                     sendEphemeralPost={actions.sendEphemeralPost}
                 />

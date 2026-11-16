@@ -137,7 +137,14 @@
       "global-require": 2,
       "guard-for-in": 2,
       "id-blacklist": 0,
-      "import/no-unresolved": 2,
+      "import/no-unresolved": [
+         2,
+         {
+            "ignore": [
+               "^@mattermost/shared/"
+            ]
+         }
+      ],
       "import/order": [
          "error",
          {

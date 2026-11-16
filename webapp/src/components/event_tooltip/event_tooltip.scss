@@ -27,6 +27,7 @@
     }
 
     .gcal-tooltip__title {
+        font-family: var(--font-family-heading);
         font-size: var(--font-size-200);
         font-weight: var(--font-weight-semibold);
         line-height: 1.3;
@@ -38,6 +39,12 @@
         &:hover {
             text-decoration: underline;
         }
+    }
+
+    // Centers the 28px button on the title's first line and its glyph on the content edge.
+    .gcal-tooltip__close {
+        flex-shrink: 0;
+        margin: calc(-1 * var(--spacing-xxxs)) calc(-1 * var(--spacing-xxs)) 0 0;
     }
 
     .gcal-tooltip__title-icon {

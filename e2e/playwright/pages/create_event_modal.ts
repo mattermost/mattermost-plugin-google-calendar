@@ -7,7 +7,7 @@ import type {Locator, Page} from '@playwright/test';
 import {GcalCommand} from './gcal_command';
 
 /**
- * The "Create Calendar Event" dialog (webapp/src/components/modals/create_event_modal.tsx). Copied
+ * The "New calendar event" dialog (webapp/src/components/modals/create_event_modal.tsx). Copied
  * from the MS Calendar suite's support/create_event_modal.ts; the engine's webapp is the same.
  * Time pickers list 24-hour "HH:MM" options in 15-minute steps (components/time_selector.tsx);
  * choosing a start time sets the end time 30 minutes later. The fields are compass-ui components:
@@ -30,14 +30,14 @@ export class CreateEventModal {
 
     constructor(private readonly channelsPage: ChannelsPage) {
         this.page = channelsPage.page;
-        this.container = this.page.getByRole('dialog').filter({has: this.page.getByRole('heading', {name: 'Create Calendar Event'})});
+        this.container = this.page.getByRole('dialog').filter({has: this.page.getByRole('heading', {name: 'New calendar event'})});
         this.subjectInput = this.container.getByRole('textbox', {name: 'Subject'});
 
         // The DateRangePicker trigger takes its accessible name from the date it shows, not the field
         // label, so it is found by the id the form gives it.
         this.dateInput = this.container.locator('[id="date"]');
-        this.startTimeInput = this.container.getByRole('combobox', {name: 'Start Time'});
-        this.endTimeInput = this.container.getByRole('combobox', {name: 'End Time'});
+        this.startTimeInput = this.container.getByRole('combobox', {name: 'Start time'});
+        this.endTimeInput = this.container.getByRole('combobox', {name: 'End time'});
         this.locationInput = this.container.getByRole('textbox', {name: 'Location (optional)'});
         this.descriptionInput = this.container.getByRole('textbox', {name: 'Description (optional)'});
         this.channelInput = this.container.getByRole('combobox', {name: 'Link event to channel (optional)'});

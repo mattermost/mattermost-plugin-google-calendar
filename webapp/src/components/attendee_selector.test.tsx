@@ -5,6 +5,10 @@ import '@testing-library/jest-dom';
 import AttendeeSelector from './attendee_selector';
 
 const mockDispatch = jest.fn();
+jest.mock('react-redux', () => ({
+    useSelector: (selector: () => unknown) => selector(),
+}));
+jest.mock('@/selectors', () => ({getSiteURL: () => 'http://mm.test'}));
 jest.mock('@/hooks', () => ({
     useAppDispatch: () => mockDispatch,
 }));
@@ -54,6 +58,22 @@ describe('AttendeeSelector', () => {
         await userEvent.type(screen.getByRole('combobox', {name: 'Guests (optional)'}), 'new@example.com');
         await userEvent.click(await screen.findByRole('option', {name: /new@example\.com/}));
         expect(onChange).toHaveBeenLastCalledWith(['u1', 'new@example.com']);
+    });
+
+    it('shows connected users with their avatar in the list', async () => {
+        const onChange = await setup();
+        await userEvent.click(screen.getByRole('combobox', {name: 'Guests (optional)'}));
+        const option = await screen.findByRole('option', {name: 'User One'});
+        expect(option.querySelector('img')).toHaveAttribute('src', 'http://mm.test/api/v4/users/u1/image');
+        await userEvent.click(option);
+        expect(onChange).toHaveBeenLastCalledWith(['u1']);
+    });
+
+    it('renders chips with the user avatar, or a person icon for an email guest', async () => {
+        await setup(['u1', 'guest@example.com']);
+        const avatars = document.querySelectorAll('img[src="http://mm.test/api/v4/users/u1/image"]');
+        expect(avatars).toHaveLength(1);
+        expect(screen.getByText('guest@example.com').closest('[data-chip]')?.querySelector('svg')).toBeInTheDocument();
     });
 
     it('ignores invalid email addresses', async () => {
