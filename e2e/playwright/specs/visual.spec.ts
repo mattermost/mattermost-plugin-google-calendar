@@ -80,8 +80,8 @@ test.describe('visual', {tag: '@visual'}, () => {
 
         // # Fill in an event
         await modal.subjectInput.fill('Quarterly planning');
-        await modal.dateInput.fill(FILLED_DAY);
-        await modal.chooseStartTime('10:00');
+        await modal.chooseDate(FILLED_DAY);
+        await modal.chooseStartTime('10:00 AM');
         await modal.locationInput.fill('Room 4');
         await modal.descriptionInput.fill('Goals for the next quarter');
         await settle(pw, modal.container);
@@ -104,8 +104,8 @@ test.describe('visual', {tag: '@visual'}, () => {
         const modal = new CreateEventModal(channelsPage);
         await modal.openFromCommand();
         await modal.subjectInput.fill('Quarterly planning');
-        await modal.dateInput.fill(dateIn('UTC', 30));
-        await modal.chooseStartTime('10:00');
+        await modal.chooseDate(dateIn('UTC', 30));
+        await modal.chooseStartTime('10:00 AM');
         await modal.locationInput.fill('Room 4');
         await modal.clearLinkedChannel();
         await modal.createButton.click();

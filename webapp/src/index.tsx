@@ -1,3 +1,5 @@
+import '@mattermost/compass-ui/styles';
+
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 
 import {Action, Store} from 'redux';

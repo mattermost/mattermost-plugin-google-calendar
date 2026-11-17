@@ -1,7 +1,7 @@
 import {render, screen, fireEvent} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-
-import {mockTheme} from '@/testutils/theme';
+import {IntlProvider} from 'react-intl';
 
 import CalendarHeader from './calendar_header';
 
@@ -15,7 +15,6 @@ describe('CalendarHeader', () => {
         currentStart: new Date('2025-07-14T00:00:00'),
         currentEnd: new Date('2025-07-15T00:00:00'),
         isWeekView: false,
-        theme: mockTheme,
     };
 
     let localeDateSpy: jest.SpyInstance;
@@ -68,13 +67,13 @@ describe('CalendarHeader', () => {
 
     it('calls onPrev when previous button is clicked', () => {
         render(<CalendarHeader {...baseProps}/>);
-        fireEvent.click(screen.getByTitle('Previous'));
+        fireEvent.click(screen.getByRole('button', {name: 'Previous'}));
         expect(baseProps.onPrev).toHaveBeenCalledTimes(1);
     });
 
     it('calls onNext when next button is clicked', () => {
         render(<CalendarHeader {...baseProps}/>);
-        fireEvent.click(screen.getByTitle('Next'));
+        fireEvent.click(screen.getByRole('button', {name: 'Next'}));
         expect(baseProps.onNext).toHaveBeenCalledTimes(1);
     });
 
@@ -86,42 +85,38 @@ describe('CalendarHeader', () => {
 
     it('calls onRefresh when refresh button is clicked', () => {
         render(<CalendarHeader {...baseProps}/>);
-        fireEvent.click(screen.getByTitle('Refresh'));
+        fireEvent.click(screen.getByRole('button', {name: 'Refresh'}));
         expect(baseProps.onRefresh).toHaveBeenCalledTimes(1);
+    });
+
+    it.each(['Previous', 'Next', 'Refresh'])('shows a %s tooltip on hover', async (name) => {
+        render(<CalendarHeader {...baseProps}/>, {wrapper: ({children}) => <IntlProvider locale='en'>{children}</IntlProvider>});
+        await userEvent.hover(screen.getByRole('button', {name}));
+        expect(await screen.findByRole('tooltip')).toHaveTextContent(name);
     });
 
     it('disables refresh button when loading', () => {
         const props = {...baseProps, loading: true};
         render(<CalendarHeader {...props}/>);
-        expect(screen.getByTitle('Refresh')).toBeDisabled();
+        expect(screen.getByRole('button', {name: 'Refresh'})).toBeDisabled();
     });
 
-    it('adds spin class to refresh icon when loading', () => {
-        const props = {...baseProps, loading: true};
-        const {container} = render(<CalendarHeader {...props}/>);
-        const icon = container.querySelector('.icon-refresh');
-        expect(icon?.className).toContain('gcal-spin');
-    });
-
-    it('does not add spin class when not loading', () => {
-        const props = {...baseProps, loading: false};
-        const {container} = render(<CalendarHeader {...props}/>);
-        const icon = container.querySelector('.icon-refresh');
-        expect(icon?.className).not.toContain('gcal-spin');
-    });
-
-    it('applies theme colors to navigation buttons', () => {
+    it('exposes navigation controls as named buttons', () => {
         render(<CalendarHeader {...baseProps}/>);
-        const prevBtn = screen.getByTitle('Previous');
-        expect(prevBtn).toHaveStyle({color: mockTheme.centerChannelColor});
+        expect(screen.getByRole('button', {name: 'Previous'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Next'})).toBeInTheDocument();
+        expect(screen.getByRole('button', {name: 'Today'})).toBeInTheDocument();
     });
 
-    it('applies theme colors to Today button', () => {
+    it('shows a spinner in the refresh button while loading', () => {
+        render(<CalendarHeader {...{...baseProps, loading: true}}/>);
+        const refresh = screen.getByRole('button', {name: 'Refresh'});
+        expect(refresh.querySelector('[role="status"]')).toBeInTheDocument();
+    });
+
+    it('does not show a spinner in the refresh button when idle', () => {
         render(<CalendarHeader {...baseProps}/>);
-        const todayBtn = screen.getByText('Today');
-        expect(todayBtn).toHaveStyle({
-            color: mockTheme.buttonBg,
-            borderColor: mockTheme.buttonBg,
-        });
+        const refresh = screen.getByRole('button', {name: 'Refresh'});
+        expect(refresh.querySelector('[role="status"]')).not.toBeInTheDocument();
     });
 });

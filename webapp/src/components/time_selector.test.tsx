@@ -1,25 +1,23 @@
+import React from 'react';
 import {render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import '@testing-library/jest-dom';
-import {useSelector} from 'react-redux';
-
-import {getTheme} from 'mattermost-redux/selectors/entities/preferences';
-import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
-
-import {mockTheme} from '@/testutils/theme';
 
 import TimeSelector from './time_selector';
 
+let mockState: unknown;
+
 jest.mock('react-redux', () => ({
-    useSelector: jest.fn(),
+    useSelector: (selector: (state: unknown) => unknown) => selector(mockState),
+}));
+jest.mock('mattermost-redux/selectors/entities/timezone', () => ({
+    getCurrentTimezone: () => 'UTC',
 }));
 
-const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const FUTURE_DATE = '2999-01-01';
 
-const FUTURE_DATE = '2099-01-01';
-
-// Resolves the real preference selector against a state holding only the
-// user's Clock Display setting, so the test covers the preference key wiring.
+// Holds only the user's Clock Display setting, so the real preference selector
+// runs and the test covers the preference key wiring.
 const withClockDisplay = (useMilitaryTime: boolean | null) => {
     const myPreferences = useMilitaryTime === null ? {} : {
         'display_settings--use_military_time': {
@@ -29,25 +27,22 @@ const withClockDisplay = (useMilitaryTime: boolean | null) => {
             value: String(useMilitaryTime),
         },
     };
-    const state = {entities: {preferences: {myPreferences}}};
-
-    mockUseSelector.mockImplementation((selector: (s: never) => unknown) => {
-        if (selector === getTheme) {
-            return mockTheme;
-        }
-        if (selector === getCurrentTimezone) {
-            return 'UTC';
-        }
-        return selector(state as never);
-    });
+    mockState = {entities: {preferences: {myPreferences}}};
 };
 
-const renderSelector = (props: Partial<React.ComponentProps<typeof TimeSelector>> = {}) => {
+const nodeLabel = (text: string) => (
+    <>
+        {text}
+        <span aria-hidden='true'>{' *'}</span>
+    </>
+);
+
+const renderStartSelector = (props: Partial<React.ComponentProps<typeof TimeSelector>> = {}) => {
     const onChange = jest.fn();
     render(
         <TimeSelector
-            inputId='start_time'
             name='start_time'
+            label={nodeLabel('Start time')}
             value=''
             date={FUTURE_DATE}
             onChange={onChange}
@@ -57,19 +52,63 @@ const renderSelector = (props: Partial<React.ComponentProps<typeof TimeSelector>
     return {onChange};
 };
 
-const openMenu = async () => {
-    await userEvent.click(screen.getByRole('combobox'));
+const openStartMenu = async () => {
+    await userEvent.click(screen.getByRole('combobox', {name: 'Start time'}));
 };
 
 describe('TimeSelector', () => {
-    afterEach(() => {
-        jest.clearAllMocks();
+    beforeEach(() => {
+        withClockDisplay(null);
+    });
+
+    it('advances the end time by 30 minutes when a start time is picked', async () => {
+        const {onChange} = renderStartSelector();
+
+        await openStartMenu();
+        await userEvent.click(screen.getByRole('option', {name: '10:00 AM'}));
+
+        expect(onChange).toHaveBeenCalledWith('start_time', '10:00');
+        expect(onChange).toHaveBeenCalledWith('end_time', '10:30');
+    });
+
+    it('only offers end times after the start time, in a labelled listbox', async () => {
+        render(
+            <TimeSelector
+                name='end_time'
+                label={nodeLabel('End time')}
+                value=''
+                startTime='10:00'
+                date={FUTURE_DATE}
+                onChange={jest.fn()}
+            />,
+        );
+
+        await userEvent.click(screen.getByRole('combobox', {name: 'End time'}));
+        const options = screen.getAllByRole('option');
+
+        expect(screen.getByRole('listbox', {name: 'End time'})).toBeInTheDocument();
+        expect(options[0]).toHaveTextContent('10:15 AM');
+        expect(screen.queryByRole('option', {name: '10:00 AM'})).not.toBeInTheDocument();
+    });
+
+    it('shows no selection when the current value is not an option', () => {
+        render(
+            <TimeSelector
+                name='end_time'
+                label={nodeLabel('End time')}
+                value='09:00'
+                startTime='10:00'
+                date={FUTURE_DATE}
+                onChange={jest.fn()}
+            />,
+        );
+
+        expect(screen.getByRole('combobox', {name: 'End time'})).not.toHaveTextContent('9:00 AM');
     });
 
     it('lists 12-hour options when the user has no clock display preference', async () => {
-        withClockDisplay(null);
-        renderSelector();
-        await openMenu();
+        renderStartSelector();
+        await openStartMenu();
 
         expect(screen.getByRole('option', {name: '12:00 AM'})).toBeInTheDocument();
         expect(screen.getByRole('option', {name: '1:30 PM'})).toBeInTheDocument();
@@ -78,8 +117,8 @@ describe('TimeSelector', () => {
 
     it('lists 12-hour options when the user chose the 12-hour clock', async () => {
         withClockDisplay(false);
-        renderSelector();
-        await openMenu();
+        renderStartSelector();
+        await openStartMenu();
 
         expect(screen.getByRole('option', {name: '9:00 AM'})).toBeInTheDocument();
         expect(screen.getByRole('option', {name: '11:30 PM'})).toBeInTheDocument();
@@ -87,8 +126,8 @@ describe('TimeSelector', () => {
 
     it('lists 24-hour options when the user chose the 24-hour clock', async () => {
         withClockDisplay(true);
-        renderSelector();
-        await openMenu();
+        renderStartSelector();
+        await openStartMenu();
 
         expect(screen.getByRole('option', {name: '09:00'})).toBeInTheDocument();
         expect(screen.getByRole('option', {name: '13:30'})).toBeInTheDocument();
@@ -96,10 +135,9 @@ describe('TimeSelector', () => {
     });
 
     it('relabels the options when the user changes the clock display', async () => {
-        withClockDisplay(false);
-        const props = {inputId: 'start_time', name: 'start_time' as const, value: '', date: FUTURE_DATE, onChange: jest.fn()};
+        const props = {name: 'start_time' as const, label: nodeLabel('Start time'), value: '', date: FUTURE_DATE, onChange: jest.fn()};
         const {rerender} = render(<TimeSelector {...props}/>);
-        await openMenu();
+        await openStartMenu();
         expect(screen.getByRole('option', {name: '2:00 PM'})).toBeInTheDocument();
 
         withClockDisplay(true);
@@ -110,16 +148,14 @@ describe('TimeSelector', () => {
     });
 
     it('shows the selected value in the 12-hour clock', () => {
-        withClockDisplay(false);
-        renderSelector({value: '14:00'});
+        renderStartSelector({value: '14:00'});
 
-        expect(screen.getByText('2:00 PM')).toBeInTheDocument();
+        expect(screen.getByRole('combobox', {name: 'Start time'})).toHaveTextContent('2:00 PM');
     });
 
     it('reports 24-hour "HH:MM" values when a 12-hour option is chosen', async () => {
-        withClockDisplay(false);
-        const {onChange} = renderSelector();
-        await openMenu();
+        const {onChange} = renderStartSelector();
+        await openStartMenu();
         await userEvent.click(screen.getByRole('option', {name: '2:00 PM'}));
 
         expect(onChange).toHaveBeenCalledWith('start_time', '14:00');

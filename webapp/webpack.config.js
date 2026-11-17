@@ -4,10 +4,14 @@ const path = require('path');
 
 const webpack = require('webpack');
 
+const webAppExternals = require('@mattermost/shared/build/webpack-web-app-externals');
+
 const PLUGIN_ID = require('../plugin.json').id;
 
 const NPM_TARGET = process.env.npm_lifecycle_event; //eslint-disable-line no-process-env
 const isDev = NPM_TARGET === 'debug' || NPM_TARGET === 'debug:watch';
+
+const [windowExternals, sharedCallback] = webAppExternals();
 
 const plugins = [
     new webpack.DefinePlugin({
@@ -66,7 +70,14 @@ const config = {
                 },
             },
             {
-                test: /\.(scss|css)$/,
+                test: /\.css$/,
+                use: [
+                    'style-loader',
+                    'css-loader',
+                ],
+            },
+            {
+                test: /\.scss$/,
                 use: [
                     'style-loader',
                     {
@@ -88,18 +99,15 @@ const config = {
             },
         ],
     },
-    externals: {
-        react: 'React',
-        'react-dom': 'ReactDOM',
-        'react-dom/client': 'ReactDOM',
-        'react/jsx-runtime': 'ReactJSXRuntime',
-        'react/jsx-dev-runtime': 'ReactJSXDevRuntime',
-        redux: 'Redux',
-        'react-redux': 'ReactRedux',
-        'prop-types': 'PropTypes',
-        'react-bootstrap': 'ReactBootstrap',
-        'react-router-dom': 'ReactRouterDom',
-    },
+    externals: [
+        {
+            ...windowExternals,
+            'react-dom/client': 'ReactDOM',
+            'react/jsx-runtime': 'ReactJSXRuntime',
+            'react/jsx-dev-runtime': 'ReactJSXDevRuntime',
+        },
+        sharedCallback,
+    ],
     output: {
         devtoolNamespace: PLUGIN_ID,
         path: path.join(__dirname, '/dist'),

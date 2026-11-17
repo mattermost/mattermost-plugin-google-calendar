@@ -61,17 +61,16 @@ test('opens the create-event dialog from the channel menu and the slash command,
 
     // # Fill in the subject and date only
     await modal.subjectInput.fill(eventSummary(runId, 'Incomplete'));
-    await modal.dateInput.fill(dateIn(calendarTimeZone, 1));
+    await modal.chooseDate(dateIn(calendarTimeZone, 1));
 
     // * Verify Create is still disabled without a start time
     await expect(modal.createButton).toBeDisabled();
 
     // # Choose a start time
-    await modal.chooseStartTime('10:00');
+    await modal.chooseStartTime('10:00 AM');
 
     // * Verify the times show in the default 12-hour clock, the end time defaults to 30 minutes later and Create is enabled
-    await expect(modal.field('Start Time')).toContainText('10:00 AM');
-    await expect(modal.field('End Time')).toContainText('10:30 AM');
+    await expect(modal.endTimeInput).toHaveText('10:30 AM');
     await expect(modal.createButton).toBeEnabled();
 
     // # Close the dialog and open it with the slash command
@@ -102,7 +101,7 @@ test('lists start and end times in the clock display the user picked', {tag: '@g
     await channelsPage.toBeVisible();
     const modal = new CreateEventModal(channelsPage);
     await modal.openFromCommand();
-    await modal.dateInput.fill(dateIn(calendarTimeZone, 1));
+    await modal.chooseDate(dateIn(calendarTimeZone, 1));
 
     // # Open the start time picker
     await modal.startTimeInput.click();
@@ -114,12 +113,10 @@ test('lists start and end times in the clock display the user picked', {tag: '@g
 
     // # Switch the user to the 24-hour clock and reopen the dialog
     await setClockDisplay(userClient, user.id, true);
-    await channelsPage.page.keyboard.press('Escape');
-    await expect(modal.timeOption('2:00 PM')).toHaveCount(0);
-    await channelsPage.page.keyboard.press('Escape');
-    await expect(modal.container).toBeHidden();
+    await channelsPage.page.reload();
+    await channelsPage.toBeVisible();
     await modal.openFromCommand();
-    await modal.dateInput.fill(dateIn(calendarTimeZone, 1));
+    await modal.chooseDate(dateIn(calendarTimeZone, 1));
 
     // # Open the start time picker
     await modal.startTimeInput.click();
@@ -133,8 +130,57 @@ test('lists start and end times in the clock display the user picked', {tag: '@g
     await modal.timeOption('14:00').click();
 
     // * Verify the start and end times show in the 24-hour clock
-    await expect(modal.field('Start Time')).toContainText('14:00');
-    await expect(modal.field('End Time')).toContainText('14:30');
+    await expect(modal.startTimeInput).toHaveText('14:00');
+    await expect(modal.endTimeInput).toHaveText('14:30');
+});
+
+/**
+ * @objective Verify that Escape closes an open time list, guest or channel suggestions, or the date picker without closing the create-event dialog, and closes the dialog once nothing is open
+ *
+ * @precondition
+ * The user's Google connection is seeded directly into the plugin KV store
+ */
+test('closes open field popups with Escape before closing the create-event dialog', {tag: '@google_calendar'}, async ({pw}) => {
+    const {owner} = requireGoogle('owner');
+
+    // # Seed a connected user, open the dialog and fill in the subject
+    const {adminClient, user, team} = await pw.initSetup();
+    await ensureGcalPlugin(adminClient);
+    await seedConnectedGoogleUser(user, owner);
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name);
+    await channelsPage.toBeVisible();
+    const modal = new CreateEventModal(channelsPage);
+    await modal.openFromChannelMenu();
+    const summary = eventSummary(runId, 'Escape');
+    await modal.subjectInput.fill(summary);
+
+    for (const field of [modal.startTimeInput, modal.guestsInput, modal.channelInput]) {
+        // # Open the field's list and press Escape
+        await field.click();
+        await expect(field).toHaveAttribute('aria-expanded', 'true');
+        await channelsPage.page.keyboard.press('Escape');
+
+        // * Verify only the list closed and the form kept its subject
+        await expect(field).toHaveAttribute('aria-expanded', 'false');
+        await expect(modal.container).toBeVisible();
+        await expect(modal.subjectInput).toHaveValue(summary);
+    }
+
+    // # Open the date picker and press Escape
+    await modal.dateInput.click();
+    await expect(modal.datePicker).toBeVisible();
+    await channelsPage.page.keyboard.press('Escape');
+
+    // * Verify only the date picker closed
+    await expect(modal.datePicker).toBeHidden();
+    await expect(modal.container).toBeVisible();
+
+    // # Press Escape with nothing open
+    await channelsPage.page.keyboard.press('Escape');
+
+    // * Verify the dialog closes
+    await expect(modal.container).toBeHidden();
 });
 
 /**
@@ -180,12 +226,12 @@ test('creates an event linked to the channel and invites a connected teammate', 
     const summary = eventSummary(runId, 'Kickoff');
     const date = dateIn(calendarTimeZone, 1);
     await modal.subjectInput.fill(summary);
-    await modal.dateInput.fill(date);
-    await modal.chooseStartTime('10:00');
+    await modal.chooseDate(date);
+    await modal.chooseStartTime('10:00 AM');
     await modal.addConnectedGuest(teammate.username, pluginDisplayName(teammate));
 
     // * Verify the dialog links the event to the current channel
-    await expect(modal.linkedChannel('Town Square')).toBeVisible();
+    await expect(modal.channelInput).toHaveValue('Town Square');
 
     // # Create the event
     await modal.createButton.click();
@@ -234,8 +280,8 @@ test('creates an event without a channel and confirms it in a bot DM', {tag: '@g
     await modal.openFromCommand();
     const summary = eventSummary(runId, '1:1');
     await modal.subjectInput.fill(summary);
-    await modal.dateInput.fill(dateIn(calendarTimeZone, 2));
-    await modal.chooseStartTime('14:00');
+    await modal.chooseDate(dateIn(calendarTimeZone, 2));
+    await modal.chooseStartTime('2:00 PM');
     await modal.locationInput.fill('Room 4');
     await modal.descriptionInput.fill('Quarterly goals');
     await modal.clearLinkedChannel();
