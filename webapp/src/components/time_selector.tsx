@@ -2,9 +2,13 @@ import React, {useMemo} from 'react';
 import {useSelector} from 'react-redux';
 
 import {Select} from '@mattermost/compass-ui/components/select';
+import {GlobalState} from '@mattermost/types/store';
+
+import {Preferences} from 'mattermost-redux/constants';
+import {getBool} from 'mattermost-redux/selectors/entities/preferences';
 import {getCurrentTimezone} from 'mattermost-redux/selectors/entities/timezone';
 
-import {MINUTE_STEP, getNextTimeStep, getTodayString} from '@/utils/datetime';
+import {MINUTE_STEP, formatTimeLabel, getNextTimeStep, getTodayString} from '@/utils/datetime';
 import {CreateEventPayload} from '@/types/calendar_api_types';
 
 import {Z_INDEX_MENU_PORTAL} from '@/utils/styles';
@@ -28,14 +32,16 @@ type Option = {
 /**
  * Select dropdown of time-of-day options in MINUTE_STEP increments, constrained
  * by the current time (for today's date) and by the paired start/end time.
+ * Option values are always "HH:MM"; labels follow the user's clock display setting.
  */
 export default function TimeSelector(props: Props) {
     const timezone = useSelector(getCurrentTimezone);
+    const useMilitaryTime = useSelector((state: GlobalState) => getBool(state, Preferences.CATEGORY_DISPLAY_SETTINGS, Preferences.USE_MILITARY_TIME, false));
 
     const isStartTimeSelector = props.name === 'start_time';
     const isEndTimeSelector = props.name === 'end_time';
 
-    const options: Option[] = useMemo(() => {
+    const times: string[] = useMemo(() => {
         let fromHour = 0;
         let fromMinute = 0;
         let toHour = 23;
@@ -83,11 +89,13 @@ export default function TimeSelector(props: Props) {
             ranges = generateMilitaryTimeArray(0, 0, toHour, toMinute);
         }
 
-        return ranges.map((t) => ({
-            label: t,
-            value: t,
-        }));
+        return ranges;
     }, [props.startTime, props.endTime, props.date, props.name, isStartTimeSelector, timezone]);
+
+    const options: Option[] = useMemo(() => times.map((t) => ({
+        label: formatTimeLabel(t, useMilitaryTime),
+        value: t,
+    })), [times, useMilitaryTime]);
 
     const value = props.value && options.some((o) => o.value === props.value) ? props.value : '';
 

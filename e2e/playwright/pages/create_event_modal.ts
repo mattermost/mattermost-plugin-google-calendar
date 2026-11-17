@@ -9,10 +9,10 @@ import {GcalCommand} from './gcal_command';
 /**
  * The "New calendar event" dialog (webapp/src/components/modals/create_event_modal.tsx). Copied
  * from the MS Calendar suite's support/create_event_modal.ts; the engine's webapp is the same.
- * Time pickers list 24-hour "HH:MM" options in 15-minute steps (components/time_selector.tsx);
- * choosing a start time sets the end time 30 minutes later. The fields are compass-ui components:
- * the date is a DateRangePicker (components/date_input.tsx), the times are Selects, and guests and
- * channel are Comboboxes.
+ * Time pickers list options in 15-minute steps in the user's clock display, "2:00 PM" or "14:00"
+ * (components/time_selector.tsx); choosing a start time sets the end time 30 minutes later. The fields
+ * are compass-ui components: the date is a DateRangePicker (components/date_input.tsx), the times are
+ * Selects, and guests and channel are Comboboxes.
  */
 export class CreateEventModal {
     readonly page: Page;
@@ -98,9 +98,14 @@ export class CreateEventModal {
         await expect(this.dateInput).toHaveText(pickerDate(date));
     }
 
-    async chooseStartTime(time: string) {
+    /** The open time picker's option with this label. */
+    timeOption(label: string): Locator {
+        return this.page.getByRole('option', {name: label, exact: true});
+    }
+
+    async chooseStartTime(label: string) {
         await this.startTimeInput.click();
-        await this.page.getByRole('listbox', {name: 'Start time'}).getByRole('option', {name: time, exact: true}).click();
+        await this.page.getByRole('listbox', {name: 'Start time'}).getByRole('option', {name: label, exact: true}).click();
     }
 
     /**

@@ -139,12 +139,12 @@ test('opens the create-event dialog for a clicked time slot', {tag: '@google_cal
     // # Click the empty 15:00 slot
     await sidebar.slot('15:00').click();
 
-    // * Verify the dialog opens for tomorrow from 15:00 to 15:30
+    // * Verify the dialog opens for tomorrow from 15:00 to 15:30, shown in the default 12-hour clock
     const modal = new CreateEventModal(channelsPage);
     await expect(modal.container).toBeVisible();
     await expect(modal.dateInput).toHaveText(pickerDate(dateIn(timeZone, 1)));
-    await expect(modal.startTimeInput).toHaveText('15:00');
-    await expect(modal.endTimeInput).toHaveText('15:30');
+    await expect(modal.startTimeInput).toHaveText('3:00 PM');
+    await expect(modal.endTimeInput).toHaveText('3:30 PM');
 });
 
 /**

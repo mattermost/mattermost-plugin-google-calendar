@@ -103,6 +103,21 @@ export function getDefaultTimesForDate(date: string, timeZone?: string): {startT
     return {startTime, endTime: addMinutes(startTime, DEFAULT_DURATION_MINUTES)};
 }
 
+/**
+ * Formats an "HH:MM" string in the user's clock display: unchanged for the
+ * 24-hour clock, or as "h:mm AM/PM" for the 12-hour clock.
+ */
+export function formatTimeLabel(time: string, useMilitaryTime: boolean): string {
+    if (useMilitaryTime) {
+        return time;
+    }
+
+    const [hour, minute] = time.split(':').map(Number);
+    const period = hour < 12 ? 'AM' : 'PM';
+
+    return `${(hour % 12) || 12}:${String(minute).padStart(2, '0')} ${period}`;
+}
+
 /** Adds minutes to an "HH:MM" string, clamping at the end of the day. */
 function addMinutes(time: string, minutes: number): string {
     const [hour, minute] = time.split(':').map(Number);
