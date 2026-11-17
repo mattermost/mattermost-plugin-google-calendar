@@ -115,6 +115,7 @@ test('lists start and end times in the clock display the user picked', {tag: '@g
     // # Switch the user to the 24-hour clock and reopen the dialog
     await setClockDisplay(userClient, user.id, true);
     await channelsPage.page.keyboard.press('Escape');
+    await expect(modal.timeOption('2:00 PM')).toHaveCount(0);
     await channelsPage.page.keyboard.press('Escape');
     await expect(modal.container).toBeHidden();
     await modal.openFromCommand();
@@ -134,7 +135,6 @@ test('lists start and end times in the clock display the user picked', {tag: '@g
     // * Verify the start and end times show in the 24-hour clock
     await expect(modal.field('Start Time')).toContainText('14:00');
     await expect(modal.field('End Time')).toContainText('14:30');
-    await expect(modal.field('End Time')).not.toContainText('PM');
 });
 
 /**

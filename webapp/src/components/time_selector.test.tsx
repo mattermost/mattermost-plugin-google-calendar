@@ -95,6 +95,20 @@ describe('TimeSelector', () => {
         expect(screen.queryByRole('option', {name: '1:30 PM'})).not.toBeInTheDocument();
     });
 
+    it('relabels the options when the user changes the clock display', async () => {
+        withClockDisplay(false);
+        const props = {inputId: 'start_time', name: 'start_time' as const, value: '', date: FUTURE_DATE, onChange: jest.fn()};
+        const {rerender} = render(<TimeSelector {...props}/>);
+        await openMenu();
+        expect(screen.getByRole('option', {name: '2:00 PM'})).toBeInTheDocument();
+
+        withClockDisplay(true);
+        rerender(<TimeSelector {...props}/>);
+
+        expect(screen.getByRole('option', {name: '14:00'})).toBeInTheDocument();
+        expect(screen.queryByRole('option', {name: '2:00 PM'})).not.toBeInTheDocument();
+    });
+
     it('shows the selected value in the 12-hour clock', () => {
         withClockDisplay(false);
         renderSelector({value: '14:00'});
