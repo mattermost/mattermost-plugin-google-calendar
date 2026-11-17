@@ -171,7 +171,7 @@ test.describe('visual', {tag: '@visual'}, () => {
         const command = new GcalCommand(channelsPage);
         await command.run('today');
         const agenda = command.agendaInTimeZone('UTC');
-        await expect(command.agendaRow(agenda, '9:00AM - 9:15AM', 'Standup')).toBeVisible();
+        await expect(command.agendaRow(agenda, '9:00 AM - 9:15 AM', 'Standup')).toBeVisible();
         await settle(pw, agenda);
 
         // * Verify the agenda matches the baseline, apart from the date heading

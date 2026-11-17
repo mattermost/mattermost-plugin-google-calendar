@@ -194,7 +194,7 @@ test('creates an event without a channel and confirms it in a bot DM', {tag: '@g
     const botDM = new GcalBotDM(channelsPage);
     await botDM.open(team.name);
     await expect(botDM.eventCreated).toContainText(summary);
-    await expect(botDM.eventCreated).toContainText(`2:00PM - 2:30PM (${calendarTimeZone})`);
+    await expect(botDM.eventCreated).toContainText(`2:00 PM - 2:30 PM (${calendarTimeZone})`);
     await expect(botDM.eventCreated).toContainText('Room 4');
 
     // * Verify Google has the event with its location and description

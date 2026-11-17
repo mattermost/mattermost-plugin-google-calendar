@@ -77,7 +77,7 @@ test('lists the day\'s events in the calendar time zone for today, tomorrow and 
 
     // * Verify the agenda is in the calendar's time zone, lists the timed and all-day events, and leaves out the declined one and tomorrow's
     const todayAgenda = command.agendaInTimeZone(timeZone);
-    await expect(command.agendaRow(todayAgenda, '10:00AM - 10:30AM', standup)).toBeVisible();
+    await expect(command.agendaRow(todayAgenda, '10:00 AM - 10:30 AM', standup)).toBeVisible();
     await expect(command.agendaRow(todayAgenda, 'All day event', offsite)).toBeVisible();
     await expect(todayAgenda).not.toContainText(declined);
     await expect(todayAgenda).not.toContainText(planning);
@@ -87,14 +87,14 @@ test('lists the day\'s events in the calendar time zone for today, tomorrow and 
 
     // * Verify it lists only tomorrow's event
     const tomorrowAgenda = command.lastPost;
-    await expect(command.agendaRow(tomorrowAgenda, '3:00PM - 4:00PM', planning)).toBeVisible();
+    await expect(command.agendaRow(tomorrowAgenda, '3:00 PM - 4:00 PM', planning)).toBeVisible();
     await expect(tomorrowAgenda).not.toContainText(standup);
 
     // # View the daily summary
     await command.run('summary', 'view');
 
-    // * Verify it shows today's agenda
-    await expect(command.lastPost).toContainText(standup);
+    // * Verify it shows today's agenda with the event's time range
+    await expect(command.agendaRow(command.lastPost, '10:00 AM - 10:30 AM', standup)).toBeVisible();
     await expect(command.lastPost).not.toContainText(planning);
 });
 
@@ -131,9 +131,9 @@ test('lists the next 14 days of events grouped by date with viewcal', {tag: '@go
     // * Verify both events in range are listed under their dates, in the calendar's time zone
     const view = command.agendaInTimeZone(timeZone);
     await expect(view).toContainText(viewcalHeading(inThreeDays));
-    await expect(command.agendaRow(view, '9:00AM - 10:00AM', review)).toBeVisible();
+    await expect(command.agendaRow(view, '9:00 AM - 10:00 AM', review)).toBeVisible();
     await expect(view).toContainText(viewcalHeading(inSevenDays));
-    await expect(command.agendaRow(view, '2:00PM - 2:45PM', retro)).toBeVisible();
+    await expect(command.agendaRow(view, '2:00 PM - 2:45 PM', retro)).toBeVisible();
 
     // * Verify the event beyond 14 days is not listed
     await expect(view).not.toContainText(later);
