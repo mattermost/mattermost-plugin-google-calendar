@@ -147,6 +147,23 @@ describe('TimeSelector', () => {
         expect(screen.queryByRole('option', {name: '2:00 PM'})).not.toBeInTheDocument();
     });
 
+    it('keeps the current-time cutoff when only the clock display changes', () => {
+        jest.useFakeTimers({now: new Date('2030-01-01T09:55:00Z')});
+        try {
+            const props = {name: 'start_time' as const, label: nodeLabel('Start time'), value: '10:00', date: '2030-01-01', onChange: jest.fn()};
+            const {rerender} = render(<TimeSelector {...props}/>);
+            expect(screen.getByRole('combobox', {name: 'Start time'})).toHaveTextContent('10:00 AM');
+
+            jest.setSystemTime(new Date('2030-01-01T10:20:00Z'));
+            withClockDisplay(true);
+            rerender(<TimeSelector {...props}/>);
+
+            expect(screen.getByRole('combobox', {name: 'Start time'})).toHaveTextContent('10:00');
+        } finally {
+            jest.useRealTimers();
+        }
+    });
+
     it('shows the selected value in the 12-hour clock', () => {
         renderStartSelector({value: '14:00'});
 

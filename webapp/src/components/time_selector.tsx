@@ -41,7 +41,7 @@ export default function TimeSelector(props: Props) {
     const isStartTimeSelector = props.name === 'start_time';
     const isEndTimeSelector = props.name === 'end_time';
 
-    const options: Option[] = useMemo(() => {
+    const times: string[] = useMemo(() => {
         let fromHour = 0;
         let fromMinute = 0;
         let toHour = 23;
@@ -89,11 +89,13 @@ export default function TimeSelector(props: Props) {
             ranges = generateMilitaryTimeArray(0, 0, toHour, toMinute);
         }
 
-        return ranges.map((t) => ({
-            label: formatTimeLabel(t, useMilitaryTime),
-            value: t,
-        }));
-    }, [props.startTime, props.endTime, props.date, props.name, isStartTimeSelector, timezone, useMilitaryTime]);
+        return ranges;
+    }, [props.startTime, props.endTime, props.date, props.name, isStartTimeSelector, timezone]);
+
+    const options: Option[] = useMemo(() => times.map((t) => ({
+        label: formatTimeLabel(t, useMilitaryTime),
+        value: t,
+    })), [times, useMilitaryTime]);
 
     const value = props.value && options.some((o) => o.value === props.value) ? props.value : '';
 
