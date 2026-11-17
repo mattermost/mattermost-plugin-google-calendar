@@ -9,7 +9,7 @@ import {cleanupEvents, dateIn, eventSummary, waitForEvent} from '../lib/google/e
 import {googleMode} from '../lib/google/mode';
 import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin} from '../lib/plugin';
-import {createTeammate, pluginDisplayName} from '../lib/users';
+import {createTeammate, pluginDisplayName, setClockDisplay} from '../lib/users';
 import {CreateEventModal} from '../pages/create_event_modal';
 import {GcalBotDM} from '../pages/gcal_bot_dm';
 
@@ -69,8 +69,9 @@ test('opens the create-event dialog from the channel menu and the slash command,
     // # Choose a start time
     await modal.chooseStartTime('10:00');
 
-    // * Verify the end time defaults to 30 minutes later and Create is enabled
-    await expect(modal.field('End Time')).toContainText('10:30');
+    // * Verify the times show in the default 12-hour clock, the end time defaults to 30 minutes later and Create is enabled
+    await expect(modal.field('Start Time')).toContainText('10:00 AM');
+    await expect(modal.field('End Time')).toContainText('10:30 AM');
     await expect(modal.createButton).toBeEnabled();
 
     // # Close the dialog and open it with the slash command
@@ -81,6 +82,59 @@ test('opens the create-event dialog from the channel menu and the slash command,
     // * Verify the dialog opens with an empty form
     await expect(modal.subjectInput).toHaveValue('');
     await expect(modal.createButton).toBeDisabled();
+});
+
+/**
+ * @objective Verify that the create-event dialog's time pickers follow the user's Clock Display setting: 12-hour by default and 24-hour once the user picks it
+ *
+ * @precondition
+ * The user's Google connection is seeded directly into the plugin KV store
+ */
+test('lists start and end times in the clock display the user picked', {tag: '@google_calendar'}, async ({pw}) => {
+    const {owner} = requireGoogle('owner');
+
+    // # Seed a connected user on the default 12-hour clock and open the dialog for tomorrow
+    const {adminClient, user, userClient, team} = await pw.initSetup();
+    await ensureGcalPlugin(adminClient);
+    await seedConnectedGoogleUser(user, owner);
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name);
+    await channelsPage.toBeVisible();
+    const modal = new CreateEventModal(channelsPage);
+    await modal.openFromCommand();
+    await modal.dateInput.fill(dateIn(calendarTimeZone, 1));
+
+    // # Open the start time picker
+    await modal.startTimeInput.click();
+
+    // * Verify the options are 12-hour
+    await expect(modal.timeOption('12:00 AM')).toBeAttached();
+    await expect(modal.timeOption('2:00 PM')).toBeAttached();
+    await expect(modal.timeOption('14:00')).toHaveCount(0);
+
+    // # Switch the user to the 24-hour clock and reopen the dialog
+    await setClockDisplay(userClient, user.id, true);
+    await channelsPage.page.keyboard.press('Escape');
+    await channelsPage.page.keyboard.press('Escape');
+    await expect(modal.container).toBeHidden();
+    await modal.openFromCommand();
+    await modal.dateInput.fill(dateIn(calendarTimeZone, 1));
+
+    // # Open the start time picker
+    await modal.startTimeInput.click();
+
+    // * Verify the options are 24-hour
+    await expect(modal.timeOption('00:00')).toBeAttached();
+    await expect(modal.timeOption('14:00')).toBeAttached();
+    await expect(modal.timeOption('2:00 PM')).toHaveCount(0);
+
+    // # Choose 14:00
+    await modal.timeOption('14:00').click();
+
+    // * Verify the start and end times show in the 24-hour clock
+    await expect(modal.field('Start Time')).toContainText('14:00');
+    await expect(modal.field('End Time')).toContainText('14:30');
+    await expect(modal.field('End Time')).not.toContainText('PM');
 });
 
 /**

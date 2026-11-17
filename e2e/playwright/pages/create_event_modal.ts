@@ -9,8 +9,9 @@ import {GcalCommand} from './gcal_command';
 /**
  * The "Create Calendar Event" dialog (webapp/src/components/modals/create_event_modal.tsx). Copied
  * from the MS Calendar suite's support/create_event_modal.ts; the engine's webapp is the same.
- * Time pickers list 24-hour "HH:MM" options in 15-minute steps (components/time_selector.tsx);
- * choosing a start time sets the end time 30 minutes later.
+ * Time pickers list options in 15-minute steps in the user's clock display, "2:00 PM" or "14:00"
+ * (components/time_selector.tsx); typing "14:00" finds either, as the options' values are 24-hour.
+ * Choosing a start time sets the end time 30 minutes later.
  */
 export class CreateEventModal {
     readonly page: Page;
@@ -67,6 +68,11 @@ export class CreateEventModal {
     /** The channel post announcing a linked event (calendar/api/events.go createEvent). */
     linkedAnnouncement(summary: string, username: string): Locator {
         return this.channelsPage.centerView.container.getByRole('listitem').filter({hasText: `The event ${summary} was linked to this channel by @${username}`});
+    }
+
+    /** The open time picker's option with this label. */
+    timeOption(label: string): Locator {
+        return this.page.getByRole('option', {name: label, exact: true});
     }
 
     async chooseStartTime(time: string) {

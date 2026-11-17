@@ -1,4 +1,4 @@
-import {getDefaultTimesForDate, getEarliestTimeForToday, getTodayString} from './datetime';
+import {formatTimeLabel, getDefaultTimesForDate, getEarliestTimeForToday, getTodayString} from './datetime';
 
 const setNow = (hours: number, minutes: number, seconds = 0) => {
     jest.useFakeTimers();
@@ -98,5 +98,28 @@ describe('getDefaultTimesForDate', () => {
 
         expect(getTodayString('Asia/Tokyo')).toBe('2026-09-10');
         expect(getDefaultTimesForDate('2026-09-09', 'Asia/Tokyo')).toEqual({startTime: '09:00', endTime: '09:30'});
+    });
+});
+
+describe('formatTimeLabel', () => {
+    it.each([
+        ['00:00', '00:00'],
+        ['09:05', '09:05'],
+        ['13:30', '13:30'],
+        ['23:45', '23:45'],
+    ])('keeps %s as %s on the 24-hour clock', (time, label) => {
+        expect(formatTimeLabel(time, true)).toBe(label);
+    });
+
+    it.each([
+        ['00:00', '12:00 AM'],
+        ['00:15', '12:15 AM'],
+        ['09:05', '9:05 AM'],
+        ['11:45', '11:45 AM'],
+        ['12:00', '12:00 PM'],
+        ['13:30', '1:30 PM'],
+        ['23:45', '11:45 PM'],
+    ])('formats %s as %s on the 12-hour clock', (time, label) => {
+        expect(formatTimeLabel(time, false)).toBe(label);
     });
 });
