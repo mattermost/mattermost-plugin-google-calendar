@@ -48,7 +48,7 @@ func (c *client) GetDefaultCalendarView(_ string, start, end time.Time) ([]*remo
 
 	req := service.Events.
 		List(defaultCalendarName).
-		EventTypes("default").
+		EventTypes("default", "focusTime").
 		TimeMin(start.Format(time.RFC3339)).
 		TimeMax(end.Format(time.RFC3339)).
 		SingleEvents(true).
@@ -124,10 +124,14 @@ func convertGCalEventToRemoteEvent(event *calendar.Event) *remote.Event {
 		}
 	}
 
+	organizerEmail := ""
+	if event.Organizer != nil {
+		organizerEmail = event.Organizer.Email
+	}
 	organizer := &remote.Attendee{
 		EmailAddress: &remote.EmailAddress{
-			Name:    event.Organizer.Email,
-			Address: event.Organizer.Email,
+			Name:    organizerEmail,
+			Address: organizerEmail,
 		},
 	}
 
@@ -136,6 +140,7 @@ func convertGCalEventToRemoteEvent(event *calendar.Event) *remote.Event {
 	}
 	responseRequested := false
 	isOrganizer := false
+	foundSelfAttendee := false
 
 	attendees := []*remote.Attendee{}
 	for _, attendee := range event.Attendees {
@@ -150,6 +155,7 @@ func convertGCalEventToRemoteEvent(event *calendar.Event) *remote.Event {
 		})
 
 		if attendee.Self {
+			foundSelfAttendee = true
 			if attendee.ResponseStatus == GoogleResponseStatusNone {
 				responseRequested = true
 			}
@@ -159,6 +165,12 @@ func convertGCalEventToRemoteEvent(event *calendar.Event) *remote.Event {
 
 			isOrganizer = attendee.Organizer
 		}
+	}
+
+	// Google omits attendees entirely for events without guests, so ownership comes from the organizer.
+	if !foundSelfAttendee && event.Organizer != nil && event.Organizer.Self {
+		responseStatus.Response = remote.EventResponseStatusAccepted
+		isOrganizer = true
 	}
 
 	isAllDay := len(event.Start.Date) > 0 // if Date field is present, it is all-day. as opposed to DateTime field
