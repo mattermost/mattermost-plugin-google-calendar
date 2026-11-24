@@ -16,10 +16,23 @@ import (
 
 	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/config"
 	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/remote"
+	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/store"
 	"github.com/mattermost/mattermost-plugin-mscalendar/calendar/utils/bot"
 )
 
 const Kind = "gcal"
+
+// The engine recognizes a dead refresh token only by error text: store.ErrorRefreshTokenExpired
+// makes it clear the stored token and DM the user, and store.ErrorUserInactive makes the slash
+// commands tell the user to reconnect.
+var errRefreshTokenRejected = fmt.Errorf("%s: %s", store.ErrorRefreshTokenExpired, store.ErrorUserInactive)
+
+// isRefreshTokenRejected reports whether Google refused to refresh the token because the refresh
+// token is expired or revoked, which Google reports as invalid_grant.
+func isRefreshTokenRejected(err error) bool {
+	var retrieveErr *oauth2.RetrieveError
+	return errors.As(err, &retrieveErr) && retrieveErr.ErrorCode == "invalid_grant"
+}
 
 type impl struct {
 	conf   *config.Config
@@ -47,6 +60,9 @@ func (r *impl) MakeUserClient(ctx context.Context, oauthToken *oauth2.Token, mat
 			"error":            err.Error(),
 			"mattermostUserID": mattermostUserID,
 		}).Warnf("Not able to refresh or store the token")
+		if isRefreshTokenRejected(err) {
+			err = fmt.Errorf("%w: %w", errRefreshTokenRejected, err)
+		}
 		userTokenHelpers.DisconnectUserFromStoreIfNecessary(err, mattermostUserID)
 		return nil, errors.Wrap(err, "gcal MakeUserClient")
 	}

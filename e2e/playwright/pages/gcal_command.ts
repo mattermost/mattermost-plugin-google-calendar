@@ -77,7 +77,8 @@ export class GcalCommand {
 
     /**
      * Every reply in the current channel saying the user was marked inactive (agenda commands answer
-     * with store.ErrorUserInactive when the token cannot be refreshed and there is no refresh token).
+     * with store.ErrorUserInactive when the token cannot be refreshed because there is no refresh token
+     * or Google rejects it).
      */
     get markedInactiveReplies(): Locator {
         return this.channelsPage.centerView.container.getByRole('listitem').filter({hasText: 'You have been marked inactive because your refresh token is expired.'});
