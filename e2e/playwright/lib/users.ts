@@ -20,6 +20,13 @@ export function pluginDisplayName(user: {username: string; first_name?: string; 
     return [user.first_name, user.last_name].filter(Boolean).join(' ') || user.username;
 }
 
+/** Sets the user's Settings > Display > Clock Display (12-hour by default). */
+export async function setClockDisplay(userClient: Client4, userId: string, useMilitaryTime: boolean) {
+    await userClient.savePreferences(userId, [
+        {user_id: userId, category: 'display_settings', name: 'use_military_time', value: String(useMilitaryTime)},
+    ]);
+}
+
 /**
  * Sets the Mattermost user's time zone (instead of the browser's, which Mattermost uses by default).
  * The calendar sidebar renders in this zone.

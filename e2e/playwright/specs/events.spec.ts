@@ -9,7 +9,7 @@ import {cleanupEvents, dateIn, eventSummary, waitForEvent} from '../lib/google/e
 import {googleMode} from '../lib/google/mode';
 import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin} from '../lib/plugin';
-import {createTeammate, pluginDisplayName} from '../lib/users';
+import {createTeammate, pluginDisplayName, setClockDisplay} from '../lib/users';
 import {CreateEventModal} from '../pages/create_event_modal';
 import {GcalBotDM} from '../pages/gcal_bot_dm';
 
@@ -67,10 +67,10 @@ test('opens the create-event dialog from the channel menu and the slash command,
     await expect(modal.createButton).toBeDisabled();
 
     // # Choose a start time
-    await modal.chooseStartTime('10:00');
+    await modal.chooseStartTime('10:00 AM');
 
-    // * Verify the end time defaults to 30 minutes later and Create is enabled
-    await expect(modal.endTimeInput).toHaveText('10:30');
+    // * Verify the times show in the default 12-hour clock, the end time defaults to 30 minutes later and Create is enabled
+    await expect(modal.endTimeInput).toHaveText('10:30 AM');
     await expect(modal.createButton).toBeEnabled();
 
     // # Close the dialog and open it with the slash command
@@ -81,6 +81,57 @@ test('opens the create-event dialog from the channel menu and the slash command,
     // * Verify the dialog opens with an empty form
     await expect(modal.subjectInput).toHaveValue('');
     await expect(modal.createButton).toBeDisabled();
+});
+
+/**
+ * @objective Verify that the create-event dialog's time pickers follow the user's Clock Display setting: 12-hour by default and 24-hour once the user picks it
+ *
+ * @precondition
+ * The user's Google connection is seeded directly into the plugin KV store
+ */
+test('lists start and end times in the clock display the user picked', {tag: '@google_calendar'}, async ({pw}) => {
+    const {owner} = requireGoogle('owner');
+
+    // # Seed a connected user on the default 12-hour clock and open the dialog for tomorrow
+    const {adminClient, user, userClient, team} = await pw.initSetup();
+    await ensureGcalPlugin(adminClient);
+    await seedConnectedGoogleUser(user, owner);
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name);
+    await channelsPage.toBeVisible();
+    const modal = new CreateEventModal(channelsPage);
+    await modal.openFromCommand();
+    await modal.chooseDate(dateIn(calendarTimeZone, 1));
+
+    // # Open the start time picker
+    await modal.startTimeInput.click();
+
+    // * Verify the options are 12-hour
+    await expect(modal.timeOption('12:00 AM')).toBeAttached();
+    await expect(modal.timeOption('2:00 PM')).toBeAttached();
+    await expect(modal.timeOption('14:00')).toHaveCount(0);
+
+    // # Switch the user to the 24-hour clock and reopen the dialog
+    await setClockDisplay(userClient, user.id, true);
+    await channelsPage.page.reload();
+    await channelsPage.toBeVisible();
+    await modal.openFromCommand();
+    await modal.chooseDate(dateIn(calendarTimeZone, 1));
+
+    // # Open the start time picker
+    await modal.startTimeInput.click();
+
+    // * Verify the options are 24-hour
+    await expect(modal.timeOption('00:00')).toBeAttached();
+    await expect(modal.timeOption('14:00')).toBeAttached();
+    await expect(modal.timeOption('2:00 PM')).toHaveCount(0);
+
+    // # Choose 14:00
+    await modal.timeOption('14:00').click();
+
+    // * Verify the start and end times show in the 24-hour clock
+    await expect(modal.startTimeInput).toHaveText('14:00');
+    await expect(modal.endTimeInput).toHaveText('14:30');
 });
 
 /**
@@ -176,7 +227,7 @@ test('creates an event linked to the channel and invites a connected teammate', 
     const date = dateIn(calendarTimeZone, 1);
     await modal.subjectInput.fill(summary);
     await modal.chooseDate(date);
-    await modal.chooseStartTime('10:00');
+    await modal.chooseStartTime('10:00 AM');
     await modal.addConnectedGuest(teammate.username, pluginDisplayName(teammate));
 
     // * Verify the dialog links the event to the current channel
@@ -230,7 +281,7 @@ test('creates an event without a channel and confirms it in a bot DM', {tag: '@g
     const summary = eventSummary(runId, '1:1');
     await modal.subjectInput.fill(summary);
     await modal.chooseDate(dateIn(calendarTimeZone, 2));
-    await modal.chooseStartTime('14:00');
+    await modal.chooseStartTime('2:00 PM');
     await modal.locationInput.fill('Room 4');
     await modal.descriptionInput.fill('Quarterly goals');
     await modal.clearLinkedChannel();
