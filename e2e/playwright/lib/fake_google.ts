@@ -39,6 +39,7 @@ export type FakeEventInput = {
     recurrence?: string[];
     hangoutLink?: string;
     transparency?: 'opaque' | 'transparent';
+    eventType?: 'default' | 'focusTime';
 };
 
 export type FakeEvent = FakeEventInput & {id: string; iCalUID: string; status: string; organizer: {email: string}};

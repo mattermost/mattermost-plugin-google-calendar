@@ -6,7 +6,7 @@ import {expect, test} from '@mattermost/playwright-lib';
 import {viewEvents} from '../lib/events_api';
 import {fakeGoogle} from '../lib/fake_google';
 import {googleProfile, requireGoogle, seedConnectedGoogleUser} from '../lib/google/auth';
-import {allDayEvent, cleanupEvents, createFixtureEvent, dateIn, eventSummary} from '../lib/google/events';
+import {allDayEvent, cleanupEvents, createFixtureEvent, dateIn, eventSummary, timedEvent} from '../lib/google/events';
 import {googleMode} from '../lib/google/mode';
 import {resetConnections} from '../lib/kv';
 import {ensureGcalPlugin, googleOAuthSettings} from '../lib/plugin';
@@ -112,6 +112,45 @@ test('shows today\'s events and an event\'s details with the Meet link', {tag: '
 
     // * Verify the details are gone
     await expect(sidebar.tooltip).toBeHidden();
+});
+
+/**
+ * @objective Verify that the sidebar's events include focus time, and that events the user organizes without guests are accepted
+ *
+ * @precondition
+ * The user's Google connection is seeded directly into the plugin KV store
+ */
+test('returns focus time and guest-less own events as accepted', {tag: '@google_calendar'}, async ({pw}) => {
+    const {owner} = requireGoogle('owner');
+    test.skip(googleMode() === 'real', 'Fake Google only: focus time needs a Google Workspace account');
+
+    // # Put a solo block and a focus time event on today's calendar
+    const {adminClient, user, team} = await pw.initSetup();
+    await ensureGcalPlugin(adminClient, withSidebar());
+    await seedConnectedGoogleUser(user, owner);
+    const {timeZone} = await googleProfile(owner);
+    const today = dateIn(timeZone);
+    const block = eventSummary(runId, 'Solo block');
+    const focus = eventSummary(runId, 'Focus time');
+    await createFixtureEvent(owner, timedEvent(block, today, '09:00', '10:00', timeZone));
+    await createFixtureEvent(owner, timedEvent(focus, today, '14:00', '16:00', timeZone, {eventType: 'focusTime'}));
+
+    // # Log in and ask for today's events
+    const {channelsPage} = await pw.testBrowser.login(user);
+    await channelsPage.goto(team.name);
+    await channelsPage.toBeVisible();
+    const from = new Date(Date.now() - DAY);
+    const response = await viewEvents(channelsPage.page, from, new Date(from.getTime() + (2 * DAY)));
+
+    // * Verify both events are returned as accepted and organized by the user
+    expect(response.status()).toBe(200);
+    const events: Array<{subject: string; responseStatus?: {response?: string}; isOrganizer?: boolean}> = await response.json();
+    for (const summary of [block, focus]) {
+        const event = events.find((e) => e.subject === summary);
+        expect(event, summary).toBeDefined();
+        expect(event?.responseStatus?.response).toBe('accepted');
+        expect(event?.isOrganizer).toBe(true);
+    }
 });
 
 /**
