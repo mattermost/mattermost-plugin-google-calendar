@@ -163,6 +163,73 @@ func TestConvertGCalEventToRemoteEvent(t *testing.T) {
 				require.Equal(t, "example", event.Conference.Application)
 			},
 		},
+		{
+			Name: "self-organized event without attendees is accepted",
+			In: func() calendar.Event {
+				evt := createMinimalCalendarEvent()
+				evt.Organizer.Self = true
+				return evt
+			},
+			Check: func(t *testing.T, event *remote.Event) {
+				require.Equal(t, remote.EventResponseStatusAccepted, event.ResponseStatus.Response)
+				require.True(t, event.IsOrganizer)
+				require.False(t, event.ResponseRequested)
+			},
+		},
+		{
+			Name: "self-organized focus time event is accepted",
+			In: func() calendar.Event {
+				evt := createMinimalCalendarEvent()
+				evt.Summary = "Focus time"
+				evt.EventType = "focusTime"
+				evt.Transparency = GoogleEventBusy
+				evt.Organizer.Self = true
+				return evt
+			},
+			Check: func(t *testing.T, event *remote.Event) {
+				require.Equal(t, "Focus time", event.Subject)
+				require.Equal(t, RemoteEventBusy, event.ShowAs)
+				require.Equal(t, remote.EventResponseStatusAccepted, event.ResponseStatus.Response)
+				require.True(t, event.IsOrganizer)
+			},
+		},
+		{
+			Name: "organizer's own attendee response takes priority",
+			In: func() calendar.Event {
+				evt := createMinimalCalendarEvent()
+				evt.Organizer.Self = true
+				evt.Attendees = []*calendar.EventAttendee{
+					{Email: evt.Organizer.Email, Self: true, Organizer: true, ResponseStatus: GoogleResponseStatusNo},
+					{Email: "guest@mattermost.com", ResponseStatus: GoogleResponseStatusYes},
+				}
+				return evt
+			},
+			Check: func(t *testing.T, event *remote.Event) {
+				require.Equal(t, remote.EventResponseStatusDeclined, event.ResponseStatus.Response)
+				require.True(t, event.IsOrganizer)
+			},
+		},
+		{
+			Name: "event organized by someone else without attendees is not answered",
+			In:   createMinimalCalendarEvent,
+			Check: func(t *testing.T, event *remote.Event) {
+				require.Equal(t, remote.EventResponseStatusNotAnswered, event.ResponseStatus.Response)
+				require.False(t, event.IsOrganizer)
+			},
+		},
+		{
+			Name: "missing organizer does not panic",
+			In: func() calendar.Event {
+				evt := createMinimalCalendarEvent()
+				evt.Organizer = nil
+				return evt
+			},
+			Check: func(t *testing.T, event *remote.Event) {
+				require.Empty(t, event.Organizer.EmailAddress.Address)
+				require.Equal(t, remote.EventResponseStatusNotAnswered, event.ResponseStatus.Response)
+				require.False(t, event.IsOrganizer)
+			},
+		},
 	} {
 		t.Run(tc.Name, func(t *testing.T) {
 			event := tc.In()
