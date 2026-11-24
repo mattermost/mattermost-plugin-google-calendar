@@ -191,11 +191,12 @@ test('sends a reminder DM for an event starting in about ten minutes', {tag: '@g
         expect(Date.parse(timeMax) - Date.parse(timeMin)).toBe(10 * MINUTE);
     }
 
-    // * Verify the bot sends one reminder with the event and its location
+    // * Verify the bot sends one reminder with the event, its "h:mm AM - h:mm PM" time range and its location
     const botDM = new GcalBotDM(channelsPage);
     await botDM.open(team.name);
     const reminder = botDM.reminder(meeting);
     await expect(reminder).toHaveCount(1);
+    await expect(botDM.eventTimeLine(reminder)).toBeVisible();
     await expect(reminder).toContainText('Room 7');
 
     // * Verify the reminder links the Google Meet call (fake only)

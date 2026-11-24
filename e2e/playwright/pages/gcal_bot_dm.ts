@@ -48,7 +48,7 @@ export class GcalBotDM {
 
     /** The start-end time line of an event attachment, which depends on when the test runs. */
     eventTimeLine(post: Locator): Locator {
-        return post.getByText(/^\d{1,2}:\d{2}[AP]M - \d{1,2}:\d{2}[AP]M/);
+        return post.getByText(/^\d{1,2}:\d{2} [AP]M - \d{1,2}:\d{2} [AP]M/);
     }
 
     /** A setting in the settings panel the bot posts for `/gcal settings` (calendar/utils/settingspanel). */

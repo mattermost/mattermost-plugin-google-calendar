@@ -115,7 +115,7 @@ export class GcalCommand {
     }
 
     /**
-     * An event's row in an agenda reply's table: "| 9:00AM - 10:00AM | [summary](link) |", or
+     * An event's row in an agenda reply's table: "| 9:00 AM - 10:00 AM | [summary](link) |", or
      * "All day event" in the time column (engine/views/calendar.go renderEvent).
      */
     agendaRow(agenda: Locator, time: string, summary: string): Locator {
