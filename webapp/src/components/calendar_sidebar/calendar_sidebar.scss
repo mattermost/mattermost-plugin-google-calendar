@@ -59,6 +59,15 @@
         font-size: var(--font-size-75);
     }
 
+    .fc .fc-col-header-cell.fc-day-today {
+        background-color: var(--gcal-today-header-bg);
+
+        .fc-col-header-cell-cushion {
+            color: var(--gcal-today-header-color);
+            font-weight: var(--font-weight-semibold);
+        }
+    }
+
     .fc-theme-standard td,
     .fc-theme-standard th {
         border-color: var(--fc-border-color);
