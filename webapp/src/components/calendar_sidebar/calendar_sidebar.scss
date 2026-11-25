@@ -57,6 +57,13 @@
     .fc .fc-col-header-cell-cushion {
         color: inherit;
         font-size: var(--font-size-75);
+
+        &,
+        &:hover,
+        &:focus {
+            text-decoration: none;
+            cursor: default;
+        }
     }
 
     .fc .fc-col-header-cell.fc-day-today {
