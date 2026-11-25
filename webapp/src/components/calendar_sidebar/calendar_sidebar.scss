@@ -57,6 +57,22 @@
     .fc .fc-col-header-cell-cushion {
         color: inherit;
         font-size: var(--font-size-75);
+
+        &,
+        &:hover,
+        &:focus {
+            text-decoration: none;
+            cursor: default;
+        }
+    }
+
+    .fc .fc-col-header-cell.fc-day-today {
+        background-color: var(--gcal-today-header-bg);
+
+        .fc-col-header-cell-cushion {
+            color: var(--gcal-today-header-color);
+            font-weight: var(--font-weight-semibold);
+        }
     }
 
     .fc-theme-standard td,
